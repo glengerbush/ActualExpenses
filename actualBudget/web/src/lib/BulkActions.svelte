@@ -1,4 +1,5 @@
 <script lang="ts">
+  import RefreshIcon from "./RefreshIcon.svelte";
   import { t } from "./i18n.svelte";
   import { onMount } from "svelte";
   import {
@@ -32,6 +33,8 @@
     active = $bindable(false),
     onchanged,
     onclear,
+    onrefresh,
+    refreshDisabled = false,
   }: {
     budgetId: string;
     selected: Transaction[];
@@ -43,6 +46,8 @@
     active?: boolean;
     onchanged: (message: string) => Promise<void>;
     onclear: () => void;
+    onrefresh: () => Promise<void>;
+    refreshDisabled?: boolean;
   } = $props();
   interface History {
     undo: { id: string; label: string } | null;
@@ -97,12 +102,9 @@
     notice = $state("");
   let editing = $state(false),
     deleting = $state(false),
-    field = $state("cleared"),
+    field = $state("date"),
     value = $state("true"),
     date = $state(today());
-  let notesMode = $state("replace"),
-    find = $state(""),
-    useRegex = $state(false);
   let format = captureAmountFormat();
   let dateFormat = $state(preferences.shared.date_format);
   let ready = $derived(
@@ -245,15 +247,6 @@
                   ...(action === "update"
                     ? {
                         fields,
-                        ...(field === "notes"
-                          ? {
-                              notes: {
-                                mode: notesMode,
-                                find,
-                                use_regex: useRegex,
-                              },
-                            }
-                          : {}),
                       }
                     : {}),
                   ...(action === "duplicate"
@@ -356,20 +349,49 @@
 
 <svelte:window onkeydown={shortcut} />
 <div class="bulk-actions" aria-busy={busy || loading}>
-  <div class="controls">
+  <div class="controls history-controls">
     <button
+      class="icon-button"
       onclick={() => prepare("undo")}
       disabled={!ready || !history?.undo}
-      title={history?.undo?.label}>{t("Undo")}</button
+      aria-label={t("Undo")}
+      title={history?.undo?.label ?? t("Undo")}
+      ><svg
+        aria-hidden="true"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"><path d="m9 4-5 5 5 5M4 9h10a6 6 0 0 1 0 12" /></svg
+      ></button
     >
     <button
+      class="icon-button"
       onclick={() => prepare("redo")}
       disabled={!ready || !history?.redo}
-      title={history?.redo?.label}>{t("Redo")}</button
+      aria-label={t("Redo")}
+      title={history?.redo?.label ?? t("Redo")}
+      ><svg
+        aria-hidden="true"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        ><path d="m15 4 5 5-5 5M20 9H10a6 6 0 0 0 0 12" /></svg
+      ></button
     >
-    <button onclick={refresh} disabled={disabled || busy || !!saved}
-      >Refresh history</button
+    <button
+      class="icon-button"
+      onclick={onrefresh}
+      disabled={refreshDisabled || busy || !!saved}
+      aria-label="Refresh"
+      title="Refresh"><RefreshIcon /></button
     >
+  </div>
+  <div class="controls selection-controls">
     {#if selected.length}<strong aria-live="polite"
         >{selected.length} selected</strong
       >
@@ -394,10 +416,6 @@
       >
     {/if}
   </div>
-  {#if selected.some((row) => row.parent_id)}<p class="hint">
-      Split entries are selected individually. Duplicating any child copies its
-      whole split once. Change date or status by selecting the parent.
-    </p>{/if}
   {#if mergeReview}
     <section aria-label="Duplicate merge review">
       <h2>Merge two duplicate purchases</h2>
@@ -461,9 +479,7 @@
           bind:value={field}
           onchange={fieldChanged}
         >
-          <option value="cleared">Cleared status</option><option value="notes"
-            >{t("Notes")}</option
-          ><option value="date">{t("Date")}</option><option value="amount"
+          <option value="date">{t("Date")}</option><option value="amount"
             >{t("Amount")}</option
           ><option value="payee_id">{t("Payee")}</option><option
             value="category_id">{t("Category")}</option
@@ -476,26 +492,8 @@
             format={dateFormat}
             required
           />
-        {:else}{#if field === "notes"}<label for="bulk-notes-mode"
-              >Notes action</label
-            ><select id="bulk-notes-mode" bind:value={notesMode}
-              ><option value="replace">Replace notes</option><option
-                value="prepend">Prepend text</option
-              ><option value="append">Append text</option><option
-                value="find_replace">Find and replace</option
-              ></select
-            >{#if notesMode === "find_replace"}<label for="bulk-find"
-                >Find in notes</label
-              ><input id="bulk-find" bind:value={find} maxlength="2048" /><label
-                class="regex-choice"
-                ><input type="checkbox" bind:checked={useRegex} /> Use regular expression</label
-              >{/if}{/if}<label for="bulk-value">New value</label>
-          {#if field === "cleared"}<select id="bulk-value" bind:value
-              ><option value="true">{t("Cleared")}</option><option value="false"
-                >{t("Uncleared")}</option
-              ></select
-            >
-          {:else if ["account_id", "payee_id", "category_id"].includes(field)}<select
+        {:else}<label for="bulk-value">New value</label>
+          {#if ["account_id", "payee_id", "category_id"].includes(field)}<select
               id="bulk-value"
               bind:value
               required={field === "account_id"}
@@ -513,11 +511,6 @@
                   value={item.id}>{item.name}</option
                 >{/each}
             </select>
-          {:else if field === "notes"}<textarea
-              id="bulk-value"
-              bind:value
-              maxlength="10000"
-              rows="2"></textarea>
           {:else}<input
               id="bulk-value"
               bind:value
@@ -589,19 +582,28 @@
 
 <style>
   .bulk-actions {
-    border-block: 1px solid var(--line);
-    padding-block: 0.75rem;
-    margin-block: 1rem;
+    display: contents;
   }
-  .regex-choice {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 44px;
+  .bulk-actions > :not(.history-controls) {
+    grid-column: 1 / -1;
   }
-  .regex-choice input {
-    width: 1.25rem;
-    height: 1.25rem;
+  .history-controls {
+    grid-column: 3;
+    grid-row: 1;
+    gap: 0;
+    flex-wrap: nowrap;
+  }
+  .selection-controls:empty {
+    display: none;
+  }
+  .icon-button {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-color: transparent;
+    background: transparent;
   }
   .controls {
     display: flex;
@@ -627,12 +629,11 @@
     margin-inline: 0.5rem;
   }
   input,
-  select,
-  textarea {
+  select {
     max-width: 100%;
   }
   @media (max-width: 700px) {
-    .controls button {
+    .controls:not(.history-controls) button {
       flex: 1 1 auto;
     }
     .controls strong {

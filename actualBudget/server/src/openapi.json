@@ -1252,7 +1252,7 @@
             }
           }
         },
-        "description": "Only supplied fields change. Explicit null clears payee/category. Reconciled entries require unlocking in the reconciliation workflow. Deleted identities cannot be reused. Per-field newest HLC wins; independent fields merge and superseded fields are reported. Accepted/rejected-delete outcomes replay durably. Unpublished deletions older than any known field are rejected; published tombstones stay hidden while newer ordinary fields may still merge. No operation, clock, or tombstone retention expiry is applied."
+        "description": "Only supplied fields change. Explicit null clears payee/category. Manual entries are complete immediately; legacy cleared/reconciled inputs do not change their state. Deleted identities cannot be reused. Per-field newest HLC wins; independent fields merge and superseded fields are reported. Accepted/rejected-delete outcomes replay durably. Unpublished deletions older than any known field are rejected; published tombstones stay hidden while newer ordinary fields may still merge. No operation, clock, or tombstone retention expiry is applied."
       },
       "delete": {
         "parameters": [
@@ -6033,11 +6033,6 @@
                     "maxLength": 120,
                     "description": "Nonblank; no control characters."
                   },
-                  "notes": {
-                    "type": "string",
-                    "maxLength": 10000,
-                    "default": ""
-                  },
                   "group_id": {
                     "type": [
                       "string",
@@ -10078,1294 +10073,6 @@
         "description": "Atomic all-or-nothing management. Merge redirects retained identities and transaction references; transfer payees cannot be changed here. Removal retains history and imported text. Tag removal leaves note text unchanged. Stale bulk intents reject before any partial change."
       }
     },
-    "/api/v1/budgets/{budget}/tags": {
-      "get": {
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 100,
-              "minimum": 1,
-              "maximum": 1000
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "minimum": 0,
-              "maximum": 1000000
-            }
-          },
-          {
-            "name": "snapshot",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$ref": "#/components/schemas/ChangeCursor"
-            },
-            "description": "Guard against the checkpoint changing while loading. Retry complete bootstrap on snapshot_changed."
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "maxLength": 1000
-            }
-          },
-          {
-            "name": "include_deleted",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "include_hidden",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "include_transfers",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "unused",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Committed state or exact receipt replay",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Tag"
-                      }
-                    },
-                    "next_offset": {
-                      "anyOf": [
-                        {
-                          "type": "integer"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    }
-                  },
-                  "required": [
-                    "data",
-                    "next_offset"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128,
-              "pattern": "^[!-~]+$"
-            },
-            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
-          },
-          {
-            "name": "X-Actual-Budget-Epoch",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{32}$"
-            },
-            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
-          },
-          {
-            "name": "X-Actual-Edit-Clock",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Immutable intent HLC; stale fields retain their winning values and appear in conflicts."
-          },
-          {
-            "name": "X-Actual-Cancel-If-Uncommitted",
-            "in": "header",
-            "schema": {
-              "type": "string",
-              "const": "true"
-            },
-            "description": "Requires reference_cancellation capability. Send original method/path/key/body/clock/epoch unchanged. Replays committed receipt or durably fences this operation with operation_canceled."
-          },
-          {
-            "name": "X-Actual-History-Owner",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "format": "uuid",
-                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-                  },
-                  "tag": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 1000,
-                    "pattern": "^[^#\\s]+$"
-                  },
-                  "color": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "pattern": "^#[0-9A-Fa-f]{6}$"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "description": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "maxLength": 10000
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  }
-                },
-                "required": [
-                  "id",
-                  "tag"
-                ],
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Committed state or exact receipt replay",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/Tag"
-                    },
-                    "conflicts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/FieldConflict"
-                      }
-                    },
-                    "cursor": {
-                      "$ref": "#/components/schemas/ChangeCursor"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        },
-        "description": "Tag creation reuses an existing exact tag identity, including deleted tags, preserving its hidden state. Payee names are unique among active ordinary payees."
-      }
-    },
-    "/api/v1/budgets/{budget}/tags/{id}": {
-      "get": {
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Committed state or exact receipt replay",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/Tag"
-                    },
-                    "conflicts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/FieldConflict"
-                      }
-                    },
-                    "cursor": {
-                      "$ref": "#/components/schemas/ChangeCursor"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128,
-              "pattern": "^[!-~]+$"
-            },
-            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
-          },
-          {
-            "name": "X-Actual-Budget-Epoch",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{32}$"
-            },
-            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
-          },
-          {
-            "name": "X-Actual-Edit-Clock",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Immutable intent HLC; stale fields retain their winning values and appear in conflicts."
-          },
-          {
-            "name": "X-Actual-Cancel-If-Uncommitted",
-            "in": "header",
-            "schema": {
-              "type": "string",
-              "const": "true"
-            },
-            "description": "Requires reference_cancellation capability. Send original method/path/key/body/clock/epoch unchanged. Replays committed receipt or durably fences this operation with operation_canceled."
-          },
-          {
-            "name": "X-Actual-History-Owner",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "tag": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 1000,
-                    "pattern": "^[^#\\s]+$"
-                  },
-                  "color": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "pattern": "^#[0-9A-Fa-f]{6}$"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "description": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "maxLength": 10000
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "hidden": {
-                    "type": "boolean"
-                  }
-                },
-                "required": [],
-                "additionalProperties": false,
-                "minProperties": 1
-              }
-            }
-          }
-        },
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Committed state or exact receipt replay",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/Tag"
-                    },
-                    "conflicts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/FieldConflict"
-                      }
-                    },
-                    "cursor": {
-                      "$ref": "#/components/schemas/ChangeCursor"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        },
-        "description": "Tag identity is case sensitive. Rename rewrites exact unescaped #tokens in active transaction notes atomically. ## escapes tokens. Newer note clocks reject the entire rename."
-      }
-    },
-    "/api/v1/budgets/{budget}/tags/batch": {
-      "post": {
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128,
-              "pattern": "^[!-~]+$"
-            },
-            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
-          },
-          {
-            "name": "X-Actual-Budget-Epoch",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{32}$"
-            },
-            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
-          },
-          {
-            "name": "X-Actual-Edit-Clock",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Immutable intent HLC; stale fields retain their winning values and appear in conflicts."
-          },
-          {
-            "name": "X-Actual-Cancel-If-Uncommitted",
-            "in": "header",
-            "schema": {
-              "type": "string",
-              "const": "true"
-            },
-            "description": "Requires reference_cancellation capability. Send original method/path/key/body/clock/epoch unchanged. Replays committed receipt or durably fences this operation with operation_canceled."
-          },
-          {
-            "name": "X-Actual-History-Owner",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "oneOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "action": {
-                        "type": "string",
-                        "const": "hide"
-                      },
-                      "ids": {
-                        "type": "array",
-                        "items": {
-                          "type": "string",
-                          "format": "uuid",
-                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-                        },
-                        "uniqueItems": true,
-                        "minItems": 1,
-                        "maxItems": 1000
-                      }
-                    },
-                    "required": [
-                      "action",
-                      "ids"
-                    ],
-                    "additionalProperties": false
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "action": {
-                        "type": "string",
-                        "const": "show"
-                      },
-                      "ids": {
-                        "type": "array",
-                        "items": {
-                          "type": "string",
-                          "format": "uuid",
-                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-                        },
-                        "uniqueItems": true,
-                        "minItems": 1,
-                        "maxItems": 1000
-                      }
-                    },
-                    "required": [
-                      "action",
-                      "ids"
-                    ],
-                    "additionalProperties": false
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "action": {
-                        "type": "string",
-                        "const": "remove"
-                      },
-                      "ids": {
-                        "type": "array",
-                        "items": {
-                          "type": "string",
-                          "format": "uuid",
-                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-                        },
-                        "uniqueItems": true,
-                        "minItems": 1,
-                        "maxItems": 1000
-                      }
-                    },
-                    "required": [
-                      "action",
-                      "ids"
-                    ],
-                    "additionalProperties": false
-                  }
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Committed state or exact receipt replay",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "ids": {
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "format": "uuid",
-                            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-                          }
-                        },
-                        "action": {
-                          "type": "string",
-                          "enum": [
-                            "hide",
-                            "show",
-                            "remove"
-                          ]
-                        },
-                        "target_id": {
-                          "anyOf": [
-                            {
-                              "type": "string",
-                              "format": "uuid",
-                              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        }
-                      },
-                      "required": [
-                        "ids",
-                        "action",
-                        "target_id"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "conflicts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/FieldConflict"
-                      }
-                    },
-                    "cursor": {
-                      "$ref": "#/components/schemas/ChangeCursor"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        },
-        "description": "Atomic all-or-nothing management. Merge redirects retained identities and transaction references; transfer payees cannot be changed here. Removal retains history and imported text. Tag removal leaves note text unchanged. Stale bulk intents reject before any partial change."
-      }
-    },
-    "/api/v1/budgets/{budget}/tags/discover": {
-      "post": {
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128,
-              "pattern": "^[!-~]+$"
-            },
-            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
-          },
-          {
-            "name": "X-Actual-Budget-Epoch",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{32}$"
-            },
-            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
-          },
-          {
-            "name": "X-Actual-Edit-Clock",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Immutable intent HLC; stale fields retain their winning values and appear in conflicts."
-          },
-          {
-            "name": "X-Actual-Cancel-If-Uncommitted",
-            "in": "header",
-            "schema": {
-              "type": "string",
-              "const": "true"
-            },
-            "description": "Requires reference_cancellation capability. Send original method/path/key/body/clock/epoch unchanged. Replays committed receipt or durably fences this operation with operation_canceled."
-          },
-          {
-            "name": "X-Actual-History-Owner",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {},
-                "required": [],
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Committed state or exact receipt replay",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "created": {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/components/schemas/Tag"
-                          }
-                        }
-                      },
-                      "required": [
-                        "created"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "conflicts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/FieldConflict"
-                      }
-                    },
-                    "cursor": {
-                      "$ref": "#/components/schemas/ChangeCursor"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/budgets/{budget}/transactions/{id}/splits": {
       "post": {
         "parameters": [
@@ -13614,600 +12321,6 @@
         "description": "Link two existing unlinked opposite amounts in different accounts, retaining dates and cleared states and clearing categories. Reconciled and opening entries are rejected."
       }
     },
-    "/api/v1/budgets/{budget}/accounts/{id}/reconciliation": {
-      "get": {
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "statement_balance",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": -9007199254740991,
-              "maximum": 9007199254740991
-            },
-            "description": "Signed statement balance. Omitted defaults to current cleared balance."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Current live entry",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/ReconciliationProgress"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128,
-              "pattern": "^[!-~]+$"
-            },
-            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
-          },
-          {
-            "name": "X-Actual-Budget-Epoch",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{32}$"
-            },
-            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
-          },
-          {
-            "name": "X-Actual-Edit-Clock",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Immutable intent HLC; stale fields retain their winning values and appear in conflicts."
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "X-Actual-Cancel-If-Uncommitted",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            },
-            "description": "Requires advertised reconciliation_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
-          },
-          {
-            "name": "X-Actual-History-Owner",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Identity, epoch, or durable operation_canceled conflict"
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Committed state or exact durable receipt replay. Refresh state after a replay.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/ReconciliationProgress"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "action": {
-                    "type": "string",
-                    "enum": [
-                      "lock",
-                      "adjust"
-                    ]
-                  },
-                  "statement_balance": {
-                    "type": "integer",
-                    "minimum": -9007199254740991,
-                    "maximum": 9007199254740991
-                  },
-                  "snapshot": {
-                    "$ref": "#/components/schemas/ChangeCursor"
-                  },
-                  "date": {
-                    "type": "string",
-                    "format": "date"
-                  },
-                  "transaction_id": {
-                    "type": "string",
-                    "format": "uuid"
-                  }
-                },
-                "required": [
-                  "action",
-                  "statement_balance",
-                  "snapshot",
-                  "date"
-                ],
-                "additionalProperties": false,
-                "allOf": [
-                  {
-                    "if": {
-                      "properties": {
-                        "action": {
-                          "const": "adjust"
-                        }
-                      }
-                    },
-                    "then": {
-                      "required": [
-                        "transaction_id"
-                      ]
-                    },
-                    "else": {
-                      "not": {
-                        "required": [
-                          "transaction_id"
-                        ]
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        },
-        "description": "Atomically compare the current statement preview snapshot. Lock requires zero difference and marks every cleared entry reconciled, preserving uncleared rows; adjust creates one cleared ordinary entry for statement minus cleared balance. All accounts support adjustment. Negative debt signs are unchanged. Stable key, body, epoch and clock preserve exactly-once replay and cancellation."
-      }
-    },
-    "/api/v1/budgets/{budget}/transactions/{id}/unlock": {
-      "post": {
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128,
-              "pattern": "^[!-~]+$"
-            },
-            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
-          },
-          {
-            "name": "X-Actual-Budget-Epoch",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{32}$"
-            },
-            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
-          },
-          {
-            "name": "X-Actual-Edit-Clock",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Immutable intent HLC; stale fields retain their winning values and appear in conflicts."
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "X-Actual-Cancel-If-Uncommitted",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            },
-            "description": "Requires advertised reconciliation_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
-          },
-          {
-            "name": "X-Actual-History-Owner",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Identity, epoch, or durable operation_canceled conflict"
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Committed state or exact durable receipt replay. Refresh state after a replay.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/Transaction"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "reconciled_version": {
-                    "$ref": "#/components/schemas/EditClock"
-                  },
-                  "reconciled_versions": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "$ref": "#/components/schemas/EditClock"
-                    },
-                    "maxProperties": 101,
-                    "description": "Captured reconciled field version per affected parent/child ID. Every protected member must match, and request intent clock must be newer; never reuse another member proof."
-                  },
-                  "reconciliation_token": {
-                    "$ref": "#/components/schemas/ReconciliationToken"
-                  }
-                },
-                "additionalProperties": false,
-                "anyOf": [
-                  {
-                    "required": [
-                      "reconciled_version"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "reconciled_versions"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "reconciliation_token"
-                    ]
-                  }
-                ],
-                "description": "Prefer reconciliation_token from the public split read for constant-size aggregate unlock. Legacy ordinary reconciled_version and maps up to101 members remain supported. Every member must still match its protection and original intent-clock fence. Clears the whole split atomically, preserving cleared flags."
-              }
-            }
-          }
-        },
-        "description": "Explicitly remove reconciliation protection while retaining cleared status. Expected reconciled field version must match, and intent clock must exceed it. Keeps account last_reconciled history."
-      }
-    },
     "/api/v1/budgets/{budget}/budget": {
       "get": {
         "parameters": [
@@ -14357,7 +12470,7 @@
         }
       },
       "post": {
-        "description": "One atomic owned history action. A stale snapshot or any affected field with a newer original intent clock refuses the entire action. Original receipts replay before current preconditions; cancellation and receipt lookup retain original owner/epoch/clock/body/key. Both methods retain separate allocations; notes and holds are monthly. Copy previous skips hidden categories/groups and envelope income; copy year ends at December and the current planning horizon; carryover applies forward through that horizon. Positive envelope balances always carry. Hold amount is a delta; zero manual hold falls back to flagged income categories. Move/cover record month notes atomically.",
+        "description": "Atomic tracking allocation, carryover, copy or category-note action. Stale snapshots and newer field edits refuse the entire action. Original receipts replay before current preconditions. Copy year ends at December; carryover applies forward through the planning horizon.",
         "parameters": [
           {
             "name": "budget",
@@ -14457,37 +12570,11 @@
                       "set",
                       "carryover",
                       "copy_previous",
-                      "copy_year",
-                      "zero",
-                      "hold",
-                      "reset_hold",
-                      "move",
-                      "cover",
-                      "cover_overbudgeted",
-                      "notes",
-                      "category_notes",
-                      "method"
+                      "copy_year"
                     ]
                   },
                   "category": {
                     "type": "string"
-                  },
-                  "from": {
-                    "type": "string"
-                  },
-                  "to": {
-                    "type": "string"
-                  },
-                  "notes": {
-                    "type": "string",
-                    "maxLength": 10000
-                  },
-                  "method": {
-                    "type": "string",
-                    "enum": [
-                      "tracking",
-                      "envelope"
-                    ]
                   },
                   "month": {
                     "type": "string",
@@ -16599,11 +14686,6 @@
                     "type": "boolean",
                     "default": false
                   },
-                  "notes": {
-                    "type": "string",
-                    "maxLength": 10000,
-                    "default": ""
-                  },
                   "payee_id": {
                     "anyOf": [
                       {
@@ -17896,1027 +15978,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ScheduleConversionRequest"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/budgets/{budget}/budget/templates": {
-      "get": {
-        "description": "Read original category notes, effective source definitions and experimental preferences. No financial changes.",
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "month",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
-            }
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found; receipt-only lookup also returns operation_uncommitted when no matching operation identity is stored.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/Error"
-                    },
-                    {
-                      "$ref": "#/components/schemas/MutationConflict"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Confirmed result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "data"
-                  ],
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/BudgetAutomationView"
-                    },
-                    "edit_clock": {
-                      "$ref": "#/components/schemas/EditClock"
-                    },
-                    "cursor": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/budgets/{budget}/budget/templates/parse": {
-      "post": {
-        "description": "Read-only parse of note directives. Preserve original descriptions and line errors; no receipts, clocks or writes.",
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found; receipt-only lookup also returns operation_uncommitted when no matching operation identity is stored.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/Error"
-                    },
-                    {
-                      "$ref": "#/components/schemas/MutationConflict"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Confirmed result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "data"
-                  ],
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/BudgetTemplateParse"
-                    },
-                    "edit_clock": {
-                      "$ref": "#/components/schemas/EditClock"
-                    },
-                    "cursor": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "notes"
-                ],
-                "properties": {
-                  "notes": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/budgets/{budget}/budget/templates/preview": {
-      "post": {
-        "description": "Read-only exact-snapshot full application preview. Explicit category IDs force selection; default apply skips nonzero allocations. Errors prevent all command writes. With action=cleanup, preview all source-defined cleanup pools and exact warnings without writing definitions, allocating pool IDs randomly or changing the ledger.",
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found; receipt-only lookup also returns operation_uncommitted when no matching operation identity is stored.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/Error"
-                    },
-                    {
-                      "$ref": "#/components/schemas/MutationConflict"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Confirmed result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "data"
-                  ],
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/BudgetTemplatePreview"
-                    },
-                    "edit_clock": {
-                      "$ref": "#/components/schemas/EditClock"
-                    },
-                    "cursor": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "month",
-                  "snapshot"
-                ],
-                "properties": {
-                  "month": {
-                    "type": "string",
-                    "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
-                  },
-                  "snapshot": {
-                    "type": "string"
-                  },
-                  "category_ids": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "uuid"
-                    },
-                    "uniqueItems": true
-                  },
-                  "force": {
-                    "type": "boolean"
-                  },
-                  "action": {
-                    "const": "cleanup"
-                  }
-                },
-                "additionalProperties": false,
-                "allOf": [
-                  {
-                    "if": {
-                      "required": [
-                        "action"
-                      ],
-                      "properties": {
-                        "action": {
-                          "const": "cleanup"
-                        }
-                      }
-                    },
-                    "then": {
-                      "not": {
-                        "anyOf": [
-                          {
-                            "required": [
-                              "force"
-                            ]
-                          },
-                          {
-                            "required": [
-                              "category_ids"
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/budgets/{budget}/budget/templates/projection": {
-      "post": {
-        "description": "Read-only isolated category projection. Matches source per-directive contributions without available-funds priority clamping; distinct from full application preview. Invalid directives return structured errors and zero projection.",
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found; receipt-only lookup also returns operation_uncommitted when no matching operation identity is stored.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/Error"
-                    },
-                    {
-                      "$ref": "#/components/schemas/MutationConflict"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Confirmed result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "data"
-                  ],
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/BudgetTemplateProjection"
-                    },
-                    "edit_clock": {
-                      "$ref": "#/components/schemas/EditClock"
-                    },
-                    "cursor": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "month",
-                  "snapshot",
-                  "category_id",
-                  "templates"
-                ],
-                "properties": {
-                  "month": {
-                    "type": "string",
-                    "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
-                  },
-                  "snapshot": {
-                    "type": "string"
-                  },
-                  "category_id": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "templates": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/BudgetTemplate"
-                    },
-                    "maxItems": 256
-                  }
-                },
-                "additionalProperties": false
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/budgets/{budget}/budget/templates/commands": {
-      "post": {
-        "description": "Atomic owned command. Apply/overwrite exact plans; configure switches effective notes/UI definitions while retaining original notes. Capture snapshot, epoch, original edit clock, owner, key and body before send. Exact receipts replay before current preconditions; cancellation fences unknown operations, and receipt-only lookup never executes. Financial and configuration effects join one undo group; validation or stale state refuses all writes. Cleanup atomically persists note-derived pool definitions and month allocations, preserving source ordering, rounding and warnings. It does not change transactions. Migrate recomputes compatibility against the captured snapshot and original edit clock; commits only definition/source changes, retaining current financial cells. Incompatible migration refuses all changes. Pool creates or resolves a named cleanup pool without applying allocations or modifying transactions. An existing case-insensitive match preserves its ID and name.",
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128,
-              "pattern": "^[!-~]+$"
-            },
-            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
-          },
-          {
-            "name": "X-Actual-Edit-Clock",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "$ref": "#/components/schemas/EditClock"
-            },
-            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
-          },
-          {
-            "name": "X-Actual-Cancel-If-Uncommitted",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            },
-            "description": "Atomically return the original receipt or record terminal operation_canceled before any planning change."
-          },
-          {
-            "name": "X-Actual-Budget-Epoch",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{32}$"
-            },
-            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
-          },
-          {
-            "name": "X-Actual-Receipt-Only",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            },
-            "description": "Read the exact original planning receipt without executing an unknown operation."
-          },
-          {
-            "name": "X-Actual-History-Owner",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found; receipt-only lookup also returns operation_uncommitted when no matching operation identity is stored.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/Error"
-                    },
-                    {
-                      "$ref": "#/components/schemas/MutationConflict"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Confirmed result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "data"
-                  ],
-                  "properties": {
-                    "data": {
-                      "oneOf": [
-                        {
-                          "$ref": "#/components/schemas/BudgetPlan"
-                        },
-                        {
-                          "type": "object",
-                          "required": [
-                            "category",
-                            "snapshot",
-                            "epoch"
-                          ],
-                          "properties": {
-                            "category": {
-                              "$ref": "#/components/schemas/BudgetAutomationCategory"
-                            },
-                            "snapshot": {
-                              "type": "string"
-                            },
-                            "epoch": {
-                              "type": "string"
-                            }
-                          }
-                        },
-                        {
-                          "$ref": "#/components/schemas/BudgetCleanupPoolResult"
-                        }
-                      ]
-                    },
-                    "edit_clock": {
-                      "$ref": "#/components/schemas/EditClock"
-                    },
-                    "cursor": {
-                      "type": "string"
-                    },
-                    "notification": {
-                      "$ref": "#/components/schemas/BudgetCleanupNotification"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BudgetTemplateCommand"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/budgets/{budget}/budget/templates/migration-preview": {
-      "post": {
-        "description": "Read-only source migration proposal at the exact snapshot. Preserve ordinary prose while replacing inactive directives. Compare full forced monthly application and retained semantics; incompatible conversions report actionable issues and cannot be committed. Before/after cells are hypothetical; preview never writes.",
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-            }
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found; receipt-only lookup also returns operation_uncommitted when no matching operation identity is stored.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/Error"
-                    },
-                    {
-                      "$ref": "#/components/schemas/MutationConflict"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Body exceeds 65536 bytes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "JSON content type required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed; no partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Confirmed result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "data"
-                  ],
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/BudgetTemplateMigrationPreview"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BudgetTemplateMigrationRequest"
               }
             }
           }
@@ -21834,7 +18895,7 @@
     "/api/v1/budgets/{budget}/notes/commands": {
       "post": {
         "summary": "Write a captured note with immutable receipt/history identity",
-        "description": "Snapshot, original HLC, epoch and optional owner. Empty clears without deleting identity. Domain fields remain authoritative; inactive history markers stay private. Fresh writes revive month notes with retained buffered values. Old-generation exact receipts replay before epoch checks; changed epoch conflicts. Receipt-only and cancel reuse original request. Explicit native reference-ID collision refuses rather than hiding standalone text.",
+        "description": "Snapshot, original HLC, epoch and optional owner. Empty clears without deleting identity. Domain fields remain authoritative; inactive history markers stay private. Budget and month note identities are retired and reject writes. Old-generation exact receipts replay before epoch checks; changed epoch conflicts. Receipt-only and cancel reuse original request. Explicit native reference-ID collision refuses rather than hiding standalone text.",
         "parameters": [
           {
             "name": "budget",
@@ -22851,8 +19912,7 @@
           "budget_type": {
             "type": "string",
             "enum": [
-              "tracking",
-              "envelope"
+              "tracking"
             ],
             "default": "tracking"
           },
@@ -22911,8 +19971,7 @@
           "budget_type": {
             "type": "string",
             "enum": [
-              "tracking",
-              "envelope"
+              "tracking"
             ],
             "default": "tracking"
           }
@@ -22936,11 +19995,6 @@
             "minLength": 1,
             "maxLength": 120,
             "description": "Nonblank; no control characters."
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000,
-            "default": ""
           },
           "off_budget": {
             "type": "boolean",
@@ -22985,7 +20039,6 @@
         "required": [
           "id",
           "name",
-          "notes",
           "off_budget",
           "closed",
           "balance",
@@ -23006,11 +20059,6 @@
             "minLength": 1,
             "maxLength": 120,
             "description": "Nonblank; no control characters."
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000,
-            "default": ""
           },
           "off_budget": {
             "type": "boolean",
@@ -23122,10 +20170,6 @@
                 "type": "null"
               }
             ]
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000
           },
           "account_name": {
             "type": "string"
@@ -23239,6 +20283,10 @@
           },
           "pending": {
             "const": true
+          },
+          "recurrence": {
+            "type": "object",
+            "description": "Linked recurrence, including completed series and preserved imported configuration."
           }
         },
         "required": [
@@ -23254,7 +20302,6 @@
           "category_id",
           "category_name",
           "category_is_income",
-          "notes",
           "account_name"
         ],
         "additionalProperties": false
@@ -23357,6 +20404,14 @@
           "is_income": {
             "type": "boolean",
             "default": false
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "description": "Null uses the automatic group/category color."
           }
         },
         "required": [
@@ -23467,12 +20522,8 @@
           },
           "hidden": {
             "type": "boolean",
-            "default": false
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000,
-            "default": ""
+            "default": false,
+            "description": "Retired compatibility field; always false."
           },
           "sort_order": {
             "type": [
@@ -23494,13 +20545,22 @@
             "format": "uuid"
           },
           "group_hidden": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Retired compatibility field; always false."
           },
           "field_versions": {
             "type": "object",
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "description": "Null uses the automatic group/category color."
           }
         },
         "required": [
@@ -23537,11 +20597,6 @@
             "type": "boolean",
             "default": false
           },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000,
-            "default": ""
-          },
           "payee_id": {
             "anyOf": [
               {
@@ -23575,6 +20630,9 @@
           "learn_categories": {
             "type": "boolean",
             "description": "Explicit manual category-write evidence only; omitted/false never learns. Requires enabled global and per-payee learning. Inferred rule results must not set this flag."
+          },
+          "recurrence": {
+            "$ref": "#/components/schemas/TransactionRecurrence"
           }
         },
         "required": [
@@ -23606,11 +20664,6 @@
           "cleared": {
             "type": "boolean",
             "default": false
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000,
-            "default": ""
           },
           "payee_id": {
             "anyOf": [
@@ -23660,6 +20713,9 @@
           "learn_categories": {
             "type": "boolean",
             "description": "Explicit manual category-write evidence only; omitted/false never learns. Requires enabled global and per-payee learning. Inferred rule results must not set this flag."
+          },
+          "recurrence": {
+            "$ref": "#/components/schemas/TransactionRecurrence"
           }
         },
         "required": [],
@@ -23908,12 +20964,6 @@
               "newSidebarUI": {
                 "type": "boolean"
               },
-              "goalTemplatesEnabled": {
-                "type": "boolean"
-              },
-              "goalTemplatesUIEnabled": {
-                "type": "boolean"
-              },
               "actionTemplating": {
                 "type": "boolean"
               },
@@ -23944,8 +20994,6 @@
             },
             "required": [
               "newSidebarUI",
-              "goalTemplatesEnabled",
-              "goalTemplatesUIEnabled",
               "actionTemplating",
               "formulaMode",
               "currency",
@@ -24136,12 +21184,6 @@
                   "newSidebarUI": {
                     "type": "boolean"
                   },
-                  "goalTemplatesEnabled": {
-                    "type": "boolean"
-                  },
-                  "goalTemplatesUIEnabled": {
-                    "type": "boolean"
-                  },
                   "actionTemplating": {
                     "type": "boolean"
                   },
@@ -24299,12 +21341,6 @@
                   "newSidebarUI": {
                     "type": "boolean"
                   },
-                  "goalTemplatesEnabled": {
-                    "type": "boolean"
-                  },
-                  "goalTemplatesUIEnabled": {
-                    "type": "boolean"
-                  },
                   "actionTemplating": {
                     "type": "boolean"
                   },
@@ -24335,8 +21371,6 @@
                 },
                 "required": [
                   "newSidebarUI",
-                  "goalTemplatesEnabled",
-                  "goalTemplatesUIEnabled",
                   "actionTemplating",
                   "formulaMode",
                   "currency",
@@ -25671,15 +22705,6 @@
             "format": "uuid",
             "description": "Preserved Actual group IDs may include uppercase hexadecimal."
           },
-          "hidden": {
-            "type": "boolean",
-            "default": false
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000,
-            "default": ""
-          },
           "sort_order": {
             "type": [
               "number",
@@ -25717,15 +22742,6 @@
             "format": "uuid",
             "description": "Preserved Actual group IDs may include uppercase hexadecimal."
           },
-          "hidden": {
-            "type": "boolean",
-            "default": false
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000,
-            "default": ""
-          },
           "sort_order": {
             "type": [
               "number",
@@ -25734,6 +22750,14 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991,
             "default": 0
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "description": "Null uses the automatic group/category color."
           }
         },
         "minProperties": 1,
@@ -25756,15 +22780,6 @@
           "is_income": {
             "type": "boolean",
             "default": false
-          },
-          "hidden": {
-            "type": "boolean",
-            "default": false
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000,
-            "default": ""
           },
           "sort_order": {
             "type": [
@@ -25795,15 +22810,6 @@
             "type": "boolean",
             "default": false
           },
-          "hidden": {
-            "type": "boolean",
-            "default": false
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000,
-            "default": ""
-          },
           "sort_order": {
             "type": [
               "number",
@@ -25812,6 +22818,14 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991,
             "default": 0
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "description": "Null uses the automatic group/category color."
           }
         },
         "minProperties": 1,
@@ -25916,11 +22930,6 @@
             "type": "boolean",
             "default": false
           },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000,
-            "default": ""
-          },
           "category_id": {
             "anyOf": [
               {
@@ -26016,10 +23025,6 @@
                 "type": "null"
               }
             ]
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000
           },
           "transfer_account_id": {
             "type": [
@@ -26207,7 +23212,6 @@
               "payee_name",
               "category_name",
               "category_group_name",
-              "notes",
               "date",
               "amount",
               "cleared",
@@ -26280,7 +23284,6 @@
               "payee",
               "category",
               "account",
-              "notes",
               "cleared",
               "reconciled"
             ],
@@ -26357,7 +23360,6 @@
                       "date",
                       "account",
                       "payee",
-                      "notes",
                       "group",
                       "category",
                       "amount",
@@ -26471,33 +23473,6 @@
             "maxItems": 100,
             "uniqueItems": true,
             "description": "Required only for duplicate; one stable new parent ID per selected ID. Server-generated split children replay from receipt."
-          },
-          "notes": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "mode"
-            ],
-            "properties": {
-              "mode": {
-                "type": "string",
-                "enum": [
-                  "replace",
-                  "prepend",
-                  "append",
-                  "find_replace"
-                ]
-              },
-              "find": {
-                "type": "string",
-                "maxLength": 2048
-              },
-              "use_regex": {
-                "type": "boolean",
-                "default": false
-              }
-            },
-            "description": "Applies fields.notes as replacement/text. Find-and-replace uses ECMAScript global non-u replacement semantics with bounded work. Invalid/over-complex patterns reject atomically."
           }
         },
         "allOf": [
@@ -26550,9 +23525,7 @@
           },
           {
             "if": {
-              "required": [
-                "notes"
-              ]
+              "required": []
             },
             "then": {
               "properties": {
@@ -26560,9 +23533,7 @@
                   "const": "update"
                 },
                 "fields": {
-                  "required": [
-                    "notes"
-                  ]
+                  "required": []
                 }
               }
             }
@@ -26665,11 +23636,6 @@
           "cleared": {
             "type": "boolean",
             "default": false
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000,
-            "default": ""
           },
           "payee_id": {
             "anyOf": [
@@ -26832,8 +23798,7 @@
           "method": {
             "type": "string",
             "enum": [
-              "tracking",
-              "envelope"
+              "tracking"
             ]
           },
           "snapshot": {
@@ -26852,16 +23817,12 @@
               "required": [
                 "month",
                 "summary",
-                "categories",
-                "notes"
+                "categories"
               ],
               "properties": {
                 "month": {
                   "type": "string",
                   "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
-                },
-                "notes": {
-                  "type": "string"
                 },
                 "summary": {
                   "type": "object",
@@ -26920,9 +23881,6 @@
                           "string",
                           "null"
                         ]
-                      },
-                      "notes": {
-                        "type": "string"
                       }
                     }
                   }
@@ -26943,7 +23901,6 @@
               "payee",
               "category",
               "category_group",
-              "notes",
               "imported_payee",
               "payee_name",
               "amount",
@@ -27005,8 +23962,6 @@
             "type": "string",
             "enum": [
               "set",
-              "prepend-notes",
-              "append-notes",
               "delete-transaction",
               "set-split-amount",
               "link-schedule"
@@ -27018,7 +23973,6 @@
               "category",
               "payee",
               "payee_name",
-              "notes",
               "cleared",
               "account",
               "date",
@@ -27331,10 +24285,6 @@
               }
             ]
           },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000
-          },
           "account_name": {
             "type": "string"
           },
@@ -27425,6 +24375,9 @@
               "exact_money_range"
             ],
             "description": "Present only when an intermediate running balance cannot be represented as an exact safe JSON integer; page and final totals remain available."
+          },
+          "recurrence": {
+            "$ref": "#/components/schemas/TransactionRecurrence"
           }
         },
         "required": [
@@ -27440,7 +24393,6 @@
           "category_id",
           "category_name",
           "category_is_income",
-          "notes",
           "account_name"
         ],
         "additionalProperties": false
@@ -29265,7 +26217,6 @@
         "required": [
           "id",
           "name",
-          "notes",
           "source",
           "templates",
           "cleanup",
@@ -29282,12 +26233,8 @@
           "name": {
             "type": "string"
           },
-          "notes": {
-            "type": "string"
-          },
           "source": {
             "enum": [
-              "notes",
               "ui"
             ]
           },
@@ -29342,7 +26289,6 @@
           },
           "method": {
             "enum": [
-              "envelope",
               "tracking"
             ]
           },
@@ -29394,7 +26340,6 @@
           "long_goal",
           "applies",
           "clear_goal",
-          "notes",
           "per_template"
         ],
         "properties": {
@@ -29443,9 +26388,6 @@
           "clear_goal": {
             "type": "boolean"
           },
-          "notes": {
-            "type": "string"
-          },
           "per_template": {
             "type": "array",
             "items": {
@@ -29474,7 +26416,6 @@
           },
           "method": {
             "enum": [
-              "envelope",
               "tracking"
             ]
           },
@@ -29621,7 +26562,6 @@
               },
               "source": {
                 "enum": [
-                  "notes",
                   "ui"
                 ]
               },
@@ -29706,13 +26646,8 @@
               },
               "target_source": {
                 "enum": [
-                  "ui",
-                  "notes"
+                  "ui"
                 ]
-              },
-              "notes": {
-                "type": "string",
-                "description": "Optional reviewed replacement notes. The server rechecks semantic equivalence before committing."
               },
               "action": {
                 "const": "migrate"
@@ -29857,13 +26792,8 @@
           },
           "target_source": {
             "enum": [
-              "ui",
-              "notes"
+              "ui"
             ]
-          },
-          "notes": {
-            "type": "string",
-            "description": "Optional reviewed replacement notes. The server rechecks semantic equivalence before committing."
           }
         }
       },
@@ -29873,7 +26803,6 @@
           "category_id",
           "current_source",
           "target_source",
-          "notes",
           "rendered_directives",
           "templates",
           "cleanup",
@@ -29893,18 +26822,13 @@
           },
           "current_source": {
             "enum": [
-              "ui",
-              "notes"
+              "ui"
             ]
           },
           "target_source": {
             "enum": [
-              "ui",
-              "notes"
+              "ui"
             ]
-          },
-          "notes": {
-            "type": "string"
           },
           "rendered_directives": {
             "type": "string"
@@ -30019,7 +26943,6 @@
           },
           "method": {
             "enum": [
-              "envelope",
               "tracking"
             ]
           }
@@ -30406,16 +27329,6 @@
               }
             ]
           },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "category": {
             "anyOf": [
               {
@@ -30716,9 +27629,6 @@
             "type": "string",
             "format": "date"
           },
-          "notes": {
-            "type": "string"
-          },
           "cleared": {
             "type": "boolean"
           },
@@ -30834,7 +27744,6 @@
           "account_id",
           "amount",
           "date",
-          "notes",
           "cleared",
           "payee_id",
           "category_id",
@@ -30929,10 +27838,6 @@
                 "type": "null"
               }
             ]
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000
           },
           "account_name": {
             "type": "string"
@@ -31065,7 +27970,6 @@
           "category_id",
           "category_name",
           "category_is_income",
-          "notes",
           "account_name"
         ],
         "additionalProperties": false
@@ -31392,10 +28296,6 @@
               }
             ]
           },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000
-          },
           "account_name": {
             "type": "string"
           },
@@ -31524,7 +28424,6 @@
           "category_id",
           "category_name",
           "category_is_income",
-          "notes",
           "account_name",
           "deleted"
         ],
@@ -31869,8 +28768,7 @@
               },
               "budgetType": {
                 "enum": [
-                  "tracking",
-                  "envelope"
+                  "tracking"
                 ]
               },
               "range": {
@@ -32565,9 +29463,6 @@
                 "category": {
                   "type": "string"
                 },
-                "notes": {
-                  "type": "string"
-                },
                 "account_id": {
                   "type": [
                     "string",
@@ -32583,7 +29478,6 @@
                 "account",
                 "payee",
                 "category",
-                "notes",
                 "account_id"
               ]
             },
@@ -33517,7 +30411,6 @@
           "method": {
             "type": "string",
             "enum": [
-              "envelope",
               "tracking"
             ]
           },
@@ -34456,8 +31349,7 @@
           "method": {
             "type": "string",
             "enum": [
-              "tracking",
-              "envelope"
+              "tracking"
             ]
           }
         },
@@ -34585,9 +31477,6 @@
             ]
           },
           "payee_name": {
-            "type": "string"
-          },
-          "notes": {
             "type": "string"
           },
           "parent_id": {
@@ -34730,7 +31619,6 @@
           "category_groups",
           "rules",
           "schedules",
-          "notes",
           "budget_cells"
         ]
       },
@@ -37532,6 +34420,63 @@
         "required": [
           "data"
         ]
+      },
+      "TransactionRecurrence": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "enabled",
+          "config"
+        ],
+        "description": "Saved atomically with an ordinary transaction. Enabled creates/updates automatic repeats; disabled stops future repeats. Existing entries remain unchanged.",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "config": {
+            "type": "object",
+            "required": [
+              "start",
+              "frequency"
+            ],
+            "properties": {
+              "start": {
+                "type": "string",
+                "format": "date"
+              },
+              "frequency": {
+                "type": "string",
+                "enum": [
+                  "daily",
+                  "weekly",
+                  "monthly",
+                  "yearly"
+                ]
+              },
+              "interval": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000
+              },
+              "endMode": {
+                "type": "string",
+                "enum": [
+                  "never",
+                  "on_date",
+                  "after_n_occurrences"
+                ]
+              },
+              "endDate": {
+                "type": "string",
+                "format": "date"
+              },
+              "endOccurrences": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        }
       }
     }
   }

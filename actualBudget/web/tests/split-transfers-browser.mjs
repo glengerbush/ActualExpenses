@@ -1,3 +1,4 @@
+import { transactionAction, transactionRows } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
@@ -61,9 +62,9 @@ try {
     .filter({ hasText: "Split transfers" })
     .click();
   await page.getByRole("button", { name: "Checking", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Split transaction", exact: true })
-    .click();
+  await (
+    await transactionAction(page, { name: "Split transaction", exact: true })
+  ).click();
   await page.getByLabel("Split 1 amount", { exact: true }).fill("-6.00");
   await page.getByLabel("Split 2 amount", { exact: true }).fill("-4.00");
   await page
@@ -145,7 +146,9 @@ try {
   await expect(
     page.getByRole("button", { name: "Link transfer", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await (
+    await transactionAction(page, { name: "Edit splits", exact: true })
+  ).click();
   await expect(
     page.getByLabel("Split 1 transfer to", { exact: true }),
   ).toHaveValue(card);
@@ -157,9 +160,9 @@ try {
   expect((await call(base + `/transactions/${peer.id}`)).data.amount).toBe(700);
   await page.getByRole("button", { name: "Credit card", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Split transaction", exact: true }),
+    await transactionAction(page, { name: "Split transaction", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: /^Edit / }).click();
+  await transactionRows(page, { name: /^Edit / }).click();
   await page.getByLabel("Amount", { exact: true }).fill("8.00");
   await page
     .getByRole("button", { name: "Save transfer", exact: true })

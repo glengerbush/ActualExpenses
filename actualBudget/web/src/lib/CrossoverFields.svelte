@@ -133,14 +133,6 @@
         })}
     />{t("Use default expense categories")}</label
   >
-  <label class="check"
-    ><input
-      type="checkbox"
-      checked={meta.showHiddenCategories === true}
-      onchange={(e) =>
-        onchange({ showHiddenCategories: e.currentTarget.checked })}
-    />{t("Show hidden categories")}</label
-  >
   <label
     >{t("Expenses categories")}<select
       multiple
@@ -153,16 +145,8 @@
           ),
         })}
     >
-      {#each categories.filter((c) => (!c.hidden || meta.showHiddenCategories === true || selectedCategories.includes(c.id)) && (!c.is_income || selectedCategories.includes(c.id))) as category (category.id)}<option
-          value={category.id}
-          >{category.name}{category.hidden
-            ? " · " +
-              t(
-                meta.showHiddenCategories === true
-                  ? "Hidden"
-                  : "Hidden; excluded from calculation",
-              )
-            : ""}</option
+      {#each categories.filter((c) => !c.is_income || selectedCategories.includes(c.id)) as category (category.id)}<option
+          value={category.id}>{category.name}</option
         >{/each}
       {#each selectedCategories.filter((id) => !categories.some((c) => c.id === id)) as id (id)}<option
           value={id}

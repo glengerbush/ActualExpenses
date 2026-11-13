@@ -22,7 +22,8 @@ struct Options {
     #[serde(default = "and")]
     conditions_op: String,
     #[serde(default)]
-    show_hidden_categories: bool,
+    #[serde(rename = "showHiddenCategories")]
+    _legacy_show_hidden_categories: bool,
 }
 fn and() -> String {
     "and".into()
@@ -61,7 +62,7 @@ fn selection(db: &Connection, b: &str, options: &Options) -> Result<Vec<Category
     if count > 5000 {
         return Err(Error::invalid("Analysis permits5000 active categories"));
     }
-    let mut rows=db.prepare("SELECT c.id,c.name,c.group_id,g.name,COALESCE(g.is_income,0) FROM categories c LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE c.budget_id=?1 AND c.tombstone=0 AND c.is_income=0 AND (?2 OR c.hidden=0) ORDER BY c.id LIMIT 5001")?.query_map(params![b,options.show_hidden_categories],|r|Ok(Category{id:r.get(0)?,name:r.get(1)?,group:r.get(2)?,group_name:r.get(3)?,income_group:r.get(4)?}))?.collect::<Result<Vec<_>,_>>()?;
+    let mut rows=db.prepare("SELECT c.id,c.name,c.group_id,g.name,COALESCE(g.is_income,0) FROM categories c LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE c.budget_id=?1 AND c.tombstone=0 AND c.is_income=0 ORDER BY c.id LIMIT 5001")?.query_map(params![b],|r|Ok(Category{id:r.get(0)?,name:r.get(1)?,group:r.get(2)?,group_name:r.get(3)?,income_group:r.get(4)?}))?.collect::<Result<Vec<_>,_>>()?;
     if rows.len() > 5000 {
         return Err(Error::invalid(
             "Analysis permits5000 expense categories; narrow the dataset",
@@ -264,7 +265,7 @@ fn calculate(db: &Connection, b: &str, q: &Request, start: i32, end: i32) -> Res
     let mut assumptions = vec![
         json!({"code":"monthly","message":"Monthly planned allocations and signed recorded entries, including future-dated records. This analysis does not change the budget."}),
         json!({"code":"carry","message":"Running balances start from prior category cells. Positive cell balances carry; negative cells carry only when rollover is enabled. Resets appear as the next month’s positive overspending adjustment; the first adjustment is zero."}),
-        json!({"code":"filters","message":"Only category and category-group conditions affect this analysis. Other saved conditions are retained and ignored. Income categories are excluded; hidden categories follow the selected option. A hidden group alone does not hide its visible categories."}),
+        json!({"code":"filters","message":"Only category and category-group conditions affect this analysis. Other saved conditions are retained and ignored. Income categories are excluded. All expense categories are included."}),
     ];
     if categories.iter().any(|category| category.income_group) {
         assumptions.push(json!({"code":"income_group","message":"Expense categories stored in an income group contribute recorded amounts, but no planned allocation or rollover values, matching the source report."}));
@@ -303,7 +304,7 @@ async fn read(
     let value=store.run(move|db|{let tx=db.transaction()?;super::sql_work::run(&tx, || {let prefs=crate::preferences::get_preferences(&tx,&b)?;if prefs["experimental"]["budgetAnalysisReport"]!=true{return Err(Error::new(StatusCode::CONFLICT,"feature_disabled","Enable Budget analysis in experimental settings before calculating it"));}
   let method:String=tx.query_row("SELECT budget_type FROM budgets WHERE id=?1",[&b],|r|r.get(0))?;let revision:i64=tx.query_row("SELECT COALESCE(max(sequence),0) FROM budget_changes WHERE budget_id=?1 AND (entity IN ('transactions','accounts','categories','category_groups','budget_cells') OR (entity='budget_settings' AND entity_id='method'))",[&b],|r|r.get(0))?;let epoch=crate::lifecycle::epoch(&tx,&b)?;let revision=format!("a1{epoch}{revision:016x}:{method}");let key=format!("{b}:{revision}:{signature}");
   if let Some(mut value)=cache.lock().map_err(Error::internal)?.get(&key){value["cache"]["hit"]=json!(true);value["snapshot"]=json!(sync::cursor(&tx,&b)?);return Ok(value);}
-  let mut value=calculate(&tx,&b,&q,start,end)?;value["method"]=json!(method);value["assumptions"].as_array_mut().unwrap().push(json!({"code":"method","message":if method=="tracking"{"Tracking budgets use tracking category plans and rollover flags. This report then applies its own source running-balance rules, so totals can differ from the budget summary."}else{"Envelope budgets use envelope category plans and rollover flags. The report excludes income categories and follows each category’s carryover."}}));value["cache"]=json!({"hit":false,"input_revision":revision});if value.to_string().len()>8*1024*1024{return Err(Error::invalid("Analysis exceeds8MiB; shorten the range or reduce categories"));}cache.lock().map_err(Error::internal)?.put(key,value.clone());Ok(value)
+  let mut value=calculate(&tx,&b,&q,start,end)?;value["method"]=json!(method);value["assumptions"].as_array_mut().unwrap().push(json!({"code":"method","message":"Monthly category plans and rollover flags use this report’s running-balance rules; totals can differ from the budget summary."}));value["cache"]=json!({"hit":false,"input_revision":revision});if value.to_string().len()>8*1024*1024{return Err(Error::invalid("Analysis exceeds8MiB; shorten the range or reduce categories"));}cache.lock().map_err(Error::internal)?.put(key,value.clone());Ok(value)
  })}).await?;
     Ok(Json(json!({"data":value})))
 }

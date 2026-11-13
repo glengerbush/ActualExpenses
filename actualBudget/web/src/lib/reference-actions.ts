@@ -13,7 +13,7 @@ export interface ReferenceDraft {
   budget: string;
   revision: string;
   epoch: string;
-  kind: "payees" | "tags";
+  kind: "payees";
   selected: string[];
   editing: string;
   name: string;
@@ -28,12 +28,17 @@ export function readReferenceDraft(budget: string): ReferenceDraft | null {
   const raw = localStorage.getItem(referenceDraftKey(budget));
   if (!raw) return null;
   const value = JSON.parse(raw) as ReferenceDraft;
+  if ((value as { kind: string }).kind === "tags") {
+    localStorage.setItem(referenceDraftKey(budget) + ".retired", raw);
+    localStorage.removeItem(referenceDraftKey(budget));
+    return null;
+  }
   if (
     value?.version !== 1 ||
     value.budget !== budget ||
     typeof value.revision !== "string" ||
     typeof value.epoch !== "string" ||
-    !["payees", "tags"].includes(value.kind) ||
+    value.kind !== "payees" ||
     !Array.isArray(value.selected) ||
     !value.selected.every((id) => typeof id === "string") ||
     !["editing", "name", "color", "description", "target"].every(
@@ -47,7 +52,7 @@ export function readReferenceDraft(budget: string): ReferenceDraft | null {
         !["POST", "PATCH"].includes(value.pending.method)))
   )
     throw new Error(
-      "Saved payee or tag changes are unreadable. Keep this browser data for recovery.",
+      "Saved payee changes are unreadable. Keep this browser data for recovery.",
     );
   return value;
 }

@@ -76,7 +76,7 @@ try {
     .filter({ hasText: "Transfer register" })
     .click();
   await page.getByRole("button", { name: "Checking", exact: true }).click();
-  await page.getByText("Filters and columns", { exact: true }).click();
+  await page.locator('summary[aria-label="Filters and columns"]').click();
   await page
     .getByRole("button", { name: "Add condition", exact: true })
     .click();
@@ -111,9 +111,7 @@ try {
   }
   await call(root + "/accounts/" + card, { name: "Renamed card" }, "PATCH");
   await call(root + "/payees/" + ordinary, { name: "Renamed bakery" }, "PATCH");
-  await page
-    .getByRole("button", { name: "Refresh transactions", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(value.locator(`option[value="${transferPayee.id}"]`)).toHaveText(
     "Renamed card",
   );

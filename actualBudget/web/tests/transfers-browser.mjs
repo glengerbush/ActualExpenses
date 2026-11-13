@@ -1,3 +1,4 @@
+import { transactionRows } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
@@ -103,12 +104,13 @@ try {
   let other = rows.find((r) => r.account_id === card);
   expect(source.transfer_id).toBe(other.id);
   expect(other.amount).toBe(2500);
-  await page
-    .locator(".register-table tbody tr")
-    .filter({ hasText: "Card payment" })
-    .first()
-    .getByRole("button", { name: /^Edit / })
-    .click();
+  await transactionRows(
+    page
+      .locator(".register-table tbody tr")
+      .filter({ hasText: "Card payment" })
+      .first(),
+    { name: /^Edit / },
+  ).click();
   await expect(
     page.getByRole("heading", { name: "Edit transfer" }),
   ).toBeVisible();
@@ -171,9 +173,7 @@ try {
     date: "2026-04-04",
     notes: "Link destination",
   });
-  await page
-    .getByRole("button", { name: "Refresh transactions", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await page
     .locator(".register-table tbody tr")
     .filter({ hasText: "Link source" })

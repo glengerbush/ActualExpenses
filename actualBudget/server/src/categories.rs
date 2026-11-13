@@ -1,4 +1,4 @@
-//! Category organization. Deleted rows retain notes and redirect stale references.
+//! Category organization. Deleted rows redirect stale references.
 use crate::{
     api::{budget_id, idempotency_key, json_error},
     concurrency as sync,
@@ -19,15 +19,10 @@ use rusqlite::{Connection, OptionalExtension, params};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::collections::HashSet;
-const CATEGORY_FIELDS: &[&str] = &[
-    "name",
-    "group_id",
-    "is_income",
-    "hidden",
-    "notes",
-    "sort_order",
-];
-const GROUP_FIELDS: &[&str] = &["name", "is_income", "hidden", "notes", "sort_order"];
+mod colors;
+pub(crate) use colors::decorate as decorate_colors;
+const CATEGORY_FIELDS: &[&str] = &["name", "color", "group_id", "is_income", "sort_order"];
+const GROUP_FIELDS: &[&str] = &["color", "name", "is_income", "sort_order"];
 pub fn router() -> Router<Store> {
     Router::new()
         .route(
@@ -74,11 +69,35 @@ fn fields(table: &str) -> &'static [&'static str] {
 }
 pub fn get(db: &Connection, budget: &str, table: &str, id: &str) -> Result<Value, Error> {
     let columns = if table == "categories" {
-        "name,is_income,hidden,notes,sort_order,tombstone,group_id,replacement_id"
+        "name,is_income,0,'',sort_order,tombstone,group_id,replacement_id"
     } else {
-        "name,is_income,hidden,notes,sort_order,tombstone,NULL,NULL"
+        "name,is_income,0,'',sort_order,tombstone,NULL,NULL"
     };
-    let mut row=db.query_row(&format!("SELECT {columns} FROM {table} WHERE budget_id=?1 AND id=?2"),params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?,"is_income":r.get::<_,bool>(1)?,"hidden":r.get::<_,bool>(2)?,"notes":r.get::<_,String>(3)?,"sort_order":r.get::<_,Option<f64>>(4)?,"deleted":r.get::<_,bool>(5)?,"group_id":r.get::<_,Option<String>>(6)?,"replacement_id":r.get::<_,Option<String>>(7)?}))).optional()?.ok_or_else(Error::missing)?;
+    let mut row=db.query_row(&format!("SELECT {columns} FROM {table} WHERE budget_id=?1 AND id=?2"),params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?,"is_income":r.get::<_,bool>(1)?,"hidden":r.get::<_,bool>(2)?,"sort_order":r.get::<_,Option<f64>>(4)?,"deleted":r.get::<_,bool>(5)?,"group_id":r.get::<_,Option<String>>(6)?,"replacement_id":r.get::<_,Option<String>>(7)?}))).optional()?.ok_or_else(Error::missing)?;
+    // Historical migration enrichment calls this before migration29 adds colors.
+    if db.query_row(
+        "SELECT count(*) FROM pragma_table_info(?1) WHERE name='color'",
+        [table],
+        |r| r.get::<_, i64>(0),
+    )? > 0
+    {
+        row["color"] = json!(db.query_row(
+            &format!("SELECT color FROM {table} WHERE budget_id=?1 AND id=?2"),
+            params![budget, id],
+            |r| r.get::<_, Option<String>>(0)
+        )?);
+        if table == "category_groups" {
+            row["resolved_color"] = json!(
+                row["color"]
+                    .as_str()
+                    .map(str::to_owned)
+                    .unwrap_or_else(|| colors::group(id))
+            );
+        } else {
+            colors::decorate(db, budget, std::slice::from_mut(&mut row), "id")?;
+            row["resolved_color"] = row["category_color"].clone();
+        }
+    }
     let mut versions = serde_json::Map::new();
     let mut q = db.prepare(
         "SELECT field,clock FROM field_versions WHERE budget_id=?1 AND entity=?2 AND entity_id=?3",
@@ -89,18 +108,10 @@ pub fn get(db: &Connection, budget: &str, table: &str, id: &str) -> Result<Value
         let (k, v) = v?;
         versions.insert(k, json!(v));
     }
-    crate::notes::decorate_versions(db, budget, id, &mut versions)?;
+    versions.remove("notes");
     row["field_versions"] = json!(versions);
     if table == "categories" {
-        row["group_hidden"] = json!(
-            db.query_row(
-                "SELECT hidden FROM category_groups WHERE budget_id=?1 AND id=?2",
-                params![budget, row["group_id"].as_str()],
-                |r| r.get::<_, bool>(0)
-            )
-            .optional()?
-            .unwrap_or(false)
-        );
+        row["group_hidden"] = json!(false);
     }
     Ok(row)
 }
@@ -169,18 +180,24 @@ fn validate(value: &Value, table: &str, create: bool) -> Result<(), Error> {
             return Err(Error::invalid(format!("Unknown category field: {k}")));
         }
         match k.as_str() {
+            "color" => {
+                if !v.is_null()
+                    && !v.as_str().is_some_and(|s| {
+                        s.len() == 7
+                            && s.starts_with('#')
+                            && s[1..].bytes().all(|c| c.is_ascii_hexdigit())
+                    })
+                {
+                    return Err(Error::invalid(
+                        "Color must be #RRGGBB or null for automatic",
+                    ));
+                }
+            }
             "name" => validate_name(
                 v.as_str()
                     .ok_or_else(|| Error::invalid("Name must be text"))?,
             )?,
-            "notes" => {
-                if v.as_str().is_none_or(|s| s.chars().count() > 10000) {
-                    return Err(Error::invalid(
-                        "Notes must contain at most 10000 characters",
-                    ));
-                }
-            }
-            "hidden" | "is_income" => {
+            "is_income" => {
                 if !v.is_boolean() && !(create && k == "is_income" && v.is_null()) {
                     return Err(Error::invalid("Expected boolean"));
                 }
@@ -455,6 +472,12 @@ fn execute(
                 params![budget, id, value["group_id"].as_str()],
             )?;
         }
+        if let Some(color) = input.get("color") {
+            db.execute(
+                &format!("UPDATE {table} SET color=?3 WHERE budget_id=?1 AND id=?2"),
+                params![budget, id, sqlvalue(color)],
+            )?;
+        }
         for field in fields(table) {
             sync::seed_field_version(db, budget, table, &id, field, &clock)?;
         }
@@ -637,9 +660,7 @@ pub fn validate_archive(db: &Connection, budget: &str) -> Result<(), Error> {
         for id in q.query_map([budget], |r| r.get::<_, String>(0))? {
             let id = id?;
             let row = get(db, budget, table, &id)?;
-            if row["notes"].as_str().unwrap().chars().count() > 10000 {
-                return Err(Error::invalid("Category notes exceed limit"));
-            }
+            validate(&json!({"color":row["color"]}), table, false)?;
             if row["deleted"] != true
                 && table == "categories"
                 && let Some(group) = row["group_id"].as_str()
@@ -698,7 +719,7 @@ pub fn enrich_legacy_imports(db: &Connection, only_budget: Option<&str>) -> Resu
             db.execute("INSERT OR IGNORE INTO category_groups(budget_id,id,name,is_income,hidden,notes,sort_order,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",params![budget,group["id"].as_str(),group["name"].as_str(),group["is_income"].as_bool(),group["hidden"].as_bool(),group["notes"].as_str(),group["sort_order"].as_f64(),group["tombstone"].as_bool()])?;
         }
         for category in data["categories"].as_array().unwrap() {
-            for field in ["group_id", "hidden", "notes", "sort_order"] {
+            for field in ["group_id", "hidden", "sort_order"] {
                 db.execute(&format!("UPDATE categories SET {field}=?3 WHERE budget_id=?1 AND id=?2 AND NOT EXISTS(SELECT 1 FROM field_versions WHERE budget_id=?1 AND entity='categories' AND entity_id=?2 AND field=?4)"),params![budget,category["id"].as_str(),sqlvalue(&category[field]),field])?;
             }
         }

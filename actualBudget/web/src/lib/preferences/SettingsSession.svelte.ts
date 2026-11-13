@@ -21,6 +21,8 @@ function withoutRetiredFeatures(draft: PreferenceDraft): PreferenceDraft {
     const experimental = { ...values.experimental } as Record<string, boolean>;
     delete experimental.enableBanking;
     delete experimental.akahuBankSync;
+    delete experimental.goalTemplatesEnabled;
+    delete experimental.goalTemplatesUIEnabled;
     return {
       ...values,
       experimental: experimental as SharedPreferences["experimental"],

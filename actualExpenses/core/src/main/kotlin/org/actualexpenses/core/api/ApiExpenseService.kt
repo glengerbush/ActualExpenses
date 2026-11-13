@@ -194,14 +194,14 @@ class ApiExpenseService(
             categories =
                 choices(saved.categories).filter {
                     saved.categories[it.id]?.let { row ->
-                        listOf("is_income", "hidden", "group_hidden", "deleted").none {
+                        listOf("is_income", "deleted").none {
                             row[it]?.asBoolean == true
                         }
                     } == true
                 },
             payeeCategoryAssociations = saved.associations.filter { (payee, category) ->
                 payees[payee]?.let { it["deleted"]?.asBoolean != true && it.text("transfer_account_id") == null } == true &&
-                saved.categories[category]?.let { listOf("is_income", "hidden", "group_hidden", "deleted").none { key -> it[key]?.asBoolean == true } } == true
+                saved.categories[category]?.let { listOf("is_income", "deleted").none { key -> it[key]?.asBoolean == true } } == true
             },
             currency = currency,
             decimalPlaces = if (currency in setOf("IRR", "JPY", "KRW")) 0 else 2,
@@ -377,7 +377,6 @@ class ApiExpenseService(
                         addProperty("date", row.date)
                         addProperty("payee_id", row.payeeId)
                         addProperty("category_id", row.categoryId)
-                        addProperty("notes", row.notes)
                         addProperty("cleared", true)
                         addProperty("reconciled", false)
                     }
@@ -603,7 +602,6 @@ class ApiExpenseService(
         ) {
             "Choose an available category."
         }
-        require(draft.notes.length <= 10000) { "Notes are too long." }
         val original = edit?.original
         val body = JsonObject()
         if (edit == null) {
@@ -616,8 +614,6 @@ class ApiExpenseService(
         )
             body.addProperty("amount", -amount)
         if (original == null || original.date != date) body.addProperty("date", date)
-        if (original == null || original.notes != draft.notes)
-            body.addProperty("notes", draft.notes)
         if (original == null || original.categoryId != draft.categoryId)
             body.add("category_id", nullable(draft.categoryId))
         if (original == null || original.payee != draft.payee.trim()) {

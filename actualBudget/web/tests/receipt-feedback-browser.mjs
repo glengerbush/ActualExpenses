@@ -1,3 +1,4 @@
+import { transactionRows } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { startServer } from "./server.mjs";
@@ -77,7 +78,7 @@ try {
       { budget, account },
     );
     await page.reload();
-    await page.getByRole("button", { name: /^Edit / }).click();
+    await transactionRows(page, { name: /^Edit / }).click();
     await page.getByLabel("Amount", { exact: true }).fill("2");
     await page.getByLabel("Notes", { exact: true }).fill("Original notes");
     const horizon = Date.now() + 2500;

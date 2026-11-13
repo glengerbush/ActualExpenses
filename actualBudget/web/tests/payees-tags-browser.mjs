@@ -28,7 +28,7 @@ try {
     second = randomUUID(),
     tx = randomUUID();
   const root = `/budgets/${budget}`;
-  await write("/budgets", { id: budget, name: "Payees and tags fixture" });
+  await write("/budgets", { id: budget, name: "Payees fixture" });
   await write(root + "/accounts", {
     id: account,
     name: "Daily",
@@ -62,11 +62,9 @@ try {
   const page = await context.newPage();
   await page.goto(server.url);
   await page
-    .getByRole("button", { name: "Payees and tags fixture Tracking Open" })
+    .getByRole("button", { name: "Payees fixture Tracking Open" })
     .click();
-  await page
-    .getByRole("button", { name: "Payees and tags", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Payees", exact: true }).click();
   await page
     .getByRole("button", { name: "Edit MARKET 001", exact: true })
     .click();
@@ -83,44 +81,18 @@ try {
   await expect(
     page.getByRole("button", { name: "Edit Market branch", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "Tags", exact: true }).click();
-  await page.getByRole("button", { name: "Discover tags from notes" }).click();
   await expect(
-    page.getByRole("button", { name: "Edit Food", exact: true }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Edit Food", exact: true }).click();
-  await page.getByLabel("Tag name", { exact: true }).fill("Meals");
-  await page.getByRole("button", { name: "Save changes", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Edit Meals", exact: true }),
-  ).toBeVisible();
-  await page.getByRole("checkbox", { name: "#Meals", exact: true }).check();
-  await page.getByRole("button", { name: "Hide selected tags" }).click();
-  await expect(page.getByText("Hidden", { exact: true })).toBeVisible();
-  await page.getByLabel("Show", { exact: true }).selectOption("hidden");
-  await expect(
-    page.getByRole("button", { name: "Edit Foodie", exact: true }),
+    page.getByRole("button", { name: "Tags", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "Payees", exact: true }).click();
-  await expect(page.getByLabel("Show", { exact: true })).toHaveValue("all");
-  await expect(
-    page.getByRole("button", { name: "Edit Market", exact: true }),
-  ).toBeVisible();
+  expect((await fetch(api + "/api/v1" + root + "/tags")).status).toBe(404);
   await page.getByLabel("Show", { exact: true }).selectOption("unused");
   await expect(
     page.getByRole("button", { name: "Edit Market", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "Tags", exact: true }).click();
-  await expect(page.getByLabel("Show", { exact: true })).toHaveValue("all");
-  await expect(
-    page.getByRole("button", { name: "Edit Meals", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Edit Foodie", exact: true }),
-  ).toBeVisible();
-  await page.getByLabel("Tag name", { exact: true }).fill("Travel");
+  await page.getByLabel("Show", { exact: true }).selectOption("all");
+  await page.getByLabel("Payee name", { exact: true }).fill("Travel");
   let sent;
-  await page.route(`**/api/v1${root}/tags`, async (route) => {
+  await page.route(`**/api/v1${root}/payees`, async (route) => {
     if (route.request().method() === "POST") {
       sent = {
         body: route.request().postData(),
@@ -141,23 +113,23 @@ try {
   const stale = await context.newPage();
   await stale.goto(server.url);
   await expect(
-    stale.getByRole("heading", { name: "Payees and tags", exact: true }),
+    stale.getByRole("heading", { name: "Payees", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Add tag", exact: true }).click();
+  await page.getByRole("button", { name: "Add payee", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Pending change" }),
   ).toBeVisible();
   await expect(page.getByRole("alert")).toContainText("Cannot reach");
   await stale.getByRole("button", { name: "Done", exact: true }).click();
   await expect(stale.getByRole("alert")).toContainText("Another tab");
-  await page.unroute(`**/api/v1${root}/tags`);
+  await page.unroute(`**/api/v1${root}/payees`);
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Pending change" }),
   ).toBeVisible();
   let retried;
   page.on("request", (r) => {
-    if (r.method() === "POST" && r.url().endsWith(root + "/tags"))
+    if (r.method() === "POST" && r.url().endsWith(root + "/payees"))
       retried = {
         body: r.postData(),
         key: r.headers()["idempotency-key"],
@@ -175,13 +147,13 @@ try {
     const future = Date.now() + 600_000;
     Date.now = () => future;
   });
-  await page.getByLabel("Tag name", { exact: true }).fill("ClockRecovery");
-  await page.getByRole("button", { name: "Add tag", exact: true }).click();
+  await page.getByLabel("Payee name", { exact: true }).fill("ClockRecovery");
+  await page.getByRole("button", { name: "Add payee", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText("clock");
   const originalClockRequest = retried;
   await page.reload();
   let cancelRequest;
-  await page.route(`**/api/v1${root}/tags`, async (route) => {
+  await page.route(`**/api/v1${root}/payees`, async (route) => {
     if (
       route.request().headers()["x-actual-cancel-if-uncommitted"] === "true"
     ) {
@@ -225,7 +197,7 @@ try {
   await expect(page.getByRole("alert")).toContainText("Cannot reach");
   await page.unroute("**/api/v1/info");
   expect(cancelRequest).toEqual(originalClockRequest);
-  await page.unroute(`**/api/v1${root}/tags`);
+  await page.unroute(`**/api/v1${root}/payees`);
   await page.reload();
   await page
     .getByRole("button", { name: "Retry pending change", exact: true })
@@ -233,10 +205,10 @@ try {
   await expect(
     page.getByRole("heading", { name: "Pending change" }),
   ).toHaveCount(0);
-  await expect(page.getByLabel("Tag name", { exact: true })).toHaveValue(
+  await expect(page.getByLabel("Payee name", { exact: true })).toHaveValue(
     "ClockRecovery",
   );
-  await page.getByRole("button", { name: "Add tag", exact: true }).click();
+  await page.getByRole("button", { name: "Add payee", exact: true }).click();
   await expect(
     page.getByRole("button", {
       name: "Use corrected device time",
@@ -259,26 +231,26 @@ try {
   });
   await page.keyboard.press("Enter");
   await page.setViewportSize({ width: 1280, height: 900 });
-  await expect(page.getByLabel("Tag name", { exact: true })).toHaveValue(
+  await expect(page.getByLabel("Payee name", { exact: true })).toHaveValue(
     "ClockRecovery",
   );
-  await page.getByRole("button", { name: "Add tag", exact: true }).click();
+  await page.getByRole("button", { name: "Add payee", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Edit ClockRecovery", exact: true }),
   ).toBeVisible();
   expect(retried.key).not.toBe(originalClockRequest.key);
   const clockTags = (
-    await (await fetch(api + "/api/v1" + root + "/tags")).json()
+    await (await fetch(api + "/api/v1" + root + "/payees")).json()
   ).data;
-  expect(clockTags.filter((tag) => tag.tag === "ClockRecovery")).toHaveLength(
+  expect(clockTags.filter((tag) => tag.name === "ClockRecovery")).toHaveLength(
     1,
   );
-  await page.getByLabel("Search tags").focus();
+  await page.getByLabel("Search payees").focus();
   await page.keyboard.type("Travel");
   await expect(
-    page.getByRole("button", { name: "Edit Meals", exact: true }),
+    page.getByRole("button", { name: "Edit Market", exact: true }),
   ).toHaveCount(0);
-  await page.getByLabel("Search tags").fill("");
+  await page.getByLabel("Search payees").fill("");
   await mkdir(evidence, { recursive: true });
   await page.screenshot({
     path: evidence + "payees-tags-desktop.png",
@@ -298,26 +270,26 @@ try {
   await textZoom.evaluate((element) => element.remove());
   await context.setOffline(true);
   await expect(
-    page.getByRole("button", { name: "Add tag", exact: true }),
+    page.getByRole("button", { name: "Add payee", exact: true }),
   ).toBeDisabled();
   await context.setOffline(false);
   await page.reload();
   await page.getByRole("button", { name: "Done", exact: true }).click();
-  await page.getByText("Filters and columns", { exact: true }).click();
+  await page.locator('summary[aria-label="Filters and columns"]').click();
   await page
     .getByRole("button", { name: "Add condition", exact: true })
     .click();
   await page.getByLabel(/^Field 1/).selectOption("notes");
-  await page.getByLabel(/^Operator 1/).selectOption("hasTags");
-  await page.getByLabel("Value 1", { exact: true }).fill("Meals");
+  await page.getByLabel(/^Operator 1/).selectOption("contains");
+  await page.getByLabel("Value 1", { exact: true }).fill("#Food");
   await page
     .getByRole("button", { name: "Apply filters and columns", exact: true })
     .click();
   await expect(
-    page.getByText("#Meals ##Food #Foodie", { exact: true }),
+    page.getByText("#Food ##Food #Foodie", { exact: true }),
   ).toBeVisible();
   console.log(
-    "PASS payee/tag browser: rename merge discover hide exact tags immutable retry cross-tab Done section filters mobile offline",
+    "PASS payees: rename merge tag retirement immutable retry cross-tab Done filters mobile offline",
   );
 } finally {
   await browser?.close();

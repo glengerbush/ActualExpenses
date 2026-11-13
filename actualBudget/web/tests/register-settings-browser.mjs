@@ -1,3 +1,4 @@
+import { transactionRows } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
@@ -73,9 +74,11 @@ try {
     "2 matching transactions",
   );
   await expect(page.getByTestId("filtered-totals")).toContainText("-16.25");
-  await page.getByText("Filters and columns", { exact: true }).click();
-  await page.getByLabel("Sort by").selectOption("amount");
-  await page.getByLabel(/^Order/).selectOption("asc");
+  await page.locator('summary[aria-label="Filters and columns"]').click();
+  await page
+    .locator(".register-table")
+    .getByRole("button", { name: "Amount", exact: true })
+    .click();
   await page.getByLabel("Show Notes column", { exact: true }).uncheck();
   await page.getByRole("button", { name: "Apply filters and columns" }).click();
   await expect(page.locator(".register-table tbody tr").first()).toContainText(
@@ -95,15 +98,15 @@ try {
     "2 matching transactions",
   );
   // Keyboard navigation goes row-to-row without changing transaction values.
-  const edits = page
-    .locator(".register-table tbody")
-    .getByRole("button", { name: /^Edit / });
+  const edits = transactionRows(page.locator(".register-table tbody"), {
+    name: /^Edit /,
+  });
   await edits.first().focus();
   await page.keyboard.press("ArrowDown");
   await expect(edits.nth(1)).toBeFocused();
   await page.keyboard.press("Home");
   await expect(edits.first()).toBeFocused();
-  await page.getByText("Filters and columns", { exact: true }).click();
+  await page.locator('summary[aria-label="Filters and columns"]').click();
   await page.getByLabel("Hide cleared transactions", { exact: true }).check();
   await page.getByRole("button", { name: "Apply filters and columns" }).click();
   await expect(page.getByTestId("filtered-totals")).toContainText(
@@ -149,7 +152,7 @@ try {
   ).toBeVisible();
   expect(attempts.length).toBe(2);
   expect(attempts[0]).toEqual(attempts[1]);
-  await stale.getByText("Filters and columns", { exact: true }).click();
+  await stale.locator('summary[aria-label="Filters and columns"]').click();
   await stale.getByRole("button", { name: "Save view", exact: true }).click();
   await expect(stale.getByRole("alert")).toContainText("another tab");
   await stale.getByRole("button", { name: "Reload register settings" }).click();
@@ -157,7 +160,7 @@ try {
     stale.getByLabel("Hide cleared transactions", { exact: true }),
   ).not.toBeChecked();
   await stale.close();
-  await page.getByText("Filters and columns", { exact: true }).click();
+  await page.locator('summary[aria-label="Filters and columns"]').click();
   await page
     .getByRole("combobox", { name: /^Saved filter/ })
     .selectOption({ label: "Coffee review" });

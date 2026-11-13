@@ -1242,7 +1242,7 @@ class NativeApiIntegrationTest {
     }
 
     @Test
-    fun `confirmed protected pair edits and unlock never restore native expense eligibility`() {
+    fun `pair edits never restore native expense eligibility`() {
         Server().use { server ->
             val store = MemoryStore()
             val app = ApiExpenseService(store)
@@ -1257,21 +1257,11 @@ class NativeApiIntegrationTest {
             server.post("$base/accounts", """{"id":"$account","name":"Card","opening_balance":0,"opening_date":"2026-01-01"}""")
             server.post("$base/transactions", """{"id":"$peer","account_id":"$account","amount":1234,"date":"2026-01-01","cleared":true}""")
             server.post("$base/transfers/link", """{"id":"$id","counterpart_id":"$peer"}""", 200)
-            for ((owner, balance) in listOf(server.account to -1234, account to 1234)) {
-                val path = "$base/accounts/$owner/reconciliation"
-                val progress = server.get(path).getAsJsonObject("data")
-                server.post(path, """{"action":"lock","statement_balance":$balance,"snapshot":${progress["snapshot"]},"date":"2026-02-28"}""", 200)
-            }
-            val current = server.get("$base/transactions/$id/splits")
             val clock = DateTimeFormatterBuilder().appendInstant(3).toFormatter().format(Instant.now().plusSeconds(1)) + "-0000-ffffffffffffffff"
-            server.patch("$base/transactions/$id", """{"amount":-1300,"confirm_reconciled":true,"transfer_protection_token":${current["transfer_protection_token"]}}""", clock)
+            server.patch("$base/transactions/$id", """{"amount":-1300}""", clock)
             app.refresh()
             assertTrue(app.state().online, app.state().error)
             assertTrue(app.state().expenses.isEmpty())
-            assertTrue(server.get("$base/transactions/$id").getAsJsonObject("data")["reconciled"].asBoolean)
-            assertEquals(1300, server.get("$base/transactions/$peer").getAsJsonObject("data")["amount"].asInt)
-            val proof = server.get("$base/transactions/$id/splits")
-            server.post("$base/transactions/$id/unlock", """{"reconciliation_token":${proof["reconciliation_token"]}}""", 200)
             val restarted = ApiExpenseService(store)
             restarted.refresh()
             assertTrue(restarted.state().expenses.isEmpty())
@@ -1282,7 +1272,7 @@ class NativeApiIntegrationTest {
     }
 
     @Test
-    fun `reconciliation hides settled expenses and unlocking restores native eligibility`() {
+    fun `saved expenses stay eligible after edits and restart without settlement`() {
         Server().use { server ->
             val store = MemoryStore()
             val app = ApiExpenseService(store)
@@ -1291,25 +1281,19 @@ class NativeApiIntegrationTest {
             app.chooseAccount(server.account)
             val id = app.saveExpense(ExpenseDraft("12.34"))
             app.refresh()
-            assertEquals(id, app.state().expenses.single().id)
-            val path = "/budgets/${server.budget}/accounts/${server.account}/reconciliation"
-            val progress = server.get(path + "?statement_balance=-1234").getAsJsonObject("data")
-            val snapshot = progress["snapshot"].asString
-            server.post(path, """{"action":"lock","statement_balance":-1234,"snapshot":"$snapshot","date":"2026-02-28"}""", 200)
-            app.refresh()
-            assertTrue(app.state().expenses.isEmpty(), app.state().error)
-            val row = server.get("/budgets/${server.budget}/transactions/$id").getAsJsonObject("data")
-            val version = row.getAsJsonObject("field_versions")["reconciled"].asString
-            server.post("/budgets/${server.budget}/transactions/$id/unlock", """{"reconciled_version":"$version"}""", 200)
+            val path = "/budgets/${server.budget}/transactions/$id"
+            server.patch(path, """{"notes":"Complete immediately","cleared":false}""", DateTimeFormatterBuilder().appendInstant(3).toFormatter().format(Instant.now().plusMillis(1)) + "-0000-ffffffffffffffff")
             val restarted = ApiExpenseService(store)
             restarted.refresh()
             assertEquals(id, restarted.state().expenses.single().id)
             assertEquals(1234, restarted.state().expenses.single().amountMinor)
+            assertEquals("Complete immediately", restarted.state().expenses.single().notes)
+            assertTrue(server.get(path).getAsJsonObject("data")["cleared"].asBoolean)
         }
     }
 
     @Test
-    fun `reconciled split stays ineligible through confirmed recombination until unlocked`() {
+    fun `recombined split becomes an ordinary editable expense immediately`() {
         Server().use { server ->
             val app = ApiExpenseService(MemoryStore())
             app.connect(server.url)
@@ -1320,29 +1304,13 @@ class NativeApiIntegrationTest {
             val base = "/budgets/${server.budget}"
             val snapshot = server.get("$base/transactions")["snapshot"].asString
             server.post("$base/transactions/$id/splits", """{"snapshot":"$snapshot","children":[{"id":"${UUID.randomUUID()}","amount":-100},{"id":"${UUID.randomUUID()}","amount":-200}]}""", 200)
-            val path = "$base/accounts/${server.account}/reconciliation"
-            val progress = server.get(path).getAsJsonObject("data")
-            assertEquals(1, progress["ready_count"].asInt)
-            server.post(path, """{"action":"lock","statement_balance":-300,"snapshot":${progress["snapshot"]},"date":"2026-02-28"}""", 200)
             app.refresh()
             assertTrue(app.state().expenses.isEmpty())
             val current = server.get("$base/transactions/$id/splits")
-            val row = current.getAsJsonObject("data")
-            val proof = JsonObject()
-            proof.add(id, row.getAsJsonObject("field_versions")["reconciled"])
-            for (child in row.getAsJsonArray("children")) {
-                val value = child.asJsonObject
-                assertTrue(value["reconciled"].asBoolean)
-                proof.add(value["id"].asString, value.getAsJsonObject("field_versions")["reconciled"])
-            }
-            server.post("$base/transactions/$id/splits", """{"snapshot":${current["snapshot"]},"action":"recombine","confirm_reconciled":true,"reconciled_versions":$proof}""", 200)
+            server.post("$base/transactions/$id/splits", """{"action":"recombine","snapshot":${current["snapshot"]}}""", 200)
             app.refresh()
-            assertTrue(app.state().expenses.isEmpty())
-            val recombined = server.get("$base/transactions/$id").getAsJsonObject("data")
-            assertTrue(recombined["reconciled"].asBoolean)
-            server.post("$base/transactions/$id/unlock", """{"reconciled_version":${recombined.getAsJsonObject("field_versions")["reconciled"]}}""", 200)
-            app.refresh()
-            assertEquals(300, app.state().expenses.single().amountMinor)
+            assertEquals(id, app.state().expenses.single().id)
+            assertTrue(app.state().expenses.single().editable)
         }
     }
 
@@ -1967,7 +1935,6 @@ class NativeApiIntegrationTest {
                         .filter {
                             it["amount"].asLong < 0 &&
                                 !it["is_parent"].asBoolean &&
-                                !it["reconciled"].asBoolean &&
                                 it["transfer_id"].isJsonNull
                         }
                         .map {
@@ -2058,7 +2025,7 @@ class NativeApiIntegrationTest {
     }
 
     @Test
-    fun `category choices follow hidden parents category visibility and deletion`() {
+    fun `category choices remain visible until deletion`() {
         Server().use { server ->
             val group = UUID.randomUUID().toString()
             val category = UUID.randomUUID().toString()
@@ -2076,39 +2043,12 @@ class NativeApiIntegrationTest {
             val expense = app.saveExpense(ExpenseDraft("1.23", categoryId = category))
             app.refresh()
             val originalEdit = app.beginEdit(expense)
-            fun clock(seconds: Long) =
-                DateTimeFormatterBuilder()
-                    .appendInstant(3)
-                    .toFormatter()
-                    .format(Instant.now().plusSeconds(seconds)) + "-0000-ffffffffffffffff"
-            server.patch("$base/category-groups/$group", """{"hidden":true}""", clock(1))
-            assertTrue(
-                server
-                    .get("$base/categories/$category")
-                    .getAsJsonObject("data")["group_hidden"]
-                    .asBoolean
-            )
+            assertFalse(server.get("$base/categories/$category").getAsJsonObject("data")["hidden"].asBoolean)
+            assertFalse(server.get("$base/categories/$category").getAsJsonObject("data")["group_hidden"].asBoolean)
+            app.saveExpense(originalEdit.original!!.copy(notes = "Keep existing category"), originalEdit)
             app.refresh()
-            assertTrue(app.state().categories.isEmpty(), "Hidden group must hide category choices")
-            assertEquals("Food", app.state().expenses.single().category)
-            app.saveExpense(
-                originalEdit.original!!.copy(notes = "Keep existing category"),
-                originalEdit,
-            )
-            app.refresh()
+            assertEquals(listOf(category), app.state().categories.map { it.id })
             assertEquals(0, app.state().pendingCount, app.state().error)
-            assertFailsWith<IllegalArgumentException> {
-                app.saveExpense(ExpenseDraft("1.00", categoryId = category))
-            }
-            server.patch("$base/category-groups/$group", """{"hidden":false}""", clock(2))
-            app.refresh()
-            assertEquals(listOf(category), app.state().categories.map { it.id })
-            server.patch("$base/categories/$category", """{"hidden":true}""", clock(3))
-            app.refresh()
-            assertTrue(app.state().categories.isEmpty())
-            server.patch("$base/categories/$category", """{"hidden":false}""", clock(4))
-            app.refresh()
-            assertEquals(listOf(category), app.state().categories.map { it.id })
             server.delete("$base/categories/$category", """{"replacement_id":null}""")
             app.refresh()
             assertTrue(app.state().categories.isEmpty())

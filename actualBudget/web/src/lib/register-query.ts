@@ -28,24 +28,50 @@ export const columnLabels: Record<string, string> = {
   date: "Date",
   account: "Account",
   payee: "Payee",
-  notes: "Notes",
   group: "Category group",
   category: "Category",
   amount: "Amount",
   payment: "Payment",
   deposit: "Deposit",
-  status: "Status",
   balance: "Running balance",
 };
 export const defaultColumns = [
   "date",
   "payee",
-  "notes",
   "category",
   "amount",
-  "status",
   "balance",
 ];
+// Older saved/imported views may have separate inflow and outflow columns.
+export function transactionColumns(columns: string[]): string[] {
+  const normalized = [
+    ...new Set(
+      columns
+        .filter((column) => !["account", "status", "notes"].includes(column))
+        .map((column) =>
+          column === "payment" || column === "deposit" ? "amount" : column,
+        ),
+    ),
+  ];
+  if (!normalized.includes("amount")) normalized.push("amount");
+  return normalized;
+}
+export function manualQuery(query: RegisterQuery): RegisterQuery {
+  return {
+    ...query,
+    hide_cleared: false,
+    hide_reconciled: false,
+    sort: ["cleared", "reconciled", "notes"].includes(query.sort) ? "date" : query.sort,
+    filter: {
+      ...query.filter,
+      conditions: query.filter.conditions.filter(
+        (condition) =>
+          !["cleared", "reconciled", "notes"].includes(condition.field) &&
+          !["hasTags", "hasAnyTag"].includes(condition.op),
+      ),
+    },
+  };
+}
 export function defaultQuery(): RegisterQuery {
   return {
     search: "",

@@ -39,7 +39,7 @@
   >
   {#if meta.source === "tracking-budget"}<p>
       {t(
-        "Tracking budgets only: monthly planned income minus expenses, up to 12 months. Account and transaction filters are ignored. Choose Schedules for envelope budgets or daily projections.",
+        "Monthly planned income minus expenses, up to 12 months. Account and transaction filters are ignored. Choose recurring transactions for daily projections.",
       )}
     </p>{/if}
   <label class="check"

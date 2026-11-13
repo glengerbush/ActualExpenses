@@ -29,13 +29,6 @@ pub fn router() -> Router<Store> {
             get(read).patch(mutate),
         )
         .route("/api/v1/budgets/{budget}/payees/batch", post(mutate))
-        .route("/api/v1/budgets/{budget}/tags", get(list).post(mutate))
-        .route(
-            "/api/v1/budgets/{budget}/tags/{id}",
-            get(read).patch(mutate),
-        )
-        .route("/api/v1/budgets/{budget}/tags/batch", post(mutate))
-        .route("/api/v1/budgets/{budget}/tags/discover", post(mutate))
 }
 fn domain(uri: &str) -> &'static str {
     if uri.contains("/tags") {

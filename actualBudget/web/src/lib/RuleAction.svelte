@@ -30,16 +30,12 @@
     category: "Category",
     payee: "Payee",
     payee_name: "Payee name",
-    notes: "Notes",
-    cleared: "Cleared",
     account: "Account",
     date: "Date",
     amount: "Amount",
   };
   const operations: Record<string, string> = {
     set: "Set field",
-    "prepend-notes": "Prepend notes",
-    "append-notes": "Append notes",
     "delete-transaction": "Delete transaction",
     "link-schedule": "Link schedule",
     "set-split-amount": "Allocate split",
@@ -75,7 +71,7 @@
     delete options.template;
     if (value === "formula") options.formula = "=";
     if (value === "template")
-      options.template = `{{${action.field ?? "notes"}}}`;
+      options.template = `{{${action.field ?? "payee_name"}}}`;
     onchange({ ...action, options });
   }
   function field(name: string) {
@@ -100,9 +96,7 @@
       value:
         value === "set-split-amount"
           ? 0
-          : ["prepend-notes", "append-notes"].includes(value)
-            ? ""
-            : null,
+          : null,
       ...(value === "set-split-amount"
         ? { options: { splitIndex: 1, method: "fixed-amount" } }
         : {}),
@@ -148,7 +142,7 @@
       {:else}
         Insert fields with double braces, for example {"{{payee_name}}"}
         {t("or")}
-        {"{{notes}}"}. Amounts must produce whole minor units.
+        {"{{category_name}}"}. Amounts must produce whole minor units.
       {/if}
     </div>
   </div>
@@ -243,14 +237,6 @@
         oninput={(e) => onchange({ ...action, value: e.currentTarget.value })}
       /></label
     >{/if}
-{:else if ["prepend-notes", "append-notes"].includes(action.op)}<label
-    >Notes text {index + 1}<textarea
-      value={String(action.value ?? "")}
-      oninput={(e) => onchange({ ...action, value: e.currentTarget.value })}
-    ></textarea><span class="hint"
-      >Text joins exactly as entered; include any spaces or punctuation.</span
-    ></label
-  >
 {:else if action.op === "link-schedule"}<label
     >Linked schedule {index + 1}<select
       value={String(action.value ?? "")}
@@ -312,7 +298,7 @@
       onchange={(e) => option("splitIndex", Number(e.currentTarget.value))}
     /><span class="hint"
       >0: parent and applicable children. 1–100: allocation number. Amount,
-      account, date and cleared belong to the parent.</span
+      account and date belong to the parent.</span
     ></label
   >{/if}
 

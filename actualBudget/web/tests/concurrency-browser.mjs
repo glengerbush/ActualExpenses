@@ -1,3 +1,4 @@
+import { transactionRows, transactionAction } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
@@ -97,7 +98,7 @@ try {
       await route.continue();
     },
   );
-  await a.page.getByRole("button", { name: /^Edit / }).click();
+  await transactionRows(a.page, { name: /^Edit / }).click();
   await a.page.getByLabel("Notes", { exact: true }).fill("Older client note");
   await a.page.getByLabel("Amount", { exact: true }).fill("2");
   await a.page
@@ -109,7 +110,7 @@ try {
       exact: true,
     }),
   ).toBeVisible();
-  await b.page.getByRole("button", { name: /^Edit / }).click();
+  await transactionRows(b.page, { name: /^Edit / }).click();
   await b.page.getByLabel("Notes", { exact: true }).fill("Newer client note");
   await b.page
     .getByRole("button", { name: "Save transaction", exact: true })
@@ -138,11 +139,9 @@ try {
   await expect(
     a.page.getByRole("button", { name: "Retry pending expense", exact: true }),
   ).toBeVisible();
-  await b.page
-    .getByRole("button", { name: "Refresh transactions", exact: true })
-    .click();
+  await b.page.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(b.page.getByTestId("register-total")).toHaveText("-2.00");
-  await b.page.getByRole("button", { name: /^Edit / }).click();
+  await transactionRows(b.page, { name: /^Edit / }).click();
   await b.page.getByLabel("Notes", { exact: true }).fill("Newer than deletion");
   await b.page
     .getByRole("button", { name: "Save transaction", exact: true })
@@ -173,16 +172,14 @@ try {
     )
       requests.push(r.url());
   });
-  await a.page
-    .getByRole("button", { name: "Refresh transactions", exact: true })
-    .click();
+  await a.page.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(
     a.page.getByText("Transactions are up to date.", { exact: true }),
   ).toBeVisible();
   expect(requests).toHaveLength(1);
   expect(requests[0]).toContain("/changes?");
   // Newer fields remain hidden after publication of a tombstone.
-  await b.page.getByRole("button", { name: /^Edit / }).click();
+  await transactionRows(b.page, { name: /^Edit / }).click();
   await b.page.getByLabel("Notes", { exact: true }).fill("Hidden edit");
   await a.page.unroute(
     `**/api/v1/budgets/${budget}/transactions/${transaction}`,
@@ -307,7 +304,7 @@ try {
         body: r.postDataJSON(),
       });
   });
-  await page.getByRole("button", { name: /^Duplicate / }).click();
+  await (await transactionAction(page, { name: /^Duplicate / })).click();
   await expect(
     page.getByRole("button", {
       name: "Cancel pending change safely",
@@ -332,7 +329,7 @@ try {
     .click();
   await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
   await expect(page.getByTestId("register-total")).toHaveText("-1.00");
-  await page.getByRole("button", { name: /^Duplicate / }).click();
+  await (await transactionAction(page, { name: /^Duplicate / })).click();
   await expect(page.getByTestId("register-total")).toHaveText("-2.00");
   expect(actionRequests).toHaveLength(3);
   expect(actionRequests[2].clock).not.toBe(actionRequests[0].clock);
@@ -416,8 +413,9 @@ try {
         .getByRole("button", { name: "Save transaction", exact: true })
         .click();
     else
-      await page
-        .getByRole("button", { name: /^Duplicate / })
+      await (
+        await transactionAction(page, { name: /^Duplicate / })
+      )
         .first()
         .click();
     await expect(discard).toBeVisible();
@@ -624,8 +622,9 @@ try {
           .getByRole("button", { name: "Save transaction", exact: true })
           .click();
       else
-        await a
-          .getByRole("button", { name: /^Duplicate / })
+        await (
+          await transactionAction(a, { name: /^Duplicate / })
+        )
           .first()
           .click();
       const original = await firstRequest;
@@ -871,11 +870,12 @@ try {
     { budget, off },
   );
   await latentPage.reload();
-  await latentPage
-    .getByRole("row")
-    .filter({ hasText: "Latent off-budget category" })
-    .getByRole("button", { name: /^Edit / })
-    .click();
+  await transactionRows(
+    latentPage
+      .getByRole("row")
+      .filter({ hasText: "Latent off-budget category" }),
+    { name: /^Edit / },
+  ).click();
   await latentPage
     .getByLabel("Notes", { exact: true })
     .fill("Only notes changed");

@@ -85,16 +85,17 @@ impl Drop for Server {
 }
 
 #[test]
-fn monthly_actuals_match_executed_tracking_and_envelope_engine() {
+fn monthly_actuals_match_executed_tracking_engine() {
     let fixture: Value =
         serde_json::from_str(include_str!("../../tests/fixtures/budgeting-26.10.0.json")).unwrap();
-    for case in fixture["cases"].as_array().unwrap() {
+    for case in fixture["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|c| c["method"] == "tracking")
+    {
         let s = Server::start();
-        let bytes = if case["method"] == "tracking" {
-            include_bytes!("../../tests/fixtures/budgeting-tracking-base.zip").as_slice()
-        } else {
-            include_bytes!("../../tests/fixtures/budgeting-envelope-base.zip").as_slice()
-        };
+        let bytes = include_bytes!("../../tests/fixtures/budgeting-tracking-base.zip").as_slice();
         let imported = s
             .client
             .post(format!("{}/api/v1/imports/actual", s.url))
@@ -123,7 +124,18 @@ fn monthly_actuals_match_executed_tracking_and_envelope_engine() {
             "/api/v1/budgets/{}",
             imported["data"]["budget_id"].as_str().unwrap()
         );
-        for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+        for (index, step) in case["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .take_while(|s| {
+                !matches!(
+                    s["action"]["action"].as_str(),
+                    Some("hide_category" | "hide_group" | "method")
+                )
+            })
+            .enumerate()
+        {
             if !step["action"].is_null() {
                 let current = s
                     .get(&format!("{root}/budget?month=2026-11&count=4"))
@@ -138,29 +150,7 @@ fn monthly_actuals_match_executed_tracking_and_envelope_engine() {
                         body[field] = case["ids"][name].clone();
                     }
                 }
-                let action = step["action"]["action"].as_str().unwrap();
-                let r = if ["hide_category", "hide_group"].contains(&action) {
-                    let table = if action == "hide_category" {
-                        "categories"
-                    } else {
-                        "category-groups"
-                    };
-                    let id = if action == "hide_category" {
-                        body["category"].as_str().unwrap()
-                    } else {
-                        case["ids"][step["action"]["group"].as_str().unwrap()]
-                            .as_str()
-                            .unwrap()
-                    };
-                    s.client
-                        .patch(format!("{}{root}/{table}/{id}", s.url))
-                        .header("Idempotency-Key", format!("action-{index}"))
-                        .json(&json!({"hidden":body["enabled"]}))
-                        .send()
-                        .unwrap()
-                } else {
-                    s.post(&format!("{root}/budget"), &format!("action-{index}"), body)
-                };
+                let r = s.post(&format!("{root}/budget"), &format!("action-{index}"), body);
                 assert_eq!(r.status(), 200, "{}", r.text().unwrap());
             }
             let response = s.get(&format!("{root}/budget?month=2026-11&count=4"));
@@ -206,7 +196,7 @@ fn setup() -> (Server, String) {
         s.post(
             "/api/v1/budgets",
             "new",
-            json!({"id":B,"name":"Plan","budget_type":"envelope"})
+            json!({"id":B,"name":"Plan","budget_type":"tracking"})
         )
         .status(),
         201
@@ -299,8 +289,6 @@ fn stale_field_clock_refuses_entire_composite_action_with_fresh_snapshot() {
     }
     for (i, body) in [
         json!({"action":"set","category":C,"amount":100}),
-        json!({"action":"move","from":C,"to":D,"amount":100}),
-        json!({"action":"zero"}),
         json!({"action":"copy_year","category":C}),
     ]
     .into_iter()
@@ -310,7 +298,7 @@ fn stale_field_clock_refuses_entire_composite_action_with_fresh_snapshot() {
         let r = write_plan(&s, &root, &format!("stale-{i}"), body, Some(&a));
         assert_eq!(
             r.status(),
-            if i == 3 { 200 } else { 409 },
+            if i == 1 { 200 } else { 409 },
             "{}",
             r.text().unwrap()
         );
@@ -318,15 +306,9 @@ fn stale_field_clock_refuses_entire_composite_action_with_fresh_snapshot() {
         assert_eq!(allocation(&v, C), 200);
         assert_eq!(allocation(&v, D), 200);
     }
-    for (i, body) in [
-        json!({"action":"carryover","category":C,"enabled":true}),
-        json!({"action":"notes","notes":"new"}),
-        json!({"action":"category_notes","category":C,"notes":"new"}),
-        json!({"action":"hold","amount":0}),
-        json!({"action":"method","method":"envelope"}),
-    ]
-    .into_iter()
-    .enumerate()
+    for (i, body) in [json!({"action":"carryover","category":C,"enabled":true})]
+        .into_iter()
+        .enumerate()
     {
         assert_eq!(
             write_plan(&s, &root, &format!("new-{i}"), body.clone(), Some(&b)).status(),
@@ -387,7 +369,12 @@ fn genuine_schema15_upgrade_retains_history_and_replay_while_archive_rotates_own
     .unwrap();
     assert_eq!(history, f["history"]);
     let rowpath = format!("{root}/transactions/{}", f["row"]["id"].as_str().unwrap());
-    assert_eq!(s.get(&rowpath).json::<Value>().unwrap()["data"], f["row"]);
+    let mut expected_row = f["row"].clone();
+    expected_row["notes"] = json!(""); // Notes are retired; financial fields and clocks stay intact.
+    assert_eq!(
+        s.get(&rowpath).json::<Value>().unwrap()["data"],
+        expected_row
+    );
     assert_eq!(
         s.get(&root).json::<Value>().unwrap()["data"]["epoch"],
         f["metadata"]["epoch"]
@@ -429,7 +416,7 @@ fn genuine_schema15_upgrade_retains_history_and_replay_while_archive_rotates_own
         .unwrap()
         .json::<Value>()
         .unwrap();
-    assert_eq!(upload["data"]["report"]["schema_version"], 27, "{upload}");
+    assert_eq!(upload["data"]["report"]["schema_version"], 32, "{upload}");
     let activate = target.post(
         &format!(
             "{root}/restores/{}/activate",
@@ -445,7 +432,7 @@ fn genuine_schema15_upgrade_retains_history_and_replay_while_archive_rotates_own
     );
     assert_eq!(
         target.get(&rowpath).json::<Value>().unwrap()["data"],
-        f["row"]
+        expected_row
     );
     let h = target
         .client
@@ -459,7 +446,7 @@ fn genuine_schema15_upgrade_retains_history_and_replay_while_archive_rotates_own
 }
 
 #[test]
-fn movement_notes_use_supported_currency_precision_and_undo_both_allocations_and_notes() {
+fn retired_budget_actions_refuse_without_mutation_and_allocation_undo_remains() {
     let (s, root) = setup();
     let prefs = s
         .client
@@ -480,23 +467,22 @@ fn movement_notes_use_supported_currency_precision_and_undo_both_allocations_and
         .status(),
         200
     );
-    let r = write_plan(
-        &s,
-        &root,
+    for action in [
         "move",
-        json!({"action":"move","from":C,"to":D,"amount":100}),
-        None,
-    );
-    assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+        "cover",
+        "hold",
+        "notes",
+        "category_notes",
+        "zero",
+        "method",
+    ] {
+        let r = write_plan(&s, &root, action, json!({"action":action}), None);
+        assert_eq!(r.status(), 400, "{}", r.text().unwrap());
+    }
     let v = plan(&s, &root);
-    assert_eq!(allocation(&v, C), 400);
-    assert_eq!(allocation(&v, D), 100);
-    assert!(
-        v["months"]["2026-01"]["notes"]
-            .as_str()
-            .unwrap()
-            .contains("Reassigned 100 from Food")
-    );
+    assert_eq!(allocation(&v, C), 500);
+    assert_eq!(allocation(&v, D), 0);
+    assert!(v["months"]["2026-01"].get("notes").is_none());
     let h = s
         .client
         .get(format!("{}{root}/history", s.url))
@@ -515,9 +501,8 @@ fn movement_notes_use_supported_currency_precision_and_undo_both_allocations_and
         .unwrap();
     assert_eq!(undo.status(), 200, "{}", undo.text().unwrap());
     let v = plan(&s, &root);
-    assert_eq!(allocation(&v, C), 500);
+    assert_eq!(allocation(&v, C), 0);
     assert_eq!(allocation(&v, D), 0);
-    assert_eq!(v["months"]["2026-01"]["notes"], "");
 }
 
 fn import_zip(s: &Server, bytes: &[u8]) -> (String, String) {
@@ -545,8 +530,7 @@ fn import_zip(s: &Server, bytes: &[u8]) -> (String, String) {
     (format!("/api/v1/budgets/{budget}"), budget)
 }
 #[test]
-fn allocated_actual_exports_and_native_archives_preserve_both_methods_notes_holds_and_actual_drilldown()
- {
+fn allocated_actual_exports_convert_to_tracking_and_native_archives_preserve_plans_and_drilldown() {
     let fixture: Value =
         serde_json::from_str(include_str!("../../tests/fixtures/budgeting-26.10.0.json")).unwrap();
     for (case, bytes) in fixture["cases"].as_array().unwrap().iter().zip([
@@ -562,7 +546,12 @@ fn allocated_actual_exports_and_native_archives_preserve_both_methods_notes_hold
             .clone();
         let expected = case["steps"].as_array().unwrap().last().unwrap();
         for (m, month) in expected["months"].as_object().unwrap() {
-            for (k, n) in month["summary"].as_object().unwrap() {
+            for (k, n) in month["summary"]
+                .as_object()
+                .unwrap()
+                .iter()
+                .filter(|_| case["method"] == "tracking")
+            {
                 assert_eq!(
                     v["months"][m]["summary"][k.replace('-', "_")],
                     *n,
@@ -610,7 +599,7 @@ fn allocated_actual_exports_and_native_archives_preserve_both_methods_notes_hold
             .unwrap()
             .json::<Value>()
             .unwrap();
-        assert_eq!(stage["data"]["report"]["schema_version"], 27, "{stage}");
+        assert_eq!(stage["data"]["report"]["schema_version"], 32, "{stage}");
         let metadata = s.get(&root).json::<Value>().unwrap();
         let r = t.post(
             &format!(
@@ -757,23 +746,35 @@ fn exact_receipts_lookup_cancellation_and_equal_clock_have_public_route_contract
 }
 
 #[test]
-fn change_feed_serializes_cells_months_and_method_without_breaking_reference_refresh() {
+fn change_feed_serializes_tracking_cells_and_category_metadata() {
     let (s, root) = setup();
     let before = plan(&s, &root);
-    for (key, body) in [
-        ("set", json!({"action":"set","category":C,"amount":500})),
-        ("notes", json!({"action":"notes","notes":"Plan"})),
-        ("method", json!({"action":"method","method":"tracking"})),
-    ] {
-        assert_eq!(write_plan(&s, &root, key, body, None).status(), 200);
-    }
+    assert_eq!(
+        write_plan(
+            &s,
+            &root,
+            "set",
+            json!({"action":"set","category":C,"amount":500}),
+            None
+        )
+        .status(),
+        200
+    );
+    let metadata = s
+        .client
+        .patch(format!("{}{root}/categories/{C}", s.url))
+        .header("Idempotency-Key", "category-color")
+        .json(&json!({"color":"#397C8C"}))
+        .send()
+        .unwrap();
+    assert_eq!(metadata.status(), 200);
     let r = s.get(&format!(
         "{root}/changes?cursor={}",
         before["snapshot"].as_str().unwrap()
     ));
     assert_eq!(r.status(), 200, "{}", r.text().unwrap());
     let v = r.json::<Value>().unwrap();
-    for entity in ["budget_cells", "budget_months", "budget_settings"] {
+    for entity in ["budget_cells", "categories"] {
         let row = v["data"]
             .as_array()
             .unwrap()

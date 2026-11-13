@@ -1,3 +1,4 @@
+import { transactionRows, transactionAction } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile } from "node:fs/promises";
@@ -153,7 +154,7 @@ try {
   const adjustment = page
     .locator("tbody tr")
     .filter({ hasText: "Reconciliation balance adjustment" });
-  await adjustment.getByRole("button", { name: /^Edit / }).click();
+  await transactionRows(adjustment, { name: /^Edit / }).click();
   await page
     .getByLabel("Notes", { exact: true })
     .fill("Confirmed statement correction");
@@ -168,11 +169,14 @@ try {
       .locator("tbody tr")
       .filter({ hasText: "Confirmed statement correction" }),
   ).toContainText("Reconciled");
-  await page
-    .locator("tbody tr")
-    .filter({ hasText: "Confirmed statement correction" })
-    .getByRole("button", { name: /^Unlock / })
-    .click();
+  await (
+    await transactionAction(
+      page
+        .locator("tbody tr")
+        .filter({ hasText: "Confirmed statement correction" }),
+      { name: /^Unlock / },
+    )
+  ).click();
   await page
     .getByRole("button", { name: "Confirm unlock", exact: true })
     .click();
@@ -196,16 +200,12 @@ try {
     .click();
   await expect(page.getByText(/Last reconciled/)).toBeVisible();
   await page.context().setOffline(true);
-  await page
-    .getByRole("button", { name: "Refresh transactions", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Reconcile account", exact: true }),
   ).toBeDisabled();
   await page.context().setOffline(false);
-  await page
-    .getByRole("button", { name: "Refresh transactions", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await page
     .getByRole("button", { name: "Reconcile account", exact: true })
     .click();
@@ -306,11 +306,12 @@ try {
   ).toBe(true);
   await page.evaluate(() => (document.documentElement.style.fontSize = "100%"));
   await page.getByRole("button", { name: "All accounts", exact: true }).click();
-  await page
-    .locator("tbody tr")
-    .filter({ hasText: "Starting Balance" })
-    .getByRole("button", { name: /^Unlock / })
-    .click();
+  await (
+    await transactionAction(
+      page.locator("tbody tr").filter({ hasText: "Starting Balance" }),
+      { name: /^Unlock / },
+    )
+  ).click();
   await page
     .getByRole("button", { name: "Confirm unlock", exact: true })
     .click();
@@ -356,7 +357,7 @@ try {
     .filter({ hasText: "Settled split acceptance" })
     .click();
   await page.getByRole("button", { name: "Checking", exact: true }).click();
-  await page.getByText("Filters and columns", { exact: true }).click();
+  await page.locator('summary[aria-label="Filters and columns"]').click();
   await page.getByLabel("Hide cleared transactions", { exact: true }).check();
   await page
     .getByRole("button", { name: "Find transactions", exact: true })
@@ -392,7 +393,9 @@ try {
     .getByRole("button", { name: "Find transactions", exact: true })
     .click();
   await expect(page.locator("tbody tr")).toHaveCount(1);
-  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await (
+    await transactionAction(page, { name: "Edit splits", exact: true })
+  ).click();
   await page
     .getByLabel("Split 1 notes", { exact: true })
     .fill("Confirmed settled allocation");
@@ -447,12 +450,14 @@ try {
     await (await fetch(api + "/api/v1" + splitPath)).json()
   ).data;
   expect(protectedSplit.children.every((row) => row.reconciled)).toBe(true);
-  await expect(page.getByRole("button", { name: /^Unlock / })).toBeEnabled();
+  await expect(
+    await transactionAction(page, { name: /^Unlock / }),
+  ).toBeEnabled();
   await page.screenshot({
     path: "test-results/reconciliation-splits.png",
     fullPage: true,
   });
-  await page.getByRole("button", { name: /^Unlock / }).click();
+  await (await transactionAction(page, { name: /^Unlock / })).click();
   await expect(page.locator(".reconciliation")).toContainText("all its splits");
   await page
     .getByRole("button", { name: "Confirm unlock", exact: true })
@@ -531,7 +536,7 @@ try {
     .getByRole("button", { name: "Lock transactions", exact: true })
     .click();
   await expect(page.locator("tbody tr")).toContainText("Reconciled");
-  await page.getByRole("button", { name: /^Unlock / }).click();
+  await (await transactionAction(page, { name: /^Unlock / })).click();
   const unlockRequest = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().endsWith("/unlock"),
   );
@@ -551,7 +556,9 @@ try {
   await page
     .getByRole("button", { name: "Lock transactions", exact: true })
     .click();
-  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await (
+    await transactionAction(page, { name: "Edit splits", exact: true })
+  ).click();
   await page
     .getByLabel("Confirm editing this reconciled split", { exact: true })
     .check();
@@ -568,7 +575,7 @@ try {
     /^[0-9a-f]{64}$/,
   );
   await expect(
-    page.getByRole("button", { name: "Edit splits", exact: true }),
+    await transactionAction(page, { name: "Edit splits", exact: true }),
   ).toHaveCount(0);
   await expect(page.locator("tbody tr")).toHaveCount(100);
   expect(

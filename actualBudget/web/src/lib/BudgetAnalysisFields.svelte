@@ -46,14 +46,6 @@
           onchange("showBalance", event.currentTarget.checked)}
       />{t("Show balance")}</label
     >{/if}
-  <label class="check"
-    ><input
-      type="checkbox"
-      checked={meta.showHiddenCategories === true}
-      onchange={(event) =>
-        onchange("showHiddenCategories", event.currentTarget.checked)}
-    />{t("Show hidden categories")}</label
-  >
   {#if meta.interval && meta.interval !== "Monthly"}<p>
       {t(
         "The saved interval is retained. Budget analysis calculates monthly values.",

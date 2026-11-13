@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { outsideClick } from "./outside-click";
   import { t } from "./i18n.svelte";
   import type { ConversionContext } from "./future-conversion";
   import { historyOwner } from "./history-owner";
@@ -62,6 +63,7 @@
     confirmedReconciled?: boolean;
   };
   let {
+    inline = false,
     budgetId,
     accounts,
     categories,
@@ -72,6 +74,7 @@
     oncancel,
     onschedule,
   }: {
+    inline?: boolean;
     budgetId: string;
     accounts: Account[];
     categories: Reference[];
@@ -79,10 +82,11 @@
     mode?: Mode;
     defaultAccountId?: string | null;
     oncomplete: (notice: string) => void;
-    oncancel: () => void;
+    oncancel: (restoreFocus?: boolean) => void;
     onschedule?: (context: ConversionContext) => void;
   } = $props();
   let draft = $state<Draft | null>(null);
+  let openedDraft: string | null = null;
   let error = $state("");
   let busy = $state(false);
   let ready = $state(false);
@@ -126,6 +130,8 @@
     busy = true;
     try {
       saved = localStorage.getItem(storageKey());
+      const fresh = saved === null;
+      openedDraft = null;
       if (saved) {
         const value = JSON.parse(saved) as Draft;
         if (
@@ -158,9 +164,9 @@
             preferences.shared.date_format,
           ),
           dateFormat: preferences.shared.date_format,
-          notes: initial?.notes ?? "",
+          notes: "",
           category: initial?.category_id ?? "",
-          cleared: initial?.cleared ?? false,
+          cleared: true,
           syncDate: preferences.shared.sync_transfer_date ?? false,
           epoch: preferences.budgetEpoch ?? "",
           balance: account?.balance ?? 0,
@@ -190,6 +196,8 @@
       if (draft.mode === "edit" && !draft.pending && !draft.protectionToken)
         await captureProtection();
       ready = true;
+      if (fresh && inline && mode === "edit")
+        openedDraft = JSON.stringify($state.snapshot(draft));
       await tick();
       if (alive) document.getElementById("transfer-title")?.focus();
       if (draft.mode === "link" && draft.destination) await matching();
@@ -323,8 +331,8 @@
             account_id: draft.source,
             date,
             amount,
-            notes: draft.notes,
-            cleared: draft.cleared,
+            notes: "",
+            cleared: true,
             category_id: draft.category || null,
             payee_id: null,
           },
@@ -351,14 +359,6 @@
         if (draft.epoch !== preferences.budgetEpoch)
           throw new Error(
             "This budget was restored. Close this unsent draft and review the current accounts before starting again.",
-          );
-        if (
-          (draft.mode === "edit" || draft.mode === "link") &&
-          draft.protectedCount &&
-          !draft.confirmedReconciled
-        )
-          throw new Error(
-            "Confirm editing reconciled entries in this transfer, or unlock them first.",
           );
         const date = parseDateInput(
           draft.date,
@@ -396,8 +396,8 @@
             for (const [field, value] of Object.entries({
               amount,
               date,
-              notes: draft.notes,
-              cleared: draft.cleared,
+              notes: "",
+              cleared: true,
               category_id: draft.category || null,
               account_id: draft.source,
             }))
@@ -414,21 +414,10 @@
               to_account_id: draft.destination,
               amount,
               date,
-              notes: draft.notes,
-              cleared: draft.cleared,
+              notes: "",
+              cleared: true,
               category_id: draft.category || null,
             };
-        }
-        if (
-          (draft.mode === "edit" || draft.mode === "link") &&
-          draft.confirmedReconciled
-        ) {
-          if (!draft.protectionToken)
-            throw new Error(
-              "Reopen the transfer to review its current protection.",
-            );
-          body.confirm_reconciled = true;
-          body.transfer_protection_token = draft.protectionToken;
         }
         if (draft.protectionClock)
           observeVersions({ reconciled: draft.protectionClock });
@@ -506,11 +495,11 @@
       busy = false;
     }
   }
-  function close() {
+  function close(restoreFocus = true) {
     if (busy || draft?.pending) return;
     try {
       remove();
-      oncancel();
+      oncancel(restoreFocus);
     } catch (e) {
       error = errorMessage(e);
     }
@@ -527,6 +516,18 @@
 </script>
 
 <section
+  {@attach outsideClick(() => {
+    if (
+      inline &&
+      openedDraft !== null &&
+      draft &&
+      !busy &&
+      ready &&
+      !draft.pending &&
+      JSON.stringify($state.snapshot(draft)) === openedDraft
+    )
+      close(false);
+  })}
   class="transfer-form"
   aria-labelledby="transfer-title"
   aria-busy={busy}
@@ -587,7 +588,6 @@
                 ><option value="">Choose entry</option
                 >{#each candidates as row (row.id)}<option value={row.id}
                     >{row.date} · {formatAmount(row.amount)} · {row.payee_name ??
-                      row.notes ??
                       "No payee"}</option
                   >{/each}</select
               >
@@ -633,39 +633,13 @@
                   value={draft.category}
                   onchange={(e) => edit("category", e.currentTarget.value)}
                   ><option value="">{t("Uncategorized")}</option
-                  >{#each categories.filter((c) => (!c.deleted && !c.hidden && !c.group_hidden) || c.id === draft?.category) as c (c.id)}<option
+                  >{#each categories.filter((c) => !c.deleted || c.id === draft?.category) as c (c.id)}<option
                       value={c.id}>{c.name}</option
                     >{/each}</select
                 >
               </div>{/if}
-            {#if draft.mode !== "close"}<label class="notes"
-                >{t("Notes")}<textarea
-                  value={draft.notes}
-                  maxlength="10000"
-                  oninput={(e) => edit("notes", e.currentTarget.value)}
-                ></textarea></label
-              ><label class="check-label"
-                ><input
-                  type="checkbox"
-                  checked={draft.cleared}
-                  onchange={(e) => edit("cleared", e.currentTarget.checked)}
-                />Cleared in this account</label
-              >{/if}
           {/if}
         </div>
-        {#if draft.protectedCount}
-          <label class="check-label"
-            ><input
-              type="checkbox"
-              checked={draft.confirmedReconciled ?? false}
-              onchange={(e) =>
-                edit("confirmedReconciled", e.currentTarget.checked)}
-            />Confirm editing reconciled entries in this transfer</label
-          >
-          <p>
-            Linked split allocations are included. Entries remain reconciled.
-          </p>
-        {/if}
       </fieldset>
       {#if draft.pending}<p>
           The original request is saved. Retry unchanged or cancel it before
@@ -693,7 +667,7 @@
             type="button"
             disabled={busy || offline || !ready}
             onclick={() => void send(true)}>Cancel pending transfer</button
-          >{:else}<button type="button" disabled={busy} onclick={close}
+          >{:else}<button type="button" disabled={busy} onclick={() => close()}
             >Close transfer form</button
           >{/if}
       </div>
@@ -728,9 +702,6 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-  }
-  .notes {
-    grid-column: 1 / -1;
   }
   .actions {
     display: flex;

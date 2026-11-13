@@ -35,7 +35,6 @@
     sourceCategoryFilters
       ? ["category", "category_group", "category_name", "category_group_name"]
       : [
-          "notes",
           "amount",
           "date",
           "cleared",
@@ -67,8 +66,6 @@
     ["isbetween", "between"],
     ["onBudget", "on budget"],
     ["offBudget", "off budget"],
-    ["hasTags", "has all tags"],
-    ["hasAnyTag", "has any tag"],
   ];
   async function load() {
     busy = true;
@@ -116,7 +113,6 @@
                   "matches",
                   "in",
                   "not_in",
-                  ...(field === "notes" ? ["hasTags", "hasAnyTag"] : []),
                 ];
     return operators.filter((op) => names.includes(op[0]));
   }
@@ -276,7 +272,7 @@
           ...rows,
           sourceCategoryFilters
             ? { field: "category", op: "is", value: null }
-            : { field: "notes", op: "contains", value: "" },
+            : { field: "payee", op: "is", value: null },
         ],
         String(conditionsOp || "and"),
       )}>{t("Add report condition")}</button

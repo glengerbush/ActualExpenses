@@ -4,7 +4,6 @@ use rusqlite::OptionalExtension;
 pub fn convert(source: &Value) -> Result<Value, Error> {
     let mut cells = vec![];
     let mut ids = std::collections::BTreeSet::new();
-    let mut months = BTreeMap::<String, Value>::new();
     for (table, kind) in [
         ("reflect_budgets", "tracking"),
         ("zero_budgets", "envelope"),
@@ -52,57 +51,11 @@ pub fn convert(source: &Value) -> Result<Value, Error> {
             cells.push(json!({"id":format!("{kind}:{m}:{category}"),"source_id":row["id"],"method":kind,"month":m,"category_id":category,"amount":amount,"carryover":carry,"goal":row["goal"],"long_goal":row["long_goal"],"tombstone":deleted}));
         }
     }
-    for row in source["zero_budget_months"]
-        .as_array()
-        .into_iter()
-        .flatten()
-    {
-        let m = row["id"]
-            .as_str()
-            .ok_or_else(|| Error::invalid("Invalid hold month"))?;
-        month(m)?;
-        let held = if row["buffered"].is_null() {
-            0
-        } else {
-            row["buffered"]
-                .as_i64()
-                .ok_or_else(|| Error::invalid("Invalid income hold"))?
-        };
-        money(held as i128)?;
-        months.insert(m.to_owned(), json!({"id":m,"buffered":held,"notes":""}));
-    }
-    for row in source["notes"].as_array().into_iter().flatten() {
-        if let Some(m) = row["id"]
-            .as_str()
-            .and_then(|id| id.strip_prefix("budget-"))
-            .filter(|m| month(m).is_ok())
-        {
-            month(m)?;
-            let note = row["note"].as_str().unwrap_or("");
-            if note.chars().count() > 10000 {
-                return Err(Error::invalid("Budget notes exceed limit"));
-            }
-            months
-                .entry(m.to_owned())
-                .or_insert_with(|| json!({"id":m,"buffered":0,"notes":""}))["notes"] = json!(note);
-        }
-    }
-    Ok(json!({"cells":cells,"months":months.into_values().collect::<Vec<_>>()}))
+    Ok(json!({"cells":cells,"months":[]}))
 }
 pub fn install(db: &Connection, b: &str, data: &Value) -> Result<(), Error> {
     for row in data["cells"].as_array().into_iter().flatten() {
         db.execute("INSERT OR IGNORE INTO budget_cells(budget_id,id,method,month,category_id,amount,carryover,goal,long_goal,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",params![b,row["id"].as_str(),row["method"].as_str(),row["month"].as_str(),row["category_id"].as_str(),row["amount"].as_i64(),row["carryover"].as_bool(),if row["goal"].is_null(){None}else{Some(row["goal"].to_string())},if row["long_goal"].is_null(){None}else{Some(row["long_goal"].to_string())},row["tombstone"].as_bool().unwrap_or(false)])?;
-    }
-    for row in data["months"].as_array().into_iter().flatten() {
-        db.execute(
-            "INSERT OR IGNORE INTO budget_months(budget_id,id,buffered,notes) VALUES(?1,?2,?3,?4)",
-            params![
-                b,
-                row["id"].as_str(),
-                row["buffered"].as_i64(),
-                row["notes"].as_str()
-            ],
-        )?;
     }
     Ok(())
 }
@@ -128,13 +81,6 @@ pub fn clock(db: &Connection, b: &str, data: &Value, row: &Value) -> Result<(), 
                         }
             })
             .map(|c| ("budget_cells", c["id"].as_str().unwrap(), field))
-    } else if dataset == "zero_budget_months" && field == "buffered" {
-        Some(("budget_months", source_id, field))
-    } else if dataset == "notes" && field == "note" {
-        source_id
-            .strip_prefix("budget-")
-            .filter(|m| month(m).is_ok())
-            .map(|m| ("budget_months", m, "notes"))
     } else if dataset == "preferences" && source_id == "budgetType" && field == "value" {
         Some(("budget_settings", "method", "method"))
     } else {

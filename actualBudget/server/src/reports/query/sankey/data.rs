@@ -409,19 +409,15 @@ fn budgeted(
     let start = crate::budgeting::month(&options.start_date[..7])?;
     let end = crate::budgeting::month(&options.end_date[..7])?;
     let count = (end - start + 1) as usize;
-    let data = crate::budgeting::sankey_months(db, b, &options.start_date[..7], count + 1)?;
+    let data = crate::budgeting::sankey_months(db, b, &options.start_date[..7], count)?;
     let months = data["months"]
         .as_object()
         .ok_or_else(|| Error::internal("Missing Sankey budget month cells"))?;
     let selected = manual_match(groups, options)?;
     let mut sums = BTreeMap::<String, i128>::new();
-    let mut overspent = 0i128;
     for month in start..=end {
         let name = crate::budgeting::month_name(month)?;
         let view = &months[&name];
-        overspent += view["summary"]["last_month_overspent"]
-            .as_i64()
-            .unwrap_or(0) as i128;
         let rows = view["categories"]
             .as_array()
             .ok_or_else(|| Error::internal("Missing Sankey category cells"))?;
@@ -466,23 +462,13 @@ fn budgeted(
             }
         }
     }
-    let to = months[&crate::budgeting::month_name(end)?]["summary"]["to_budget"]
-        .as_i64()
-        .unwrap_or(0);
-    let previous = months[&crate::budgeting::month_name(start)?]["summary"]["from_last_month"]
-        .as_i64()
-        .unwrap_or(0);
-    let next = months[&crate::budgeting::month_name(end + 1)?]["summary"]["from_last_month"]
-        .as_i64()
-        .unwrap_or(0) as i128
-        - to as i128;
     Ok((
         entries,
         BudgetContext {
-            to_budget: to,
-            previous,
-            overspent: exact(overspent)?,
-            next: exact(next)?,
+            to_budget: 0,
+            previous: 0,
+            overspent: 0,
+            next: 0,
             start: options.start_date[..7].into(),
             end: options.end_date[..7].into(),
         },

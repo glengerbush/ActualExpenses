@@ -73,7 +73,7 @@
 <section aria-labelledby="pending-recovery-heading">
   <div class="page-heading">
     <h1 id="pending-recovery-heading">
-      {t("Pending expenses on this device")}
+      {t("Saved changes on this device")}
     </h1>
     <button onclick={onclose} disabled={busy}>{t("Done")}</button>
   </div>
@@ -116,14 +116,14 @@
             {item.blocked ||
               (item.cancelRequested
                 ? t("Cancellation waiting for confirmation")
-                : t("Saved on this device. Waiting to sync."))}
+                : t("Saved on this device."))}
           </p>
           <div class="actions">
             <button onclick={() => void retry(item)} disabled={busy}
-              >{t("Retry pending expense")}</button
+              >{t("Retry saved expense")}</button
             >
             <button onclick={() => void retry(item, true)} disabled={busy}
-              >{t("Cancel pending change safely")}</button
+              >{t("Cancel saved change safely")}</button
             >
           </div>
           <p class="hint">
@@ -133,7 +133,7 @@
           </p>
         </article>{/each}
     </div>{:else if !error}<p role="status">
-      {t("No pending expenses on this device.")}
+      {t("No saved expenses on this device.")}
     </p>{/if}
 </section>
 

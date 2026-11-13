@@ -167,7 +167,6 @@ struct Row {
     payee_name: String,
     category: Option<String>,
     group: Option<String>,
-    hidden: bool,
     category_name: String,
     income: bool,
     transfer: Option<String>,
@@ -180,7 +179,7 @@ fn rows(db: &Connection, b: &str, o: &Value, parent: bool) -> Result<Vec<Row>, E
     let mut values = vec![SqlValue::Text(b.into())];
     let filter = predicate(db, b, o, &mut values)?;
     let sql = format!(
-        "SELECT t.id,t.date,t.amount,t.account_id,a.name,a.off_budget,t.payee_id,coalesce(y.name,p.name,''),t.category_id,coalesce(c.name,''),c.group_id,coalesce(g.name,''),coalesce(c.hidden,0) OR coalesce(g.hidden,0),p.transfer_account_id,peer.date,peer.account_id,t.notes,coalesce(c.is_income,0) {JOINS} WHERE t.budget_id=?1 AND t.tombstone=0 AND {} AND ({filter}) ORDER BY t.date,t.id LIMIT 100001",
+        "SELECT t.id,t.date,t.amount,t.account_id,a.name,a.off_budget,t.payee_id,coalesce(y.name,p.name,''),t.category_id,coalesce(c.name,''),c.group_id,coalesce(g.name,''),0,p.transfer_account_id,peer.date,peer.account_id,t.notes,coalesce(c.is_income,0) {JOINS} WHERE t.budget_id=?1 AND t.tombstone=0 AND {} AND ({filter}) ORDER BY t.date,t.id LIMIT 100001",
         if parent {
             "t.parent_id IS NULL"
         } else {
@@ -201,7 +200,6 @@ fn rows(db: &Connection, b: &str, o: &Value, parent: bool) -> Result<Vec<Row>, E
                 payee: r.get(6)?,
                 category: r.get(8)?,
                 group: r.get(10)?,
-                hidden: r.get(12)?,
                 category_name: r.get(9)?,
                 transfer: r.get(13)?,
                 peer_date: r
@@ -683,14 +681,7 @@ fn spending(
     if !months.contains(&to) {
         months.insert(0, to);
     }
-    let current_method: String =
-        db.query_row("SELECT budget_type FROM budgets WHERE id=?1", [b], |r| {
-            r.get(0)
-        })?;
-    let method = text(o, "budgetType", &current_method);
-    if !["envelope", "tracking"].contains(&method) {
-        return Err(Error::invalid("Invalid spending budget type"));
-    }
+    let method = "tracking";
     let mut budget: i64 = 0;
     let mut budget_rows=db.prepare("SELECT category_id,amount FROM budget_cells WHERE budget_id=?1 AND method=?2 AND month=?3 AND tombstone=0")?;
     // Category predicates are meaningful for allocations; source deliberately ignores

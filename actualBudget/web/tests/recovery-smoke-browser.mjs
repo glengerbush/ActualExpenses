@@ -80,7 +80,7 @@ try {
   ).toBeVisible();
   await expect(page.getByTestId("register-total")).toHaveText("10.00");
   await expect(
-    page.getByRole("button", { name: "Refresh transactions", exact: true }),
+    page.getByRole("button", { name: "Refresh", exact: true }),
   ).toBeEnabled();
   // API outage only: static code stays reachable on plain HTTP across restart.
   await context.route("**/api/v1/**", (route) => route.abort());

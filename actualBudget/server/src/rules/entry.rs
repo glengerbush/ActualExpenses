@@ -54,6 +54,7 @@ pub(super) async fn create(
             if cancel{return sync::canceled(db,&b);}
             crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;sync::check_snapshot(db,&b,Some(snapshot(&body)?))?;
             let mut fields=body.clone();fields.as_object_mut().ok_or_else(||Error::invalid("Automatic-entry object required"))?.remove("snapshot");
+            let recurrence = fields.as_object_mut().unwrap().remove("recurrence");
             let mut input:crate::ledger::NewTransaction=serde_json::from_value(fields).map_err(|_|Error::invalid("Invalid automatic-entry transaction"))?;input.validate()?;
             let learn=input.learn_categories==Some(true)&&(input.category_id.is_some()||input.new_category.is_some());input.learn_categories=None;
             let id=input.id.clone();
@@ -64,10 +65,12 @@ pub(super) async fn create(
             let mut runner=engine::Runner::new(load(db,&b)?);
             let (after,matched)=runner.evaluate(db,&b,&before)?;
             let mut after=protect(&before,&after);
+            // Explicit recurrence starts its own series, not a rule-matched series.
+            if recurrence.is_some() { after.as_object_mut().unwrap().remove("schedule_id"); }
             let clock=sync::clock(db,&b,proposed.as_deref())?;
             if after["deleted"]==true{return Ok(json!({"response_status":201,"response_body":{"data":after,"snapshot":sync::cursor(db,&b)?,"edit_clock":clock}}));}
             let mut fields=serde_json::Map::new();
-            for field in ["id","account_id","amount","date","notes","cleared","payee_id","category_id","new_payee","new_category"] {if let Some(value)=after.get(field){fields.insert(field.into(),value.clone());}}
+            for field in ["id","account_id","amount","date","cleared","payee_id","category_id","new_payee","new_category"] {if let Some(value)=after.get(field){fields.insert(field.into(),value.clone());}}
             for (new,field) in [("new_payee","payee_id"),("new_category","category_id")] {if fields.get(new).is_some_and(Value::is_object){fields.insert(field.into(),Value::Null);}}
             let transfer=if let Some(payee)=fields["payee_id"].as_str(){crate::payees_tags::record(db,&b,"payees",payee)?["transfer_account_id"].as_str().map(str::to_owned)}else{None};
             if transfer.is_some(){fields.insert("payee_id".into(),Value::Null);}
@@ -95,6 +98,7 @@ pub(super) async fn create(
                 }
             }
             if learn{learning::manual(db,&b,std::slice::from_ref(&id),&clock)?;}
+            if let Some(recurrence) = recurrence { crate::schedules::apply_recurrence(db,&b,&id,recurrence,&clock)?; }
             let mut saved=crate::ledger::get_any(db,&b,&id)?;
             saved["deleted"]=json!(db.query_row("SELECT tombstone FROM transactions WHERE budget_id=?1 AND id=?2",params![b,id],|r|r.get::<_,bool>(0))?);
             Ok(json!({"response_status":201,"response_body":{"data":saved,"snapshot":sync::cursor(db,&b)?,"edit_clock":clock}}))
@@ -103,7 +107,7 @@ pub(super) async fn create(
 }
 
 /// Only newly inserted counterparts enter here. Actual transfer.addTransfer
-/// executes the whole chain, but persists only notes and cleared from it.
+/// executes the whole chain, but persists only completion from it.
 pub(super) fn peer_rules(
     db: &Connection,
     b: &str,
@@ -113,19 +117,15 @@ pub(super) fn peer_rules(
 ) -> Result<(), Error> {
     let before = crate::ledger::get(db, b, id)?;
     let (after, _) = runner.evaluate_stored(db, b, &before)?;
-    let notes = after["notes"].as_str().unwrap_or("");
-    if notes.chars().count() > 10000 {
-        return Err(Error::invalid("Rule notes exceed10000 characters"));
-    }
     let cleared = after["cleared"]
         .as_bool()
         .ok_or_else(|| Error::invalid("Invalid counterpart cleared result"))?;
-    if before["notes"] != notes || before["cleared"] != cleared {
+    if before["cleared"] != cleared {
         db.execute(
-            "UPDATE transactions SET notes=?3,cleared=?4 WHERE budget_id=?1 AND id=?2",
-            params![b, id, notes, cleared],
+            "UPDATE transactions SET cleared=?3 WHERE budget_id=?1 AND id=?2",
+            params![b, id, cleared],
         )?;
-        for field in ["notes", "cleared"] {
+        for field in ["cleared"] {
             sync::seed_field_version(db, b, "transactions", id, field, clock)?;
         }
         sync::mark(db, b, "transactions", id)?;
@@ -173,7 +173,6 @@ pub(crate) fn save_import(
         "account_id",
         "amount",
         "date",
-        "notes",
         "cleared",
         "payee_id",
         "category_id",

@@ -43,9 +43,7 @@
   } from "./lib/schedule-foreground";
   import { rulesKey } from "./lib/rules";
   import { planningKey } from "./lib/planning";
-  import { automationKey } from "./lib/budget-automations";
   import Register from "./lib/Register.svelte";
-  import Categories from "./lib/Categories.svelte";
   import Settings from "./lib/Settings.svelte";
   import RecoveryTools from "./lib/RecoveryTools.svelte";
   import Reports from "./lib/Reports.svelte";
@@ -91,7 +89,6 @@
     | "schedules"
     | "reports"
     | "settings"
-    | "categories"
     | "import"
     | "manage"
     | "restore"
@@ -122,12 +119,6 @@
         label: t("All budgets"),
         disabled: locked,
         run: showBudgets,
-      },
-      {
-        id: "pending",
-        label: t("Review pending expenses"),
-        disabled: locked,
-        run: () => showForm("pending"),
       },
     ];
     if (!budget) {
@@ -267,11 +258,9 @@
       });
     const views = [
       ["planning", "Budget", false],
-      ["categories", "Categories", disconnected],
-      ["references", "Payees and tags", disconnected],
+      ["references", "Payees", disconnected],
       ["transaction-files", "Transaction files", false],
       ["rules", "Rules", false],
-      ["schedules", "Schedules", false],
       ["reports", "Dashboards and reports", false],
       ["settings", "Settings", false],
     ] as const;
@@ -393,7 +382,7 @@
       if (localStorage.getItem(rulesKey(value.id)) !== null) form = "rules";
       if (
         localStorage.getItem(planningKey(value.id)) !== null ||
-        localStorage.getItem(automationKey(value.id)) !== null
+        localStorage.getItem(`actualBudget.categories.v1.${value.id}`) !== null
       )
         form = "planning";
       try {
@@ -533,7 +522,6 @@
       | "schedules"
       | "reports"
       | "settings"
-      | "categories"
       | "import"
       | "manage"
       | "restore"
@@ -628,11 +616,6 @@
         >{t("All budgets")}</button
       >
       <div class="budget-name">{budget.name}</div>
-      <p class="hint method">
-        {budget.budget_type === "tracking"
-          ? t("Tracking budget")
-          : t("Envelope budget")}
-      </p>
       <nav aria-label={t("Views")}>
         <button
           class:current={!form}
@@ -648,17 +631,11 @@
           disabled={loading || !compatible}>{t("Budget")}</button
         >
         <button
-          class:current={form === "categories"}
-          aria-current={form === "categories" ? "page" : undefined}
-          onclick={() => showForm("categories")}
-          disabled={loading || disconnected}>{t("Categories")}</button
-        >
-        <button
           class:current={form === "references"}
           aria-current={form === "references" ? "page" : undefined}
           onclick={() => showForm("references")}
           disabled={loading || disconnected || !compatible}
-          >{t("Payees and tags")}</button
+          >{t("Payees")}</button
         >
         <button
           class:current={form === "transaction-files"}
@@ -672,12 +649,6 @@
             void showForm("rules");
           }}
           disabled={loading || !compatible}>{t("Rules")}</button
-        >
-        <button
-          class:current={form === "schedules"}
-          aria-current={form === "schedules" ? "page" : undefined}
-          onclick={() => showForm("schedules")}
-          disabled={loading || !compatible}>{t("Schedules")}</button
         >
         <button
           class:current={form === "reports"}
@@ -705,9 +676,6 @@
       <button onclick={() => showForm("recovery")} disabled={loading}
         >Recovery tools</button
       >
-      <button onclick={() => showForm("pending")} disabled={loading}
-        >{t("Review pending expenses")}</button
-      >
     </nav>
   </aside>
   <main
@@ -724,7 +692,7 @@
     {#if offlineError && offlineError !== error}<p role="alert" class="error">
         {offlineError}
       </p>{/if}
-    {#if cachedAt}<p class="hint" role="status">
+    {#if cachedAt && disconnected}<p class="hint" role="status">
         {disconnected
           ? t("Disconnected. Saved data from")
           : t("Saved data from")}
@@ -777,7 +745,9 @@
         <p class="error" role="alert">{error}</p>
         <button class="primary" onclick={retry}>{t("Retry")}</button>
       </section>
-    {:else if form === "recovery"}<RecoveryTools
+    {:else if form === "recovery"}<button onclick={() => showForm("pending")}
+        >Troubleshoot saved changes</button
+      ><RecoveryTools
         {budget}
         onclose={() => showForm(null)}
         onreset={rebuildDownloadedViews}
@@ -851,10 +821,6 @@
         oncreated={accountCreated}
         oncancel={() => showForm(null)}
       />
-    {:else if form === "categories" && budget}<Categories
-        budgetId={budget.id}
-        onclose={() => openBudget(budget!, account?.id)}
-      />
     {:else if form === "planning" && budget}{#key budget.id}<BudgetPlan
           budgetId={budget.id}
           {disconnected}
@@ -917,11 +883,9 @@
       {#if budgets.length}<ul class="budget-list">
           {#each budgets as item (item.id)}<li>
               <button onclick={() => openBudget(item)}
-                ><span class="list-name">{item.name}</span><span class="muted"
-                  >{item.budget_type === "tracking"
-                    ? t("Tracking")
-                    : t("Envelope")}</span
-                ><span>{t("Open")}</span></button
+                ><span class="list-name">{item.name}</span><span
+                  >{t("Open")}</span
+                ></button
               >
             </li>{/each}
         </ul>
@@ -969,12 +933,6 @@
         />
       {/key}
     {:else}
-      <div class="page-heading">
-        <div>
-          <h1>{t("Transaction history")}</h1>
-          <p class="muted">{budget.name}</p>
-        </div>
-      </div>
       {#key budget.id + ":all"}<Register
           budgetId={budget.id}
           accountId={null}

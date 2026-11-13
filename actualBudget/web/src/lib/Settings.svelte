@@ -87,8 +87,6 @@
   }
   const featureLabels: Record<FeatureName, string> = {
     newSidebarUI: "New sidebar",
-    goalTemplatesEnabled: "Goal templates",
-    goalTemplatesUIEnabled: "Budget automation",
     actionTemplating: "Action templating",
     formulaMode: "Formula mode",
     currency: "Currency display",

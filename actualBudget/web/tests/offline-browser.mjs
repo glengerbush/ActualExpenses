@@ -1,3 +1,4 @@
+import { transactionRows } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
@@ -102,10 +103,9 @@ try {
   );
   await expect(page.getByTestId("register-total")).toHaveText("1,000.00");
   await expect(
-    page
-      .locator(".register-table")
-      .getByRole("button", { name: /^Edit / })
-      .first(),
+    transactionRows(page.locator(".register-table"), {
+      name: /^Edit /,
+    }).first(),
   ).toBeDisabled();
   await context.unroute("**/api/v1/**");
   await page.evaluate(() => dispatchEvent(new Event("online")));
@@ -237,7 +237,7 @@ try {
   const editRow = page
     .locator(".register-table tbody tr")
     .filter({ hasText: "Quota retained" });
-  await editRow.getByRole("button", { name: /^Edit / }).click();
+  await transactionRows(editRow, { name: /^Edit / }).click();
   await page
     .getByLabel("Notes", { exact: true })
     .fill("Interrupted local note");

@@ -1,3 +1,4 @@
+import { transactionAction } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -214,14 +215,15 @@ try {
     notes: "Saved future entry",
     cleared: true,
   });
-  await page
-    .getByRole("button", { name: "Refresh transactions", exact: true })
-    .click();
-  await page
-    .locator(".register-table tbody tr")
-    .filter({ hasText: "Saved future entry" })
-    .getByRole("button", { name: /^Schedule future / })
-    .click();
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await (
+    await transactionAction(
+      page
+        .locator(".register-table tbody tr")
+        .filter({ hasText: "Saved future entry" }),
+      { name: /^Schedule future / },
+    )
+  ).click();
   await expect(page.locator(".conversion")).toContainText(
     "Existing entries replaced",
   );

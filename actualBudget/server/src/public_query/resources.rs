@@ -63,7 +63,7 @@ fn fields(table: &str) -> &'static [Field] {
             f!("id", "{a}.id", Id),
             f!("name", "{a}.name", Text),
             f!("is_income", "{a}.is_income", Boolean),
-            f!("hidden", "{a}.hidden", Boolean),
+            f!("hidden", "0", Boolean),
             f!("group", "{a}.group_id", "category_groups"),
             f!(
                 "goal_def",
@@ -85,7 +85,7 @@ fn fields(table: &str) -> &'static [Field] {
             f!("id", "{a}.id", Id),
             f!("name", "{a}.name", Text),
             f!("is_income", "{a}.is_income", Boolean),
-            f!("hidden", "{a}.hidden", Boolean),
+            f!("hidden", "0", Boolean),
         ],
         "rules" => &[
             f!("id", "{a}.id", Id),
@@ -201,7 +201,6 @@ pub(super) fn names(table: &str) -> Vec<&'static str> {
             "category",
             "amount",
             "date",
-            "notes",
             "is_parent",
             "is_child",
             "parent_id",
@@ -230,7 +229,7 @@ fn descriptor(table: &str, name: &str) -> Value {
         | "starting_balance_flag"
         | "tombstone" => Kind::Boolean,
         "error" | "raw_synced_data" => Kind::Json,
-        "notes" | "note" | "imported_payee" | "imported_id" => Kind::Text,
+        "note" | "imported_payee" | "imported_id" => Kind::Text,
         _ => Kind::Id,
     };
     let reference = match name {

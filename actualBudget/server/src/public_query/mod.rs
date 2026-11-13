@@ -232,7 +232,6 @@ impl Compiler<'_> {
             ),
             "amount" => ("t.amount", Kind::Money),
             "date" => ("t.date", Kind::Date),
-            "notes" => ("t.notes", Kind::Text),
             "is_parent" => ("t.is_parent", Kind::Boolean),
             "is_child" => ("(t.parent_id IS NOT NULL)", Kind::Boolean),
             "parent_id" => ("t.parent_id", Kind::Id),
@@ -261,10 +260,10 @@ impl Compiler<'_> {
             "payee.name" => ("coalesce(y.name,p.name)", Kind::Text),
             "category.name" => ("c.name", Kind::Text),
             "category.is_income" => ("c.is_income", Kind::Boolean),
-            "category.hidden" => ("c.hidden", Kind::Boolean),
+            "category.hidden" => ("0", Kind::Boolean),
             "category.group" => ("c.group_id", Kind::Id),
             "category.group.name" => ("g.name", Kind::Text),
-            "category.group.hidden" => ("g.hidden", Kind::Boolean),
+            "category.group.hidden" => ("0", Kind::Boolean),
             "category.group.is_income" => ("g.is_income", Kind::Boolean),
             _ => {
                 if let Some((head, path)) = name.split_once('.') {

@@ -60,11 +60,10 @@ try {
   await nav.getByRole("button", { name: "Budget", exact: true }).click();
   await expect(
     nav.getByRole("button", { name: "Categories", exact: true }),
-  ).toBeEnabled();
-  await nav.getByRole("button", { name: "Categories", exact: true }).click();
+  ).toHaveCount(0);
   await expect(
-    page.getByRole("heading", { name: "Categories", exact: true }),
-  ).toBeVisible();
+    page.getByRole("button", { name: "Add group", exact: true }).first(),
+  ).toBeEnabled();
   await nav
     .getByRole("button", { name: "Transaction history", exact: true })
     .click();

@@ -54,12 +54,12 @@
   } from "./register-storage";
   import BulkActions from "./BulkActions.svelte";
   import TransferForm from "./TransferForm.svelte";
-  import Reconciliation from "./Reconciliation.svelte";
   import SplitEditor from "./SplitEditor.svelte";
   import RegisterTools from "./RegisterTools.svelte";
   import {
     defaultQuery,
     defaultColumns,
+    transactionColumns,
     columnLabels,
     isDefaultQuery,
     type RegisterQuery,
@@ -148,7 +148,7 @@
   }
   async function editQueued(item: OutboxEntry) {
     queued = item;
-    editing = item.attempted ? item.row : null;
+    editing = item.row;
     showForm = true;
   }
   async function deleteQueued(item: OutboxEntry) {
@@ -185,9 +185,7 @@
   let confirmedQuery = $state<RegisterQuery>(defaultQuery());
   let extraBalances = $state(true);
   let visibleColumns = $state<string[]>([...defaultColumns]);
-  let appliedColumns = $derived(
-    visibleColumns.filter((column) => column !== "account"),
-  );
+  let appliedColumns = $derived(transactionColumns(visibleColumns));
   async function applyRegisterQuery(
     query: RegisterQuery,
     columns: string[],
@@ -207,8 +205,6 @@
         return row.account_name;
       case "payee":
         return row.payee_name ?? t("No payee");
-      case "notes":
-        return row.notes;
       case "group":
         return row.category_group_name ?? "";
       case "category":
@@ -217,7 +213,7 @@
           : (row.category_name ??
               (row.transfer_id ? "Transfer" : t("Uncategorized")));
       case "amount":
-        return formatAmount(row.amount);
+        return `${row.amount > 0 ? "+" : ""}${formatAmount(row.amount)}`;
       case "payment":
         return row.amount < 0 ? formatAmount(-row.amount) : "";
       case "deposit":
@@ -228,28 +224,74 @@
           : row.running_balance == null
             ? "Unavailable"
             : formatAmount(row.running_balance);
-      case "status":
-        return row.reconciled
-          ? t("Reconciled")
-          : row.cleared
-            ? t("Cleared")
-            : t("Uncleared");
       default:
         return "";
     }
   }
+  function canEditRow(row: Transaction) {
+    const local = queue.find((item) => item.row.id === row.id);
+    if (!local) return !rowEditingDisabled;
+    return (
+      local.offlineCreated &&
+      !local.attempted &&
+      !local.blocked &&
+      !loading &&
+      !busy &&
+      !showForm &&
+      !splitActive &&
+      !bulkActive &&
+      !pending &&
+      !recoveryError &&
+      preferences.hasUsableShared
+    );
+  }
+  function activateRow(event: MouseEvent | KeyboardEvent, row: Transaction) {
+    const target = event.target as HTMLElement;
+    const local = queue.find((item) => item.row.id === row.id);
+    if (
+      target.closest("button, input, label, select, textarea, a, summary") ||
+      !canEditRow(row)
+    )
+      return;
+    if (event instanceof KeyboardEvent) {
+      if (!["Enter", " "].includes(event.key)) {
+        navigateRow(event);
+        return;
+      }
+      event.preventDefault();
+    }
+    if (local) void editQueued(local);
+    else open(row);
+    void tick().then(() =>
+      document
+        .querySelector<HTMLElement>(
+          ".inline-editor input, .inline-editor select",
+        )
+        ?.focus(),
+    );
+  }
+  function focusRow(id: string | null | undefined) {
+    if (!id) return;
+    void tick().then(() => {
+      const row = document.querySelector<HTMLElement>(
+        `tr[data-transaction-id="${CSS.escape(id)}"]`,
+      );
+      (
+        row ?? document.querySelector<HTMLElement>(".register-table-scroll")
+      )?.focus();
+    });
+  }
   function navigateRow(event: KeyboardEvent) {
     if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
-    const target = event.target as HTMLElement;
-    if (target.tagName !== "BUTTON") return;
-    const row = target.closest("tr");
-    const table = row?.closest("table");
+    const target = event.currentTarget as HTMLElement;
     const rows = Array.from(
-      table?.querySelectorAll<HTMLTableRowElement>(
-        "tbody tr:not(.delete-confirmation)",
-      ) ?? [],
+      target
+        .closest("table")
+        ?.querySelectorAll<HTMLTableRowElement>(
+          "tbody tr[data-transaction-id]",
+        ) ?? [],
     );
-    const index = rows.indexOf(row as HTMLTableRowElement);
+    const index = rows.indexOf(target as HTMLTableRowElement);
     const next =
       event.key === "Home"
         ? 0
@@ -262,16 +304,19 @@
                 index + (event.key === "ArrowDown" ? 1 : -1),
               ),
             );
-    const button = rows[next]?.querySelector<HTMLButtonElement>(
-      "button:not(:disabled)",
-    );
-    if (button) {
-      event.preventDefault();
-      button.focus();
-    }
+    event.preventDefault();
+    rows[next]?.focus();
   }
   let selectedIds = $state<string[]>([]);
   let bulkActive = $state(false);
+  let registerTools = $state<
+    { sortBy: (field: string) => Promise<void> } | undefined
+  >();
+  async function refreshAll() {
+    await refreshChanges();
+    await tick();
+    await bulkActions?.refresh();
+  }
   let bulkActions = $state<{ refresh: () => Promise<void> } | undefined>();
   let selectionAnchor: string | null = null;
   function selectRow(event: MouseEvent, row: Transaction) {
@@ -300,12 +345,27 @@
   }
   let register = $state.raw<RegisterPage | null>(null);
   let expandedSplits = $state<string[]>([]);
+  // Device saves are ordinary entries. The delivery queue is never a separate ledger.
+  let visibleTransactions = $derived.by(() => {
+    const rows = new Map((register?.data ?? []).map((row) => [row.id, row]));
+    for (const item of queue) {
+      if (
+        item.pending.budgetEpoch &&
+        item.pending.budgetEpoch !== preferences.budgetEpoch
+      )
+        continue;
+      if (item.pending.method === "DELETE") rows.delete(item.row.id);
+      else rows.set(item.row.id, { ...item.row, running_balance: null });
+    }
+    return [...rows.values()];
+  });
   let selectionRows = $derived(
-    register?.data.flatMap((row) => [
+    visibleTransactions.flatMap((row) => [
       row,
       ...(expandedSplits.includes(row.id) ? (row.children ?? []) : []),
-    ]) ?? [],
+    ]),
   );
+  let syncIssues = $derived(queue.filter((item) => !!item.blocked));
   let selectedRows = $derived(
     selectionRows.filter((row) => selectedIds.includes(row.id)),
   );
@@ -341,10 +401,6 @@
     { open: (row: Transaction) => Promise<void> } | undefined
   >();
   let splitActive = $state(false);
-  let unlocking = $state.raw<Transaction | null>(null);
-  const reconciliationAccount = $derived(
-    accounts.find((a) => a.id === (accountId ?? unlocking?.account_id)),
-  );
   let deleting = $state.raw<Transaction | null>(null);
   let deletionEpoch = $state<string | undefined>();
   let pending = $state<SavedAction | null>(null);
@@ -477,16 +533,19 @@
   });
 
   async function changed(message = "") {
+    const rowId = editing?.id ?? splitRowId;
     showForm = false;
     transferMode = null;
     editing = null;
     queued = null;
     deleting = null;
+    splitRowId = null;
     await readPending();
     await load();
     notice = message;
     try {
       await onchanged();
+      focusRow(rowId);
     } catch (e) {
       error =
         t("Saved. Refresh the account list to see its updated balance.") +
@@ -569,13 +628,22 @@
       }
     }
   }
+  let splitRowId = $state<string | null>(null);
+  async function openSplit(row: Transaction) {
+    splitRowId = row.id;
+    deleting = null;
+    await tick();
+    await splitEditor?.open(row);
+    await tick();
+    document.querySelector<HTMLElement>(".inline-editor input")?.focus();
+  }
   function open(transaction: Transaction | null) {
     if (transaction && disconnected) return;
     if (transaction?.is_parent || transaction?.parent_id) {
       const parent = transaction.parent_id
         ? register?.data.find((row) => row.id === transaction.parent_id)
         : transaction;
-      if (parent) void splitEditor?.open(parent);
+      if (parent) void openSplit(parent);
       return;
     }
     queued = null;
@@ -593,27 +661,7 @@
     showForm = true;
     deleting = null;
   }
-  async function beginUnlock(row: Transaction) {
-    if (busy || disconnected) return;
-    busy = true;
-    error = "";
-    try {
-      if (row.is_parent) {
-        const current = await request<{
-          data: Transaction;
-          reconciliation_token: string;
-        }>(`/budgets/${budgetId}/transactions/${row.id}/splits`);
-        unlocking = {
-          ...current.data,
-          reconciliation_token: current.reconciliation_token,
-        };
-      } else unlocking = row;
-    } catch (e) {
-      error = errorMessage(e);
-    } finally {
-      busy = false;
-    }
-  }
+
   function description(row: Transaction) {
     return `${formatAmount(row.amount)} · ${row.payee_name ?? t("No payee")} · ${formatDate(row.date)}`;
   }
@@ -659,8 +707,7 @@
         const receipt = (await receipts(budgetId)).find((r) =>
           sameMutation(r.pending, submitted),
         );
-        terminalNotice =
-          receipt?.message ?? t("Saved on this device. Waiting to sync.");
+        terminalNotice = receipt?.message ?? t("Saved on this device.");
       } else await mutate(pending);
       acknowledged = true;
       clearRegisterAction(budgetId, submitted);
@@ -750,7 +797,99 @@
       error = errorMessage(e);
     }
   }
+  let rowEditingDisabled = $derived(
+    disconnected ||
+      loading ||
+      busy ||
+      showForm ||
+      splitActive ||
+      bulkActive ||
+      !!pending ||
+      !!recoveryError ||
+      !preferences.hasUsableShared,
+  );
+  let inlineSplitRow = $derived(
+    splitRowId &&
+      preferences.hasUsableShared &&
+      viewMatchesEpoch &&
+      selectionRows.some((row) => row.id === splitRowId)
+      ? splitRowId
+      : null,
+  );
+  let inlineEditing = $derived(
+    showForm &&
+      preferences.hasUsableShared &&
+      viewMatchesEpoch &&
+      !!editing &&
+      selectionRows.some((row) => row.id === editing!.id) &&
+      !futureContext &&
+      !recoveryError,
+  );
 </script>
+
+{#snippet splitForm()}
+  <SplitEditor
+    {budgetId}
+    bind:this={splitEditor}
+    inline={!!inlineSplitRow}
+    {accounts}
+    {payees}
+    {categories}
+    {disconnected}
+    bind:active={splitActive}
+    oncomplete={() => changed()}
+    onclose={(restoreFocus = true) => {
+      if (restoreFocus) focusRow(splitRowId);
+      splitRowId = null;
+    }}
+  />
+{/snippet}
+
+{#snippet transactionEditor()}
+  {#if transferMode}<TransferForm
+      inline={inlineEditing}
+      {budgetId}
+      {accounts}
+      {categories}
+      mode={transferMode}
+      initial={editing}
+      defaultAccountId={ledgerAccountId ?? accountId}
+      onschedule={scheduleFuture}
+      oncomplete={(message) => void changed(message)}
+      oncancel={(restoreFocus = true) => {
+        if (restoreFocus) focusRow(editing?.id);
+        showForm = false;
+        transferMode = null;
+        editing = null;
+        void tick().then(() => bulkActions?.refresh());
+      }}
+    />
+  {:else}<TransactionForm
+      inline={inlineEditing}
+      {budgetId}
+      {accounts}
+      {payees}
+      {categories}
+      initial={editing}
+      {queued}
+      {disconnected}
+      defaultAccountId={ledgerAccountId ?? accountId}
+      onpayeecreated={(payee) => {
+        if (!payees.some((p) => p.id === payee.id)) payees = [...payees, payee];
+        void refreshBudget(budgetId).catch(() => {});
+      }}
+      onschedule={scheduleFuture}
+      oncomplete={(_transaction, message) => void changed(message)}
+      oncancel={(restoreFocus = true) => {
+        if (restoreFocus) focusRow(editing?.id);
+        showForm = false;
+        editing = null;
+        queued = null;
+        void tick().then(() => bulkActions?.refresh());
+      }}
+    />
+  {/if}
+{/snippet}
 
 <section
   class="register"
@@ -758,19 +897,26 @@
   aria-busy={loading || busy}
 >
   <div class="register-heading">
-    <h2 id="register-title">{t("Transactions")}</h2>
+    <h1 id="register-title">{t("Transaction history")}</h1>
+    {#if register && preferences.hasUsableShared && viewMatchesEpoch}
+      <dl class="register-balances">
+        <div>
+          <dt>
+            {asOf
+              ? t("Balance through {{date}}", { date: formatDate(asOf) })
+              : t("All-date balance")}
+          </dt>
+          <dd data-testid="register-total">
+            {#if accountId}<span data-testid="account-balance"
+                >{formatAmount(register.balances.total)}</span
+              >{:else}{formatAmount(register.balances.total)}{/if}
+          </dd>
+        </div>
+      </dl>
+    {/if}
     <button
-      onclick={refreshChanges}
-      disabled={loading ||
-        busy ||
-        showForm ||
-        splitActive ||
-        bulkActive ||
-        !!pending ||
-        !!recoveryError}>{t("Refresh transactions")}</button
-    >
-    <button
-      class="primary"
+      class="primary add-transaction"
+      aria-label={t("Add transaction")}
       onclick={() => open(null)}
       disabled={loading ||
         busy ||
@@ -782,7 +928,16 @@
         !!recoveryError ||
         !preferences.hasUsableShared ||
         !viewMatchesEpoch ||
-        !compatible}>{t("Add transaction")}</button
+        !compatible}
+      ><svg
+        aria-hidden="true"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"><path d="M12 5v14M5 12h14" /></svg
+      > Add Transaction</button
     >
     {#if accountId}<button
         onclick={() => openTransfer("close")}
@@ -801,121 +956,93 @@
         >Transfer balance and close</button
       >{/if}
   </div>
-  {#if register && preferences.hasUsableShared && viewMatchesEpoch}
-    <dl class="register-balances">
-      <div>
-        <dt>
-          {asOf
-            ? t("Balance through {{date}}", { date: formatDate(asOf) })
-            : t("All-date balance")}
-        </dt>
-        <dd data-testid="register-total">
-          {#if accountId}<span data-testid="account-balance"
-              >{formatAmount(register.balances.total)}</span
-            >{:else}{formatAmount(register.balances.total)}{/if}
-        </dd>
-      </div>
-      {#if extraBalances}
-        <div>
-          <dt>{t("Cleared")}</dt>
-          <dd data-testid="register-cleared">
-            {formatAmount(register.balances.cleared)}
-          </dd>
-        </div>
-        <div>
-          <dt>{t("Uncleared")}</dt>
-          <dd data-testid="register-uncleared">
-            {formatAmount(register.balances.uncleared)}
-          </dd>
-        </div>
-      {/if}
-    </dl>
-    <form
-      class="date-filter"
-      onsubmit={(event) => {
-        event.preventDefault();
-        void userRefresh(filterDate);
+  <div class="register-toolbar">
+    <BulkActions
+      onrefresh={refreshAll}
+      refreshDisabled={loading ||
+        busy ||
+        showForm ||
+        splitActive ||
+        bulkActive ||
+        !!pending ||
+        !!recoveryError}
+      bind:this={bulkActions}
+      bind:active={bulkActive}
+      {budgetId}
+      selected={selectedRows}
+      snapshot={register?.snapshot ?? ""}
+      {accounts}
+      {payees}
+      {categories}
+      disabled={disconnected ||
+        loading ||
+        busy ||
+        showForm ||
+        splitActive ||
+        !!pending ||
+        !!recoveryError ||
+        !preferences.hasUsableShared ||
+        !viewMatchesEpoch}
+      onchanged={() => changed()}
+      onclear={() => {
+        selectedIds = [];
       }}
+    />
+
+    <RegisterTools
+      bind:this={registerTools}
+      locked={loading ||
+        busy ||
+        bulkActive ||
+        showForm ||
+        splitActive ||
+        !!pending ||
+        !!recoveryError}
+      {accounts}
+      {payees}
+      {categories}
+      {budgetId}
+      {accountId}
+      {disconnected}
+      cutoff={asOf}
+      onapply={applyRegisterQuery}
     >
-      <DateInput
-        id="register-as-of"
-        label={t("Show through date")}
-        bind:value={filterDate}
-        disabled={loading || busy}
-      />
-      <button disabled={loading || busy || disconnected}>{t("Apply")}</button>
-      {#if asOf}<button
-          type="button"
-          onclick={() => {
-            void userRefresh("");
+      {#snippet dateFilter()}
+        <form
+          class="date-filter"
+          onsubmit={(event) => {
+            event.preventDefault();
+            void userRefresh(filterDate);
           }}
-          disabled={loading || busy}>{t("All dates")}</button
         >
-      {:else}<span class="hint">{t("Includes future-dated entries.")}</span
-        >{/if}
-    </form>
-  {/if}
-  <BulkActions
-    bind:this={bulkActions}
-    bind:active={bulkActive}
-    {budgetId}
-    selected={selectedRows}
-    snapshot={register?.snapshot ?? ""}
-    {accounts}
-    {payees}
-    {categories}
-    disabled={disconnected ||
-      loading ||
-      busy ||
-      showForm ||
-      splitActive ||
-      !!pending ||
-      !!recoveryError ||
-      !preferences.hasUsableShared ||
-      !viewMatchesEpoch}
-    onchanged={() => changed()}
-    onclear={() => {
-      selectedIds = [];
-    }}
-  />
-  {#if reconciliationAccount && register}
-    {#key reconciliationAccount.id}<Reconciliation
-        {budgetId}
-        account={reconciliationAccount}
-        snapshot={register.snapshot}
-        {disconnected}
-        disabled={loading ||
-          bulkActive ||
-          busy ||
-          showForm ||
-          splitActive ||
-          !!pending ||
-          !!recoveryError ||
-          !viewMatchesEpoch}
-        {unlocking}
-        onunlocked={() => (unlocking = null)}
-        onchanged={() => changed()}
-      />{/key}
-  {/if}
-  <RegisterTools
-    locked={bulkActive}
-    {accounts}
-    {payees}
-    {categories}
-    {budgetId}
-    {accountId}
-    {disconnected}
-    cutoff={asOf}
-    onapply={applyRegisterQuery}
-  />
-  {#if register?.filtered_balances && !isDefaultQuery(confirmedQuery)}<p
+          <DateInput
+            id="register-as-of"
+            label={t("Show through date")}
+            bind:value={filterDate}
+            disabled={loading || busy}
+          />
+          <button disabled={loading || busy || disconnected}
+            >{t("Apply date")}</button
+          >
+          {#if asOf}<button
+              type="button"
+              onclick={() => {
+                void userRefresh("");
+              }}
+              disabled={loading || busy}>{t("All dates")}</button
+            >
+          {/if}
+        </form>
+      {/snippet}
+    </RegisterTools>
+  </div>
+  {#if register?.filtered_balances && (confirmedQuery.search || confirmedQuery.filter.conditions.length)}<p
       role="status"
       data-testid="filtered-totals"
     >
       {register.filtered_count} matching transactions · Total {formatAmount(
         register.filtered_balances.total,
-      )} · Cleared {formatAmount(register.filtered_balances.cleared)} · Uncleared
-      {formatAmount(register.filtered_balances.uncleared)}
+      )}
     </p>{/if}
   {#if pending?.clockRejected}<p role="status">
       {t(
@@ -934,7 +1061,12 @@
   {#if deliveryNotice && deliveryNotice !== notice}<p role="status">
       {deliveryNotice}
     </p>{/if}
-  {#if notice}<p role="status">{notice}</p>{/if}
+  {#if notice}<p
+      role="status"
+      class:visually-hidden={notice === "Transactions are up to date."}
+    >
+      {notice}
+    </p>{/if}
   {#if error}<p class="error" role="alert">{error}</p>
     <button onclick={() => userRefresh(retryCutoff)} disabled={loading || busy}
       >{t("Retry loading transactions")}</button
@@ -954,53 +1086,52 @@
     </div>{/if}
   {#if !viewMatchesEpoch}<p role="alert">
       {t(
-        "This saved view belongs to an earlier budget restore. Refresh before using its balances. Pending work keeps its original budget generation.",
+        "This saved view belongs to an earlier budget restore. Refresh before using its balances. Saved changes keep their original budget generation.",
       )}
     </p>{/if}
-  {#if cachedAt}<p class="hint" role="status">
+  {#if cachedAt && disconnected}<p class="hint" role="status">
       {disconnected
         ? t("Disconnected. Cached view from")
         : t("View saved on this device at")}
       {new Date(cachedAt).toLocaleString()}. {t(
-        "Balances include confirmed transactions only.",
+        "Balances reflect this saved view.",
       )}
     </p>{/if}
-  {#if queue.length}<section
+  {#if syncIssues.length}<section
       class="pending-action"
-      data-testid="pending-expenses"
-      aria-label={t("Pending expenses")}
+      data-testid="sync-issues"
+      aria-label="Sync needs attention"
     >
-      <h3>{t("Pending expenses")}</h3>
-      {#each queue as item (item.key)}<div class="pending-expense">
+      <h3>Sync needs attention</h3>
+      {#each syncIssues as item (item.key)}<div class="pending-expense">
           <p>
             {formatSavedAmount(item.row.amount, item.format)} · {formatDate(
               item.row.date,
-            )} · {item.row.notes || item.row.payee_name || t("No payee")}
+            )} · {item.row.payee_name || t("No payee")}
           </p>
           <p role="status">
             {item.blocked ||
               (item.pending.method === "DELETE"
-                ? t("Deletion waiting to sync")
-                : t("Saved on this device. Waiting to sync."))}
+                ? t("Deletion saved on this device")
+                : t("Saved on this device."))}
           </p>
           {#if item.offlineCreated && item.pending.method !== "DELETE"}<button
               onclick={() => void editQueued(item)}
               disabled={showForm || splitActive || busy || !!item.blocked}
-              >{t("Edit pending expense")}</button
+              >{t("Edit expense")}</button
             ><button
               onclick={() => void deleteQueued(item)}
               disabled={showForm || splitActive || busy || !!item.blocked}
-              >{t("Delete pending expense")}</button
+              >{t("Delete expense")}</button
             >{/if}
           <button
             onclick={() => void retryQueued(item)}
-            disabled={showForm || splitActive || busy}
-            >{t("Retry pending expense")}</button
+            disabled={showForm || splitActive || busy}>{t("Retry sync")}</button
           >
           {#if item.blocked}<button
               onclick={() => void retryQueued(item, true)}
               disabled={showForm || splitActive || busy}
-              >{t("Cancel pending change safely")}</button
+              >{t("Cancel saved change safely")}</button
             >{/if}
         </div>{/each}
     </section>{/if}
@@ -1020,79 +1151,89 @@
       }}
     />
   {:else if showForm && (accounts.length || recoveredPending) && !recoveryError}
-    {#if transferMode}<TransferForm
-        {budgetId}
-        {accounts}
-        {categories}
-        mode={transferMode}
-        initial={editing}
-        defaultAccountId={ledgerAccountId ?? accountId}
-        onschedule={scheduleFuture}
-        oncomplete={(message) => void changed(message)}
-        oncancel={() => {
-          showForm = false;
-          transferMode = null;
-          editing = null;
-          void tick().then(() => bulkActions?.refresh());
-        }}
-      />
-    {:else}<TransactionForm
-        {budgetId}
-        {accounts}
-        {payees}
-        {categories}
-        initial={editing}
-        {queued}
-        {disconnected}
-        defaultAccountId={ledgerAccountId ?? accountId}
-        onschedule={scheduleFuture}
-        oncomplete={(_transaction, message) => void changed(message)}
-        oncancel={() => {
-          showForm = false;
-          editing = null;
-          queued = null;
-          void tick().then(() => bulkActions?.refresh());
-        }}
-      />
-    {/if}
+    {#if !inlineEditing}{@render transactionEditor()}{/if}
   {/if}
-  <SplitEditor
-    {budgetId}
-    bind:this={splitEditor}
-    {accounts}
-    {payees}
-    {categories}
-    {disconnected}
-    bind:active={splitActive}
-    oncomplete={() => changed()}
-  />
+  {#if !inlineSplitRow}{@render splitForm()}{/if}
   {#if loading}<p role="status">{t("Loading transactions…")}</p>{/if}
-  {#if register?.data.length && preferences.hasUsableShared && viewMatchesEpoch}
-    <p class="hint">
-      Use Space to select a row; Shift-click selects a range. Selection applies
-      to loaded rows only. Use Ctrl+Z to undo, Ctrl+Shift+Z to redo outside text
-      fields.
-    </p>
-    <label class="select-loaded"
-      ><input
-        type="checkbox"
-        aria-label="Select all loaded entries"
-        checked={!!register.data.length &&
-          selectionRows.every((row) => selectedIds.includes(row.id))}
-        disabled={disconnected ||
-          loading ||
-          busy ||
-          bulkActive ||
-          showForm ||
-          splitActive ||
-          selectionRows.length > 100}
-        onchange={(event) => {
-          selectedIds = event.currentTarget.checked
-            ? selectionRows.map((row) => row.id)
-            : [];
-        }}
-      /> Select loaded entries</label
-    >
+  {#if register && visibleTransactions.length && preferences.hasUsableShared && viewMatchesEpoch}
+    {#if selectedRows.length === 1}
+      {@const row = selectedRows[0]}
+      <details class="transaction-options">
+        <summary>Selected transaction options</summary>
+        <div class="context-actions">
+          {#if row.is_parent}<button
+              disabled={bulkActive || busy}
+              onclick={() => {
+                if (expandedSplits.includes(row.id)) {
+                  expandedSplits = expandedSplits.filter((id) => id !== row.id);
+                  selectedIds = selectedIds.filter(
+                    (id) =>
+                      !(row.children ?? []).some((child) => child.id === id),
+                  );
+                } else expandedSplits = [...expandedSplits, row.id];
+              }}
+              aria-expanded={expandedSplits.includes(row.id)}
+              >{expandedSplits.includes(row.id)
+                ? "Hide split entries"
+                : "Select split entries"}</button
+            >{/if}{#if row.date > today() && !row.parent_id && !row.starting_balance}<button
+              onclick={() =>
+                scheduleFuture({
+                  source: { transaction_id: row.id },
+                  snapshot: register!.snapshot,
+                  epoch: preferences.budgetEpoch!,
+                  format: captureAmountFormat(),
+                  dateFormat: preferences.shared.date_format,
+                })}
+              disabled={disconnected ||
+                loading ||
+                busy ||
+                showForm ||
+                splitActive ||
+                bulkActive ||
+                !!pending ||
+                !!recoveryError ||
+                !viewMatchesEpoch ||
+                queue.some((item) => item.row.id === row.id)}
+              aria-label={`Schedule future ${description(row)}`}
+              >Schedule future transaction</button
+            >{/if}<button
+            onclick={() => {
+              const parent = row.parent_id
+                ? register?.data.find((item) => item.id === row.parent_id)
+                : row;
+              if (parent) void openSplit(parent);
+            }}
+            disabled={disconnected ||
+              loading ||
+              busy ||
+              showForm ||
+              splitActive ||
+              bulkActive ||
+              !!pending ||
+              !!recoveryError ||
+              row.starting_balance ||
+              !!row.transfer_id}
+            hidden={!!row.parent_id}
+            >{row.is_parent ? t("Edit splits") : t("Split transaction")}</button
+          ><button
+            onclick={() => void runAction("duplicate", row)}
+            disabled={disconnected ||
+              loading ||
+              busy ||
+              showForm ||
+              splitActive ||
+              bulkActive ||
+              !!pending ||
+              !!recoveryError ||
+              !preferences.hasUsableShared}
+            hidden={!!row.parent_id}
+            aria-label={`${t("Duplicate")} ${description(row)}`}
+            >{t("Duplicate")}</button
+          >
+        </div>
+      </details>
+    {/if}
     <!-- svelte-ignore a11y_no_noninteractive_tabindex (Scrollable transaction region needs keyboard access at enlarged text.) -->
     <div
       class="register-table-scroll"
@@ -1109,172 +1250,164 @@
         >
         <thead
           ><tr
-            ><th>Selection</th>{#each appliedColumns as column (column)}<th
+            ><th>
+              <label class="row-selection"
+                ><input
+                  type="checkbox"
+                  aria-label="Select all loaded entries"
+                  checked={!!register.data.length &&
+                    selectionRows.every((row) => selectedIds.includes(row.id))}
+                  disabled={disconnected ||
+                    loading ||
+                    busy ||
+                    bulkActive ||
+                    showForm ||
+                    splitActive ||
+                    selectionRows.length > 100}
+                  onchange={(event) => {
+                    selectedIds = event.currentTarget.checked
+                      ? selectionRows.map((row) => row.id)
+                      : [];
+                  }}
+                /></label
+              >
+            </th>{#each appliedColumns as column (column)}<th
                 class:number={[
                   "amount",
                   "payment",
                   "deposit",
                   "balance",
-                ].includes(column)}>{t(columnLabels[column])}</th
-              >{/each}<th>{t("Actions")}</th></tr
+                ].includes(column)}
+                aria-sort={confirmedQuery.sort === column
+                  ? confirmedQuery.direction === "asc"
+                    ? "ascending"
+                    : "descending"
+                  : undefined}
+              >
+                {#if ["date", "amount", "payee", "category"].includes(column)}
+                  <button
+                    class="sort-header"
+                    onclick={() => registerTools?.sortBy(column)}
+                    disabled={disconnected ||
+                      loading ||
+                      busy ||
+                      bulkActive ||
+                      showForm ||
+                      splitActive ||
+                      !!pending ||
+                      !!recoveryError}
+                  >
+                    {t(columnLabels[column])}
+                    <svg
+                      aria-hidden="true"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.75"
+                    >
+                      {#if confirmedQuery.sort === column}<path
+                          d={confirmedQuery.direction === "asc"
+                            ? "M12 19V5m-5 5 5-5 5 5"
+                            : "M12 5v14m-5-5 5 5 5-5"}
+                        />{:else}<path d="m8 9 4-4 4 4m-8 6 4 4 4-4" />{/if}
+                    </svg>
+                  </button>
+                {:else}{t(columnLabels[column])}{/if}</th
+              >{/each}<th><span class="visually-hidden">{t("Delete")}</span></th
+            ></tr
           ></thead
         >
         <tbody>
           {#each selectionRows as row (row.id)}
             <tr
+              style:--category-color={row.category_color ?? "transparent"}
+              class:category-colored={!!row.category_color}
+              data-transaction-id={row.id}
+              tabindex={canEditRow(row) ? 0 : -1}
+              aria-label={`${t("Edit")} ${description(row)}`}
+              aria-disabled={!canEditRow(row) &&
+                !(inlineEditing && editing?.id === row.id) &&
+                inlineSplitRow !== row.id}
+              class:editable={canEditRow(row)}
+              onclick={(event) => activateRow(event, row)}
+              onkeydown={(event) => activateRow(event, row)}
               class:selected={selectedIds.includes(row.id)}
               class:split-child={!!row.parent_id}
             >
-              <td data-label="Select"
-                ><label class="row-selection"
-                  ><input
-                    type="checkbox"
-                    aria-label={`Select ${description(row)}`}
-                    checked={selectedIds.includes(row.id)}
-                    disabled={disconnected ||
-                      loading ||
-                      busy ||
-                      bulkActive ||
-                      showForm ||
-                      splitActive}
-                    onclick={(event) => selectRow(event, row)}
-                  /><span class="visually-hidden">Select entry</span></label
-                ></td
-              >
-              {#each appliedColumns as column (column)}<td
-                  class:number={[
-                    "amount",
-                    "payment",
-                    "deposit",
-                    "balance",
-                  ].includes(column)}
-                  class:entry-notes={column === "notes"}
-                  class:amount={column === "amount"}
-                  data-label={t(columnLabels[column])}>{cell(row, column)}</td
-                >{/each}
-              <td class="row-actions"
-                >{#if row.is_parent}<button
-                    disabled={bulkActive || busy}
+              {#if inlineSplitRow === row.id}
+                <td class="inline-editor" colspan={appliedColumns.length + 2}
+                  >{@render splitForm()}</td
+                >
+              {:else if inlineEditing && editing?.id === row.id}
+                <td class="inline-editor" colspan={appliedColumns.length + 2}
+                  >{@render transactionEditor()}</td
+                >
+              {:else}
+                <td data-label="Select"
+                  ><label class="row-selection"
+                    ><input
+                      type="checkbox"
+                      aria-label={`Select ${description(row)}`}
+                      checked={selectedIds.includes(row.id)}
+                      disabled={disconnected ||
+                        loading ||
+                        busy ||
+                        bulkActive ||
+                        showForm ||
+                        splitActive ||
+                        queue.some((item) => item.row.id === row.id)}
+                      onclick={(event) => selectRow(event, row)}
+                    /><span class="visually-hidden">Select entry</span></label
+                  ></td
+                >
+                {#each appliedColumns as column (column)}<td
+                    class:number={[
+                      "amount",
+                      "payment",
+                      "deposit",
+                      "balance",
+                    ].includes(column)}
+                    class:amount={column === "amount"}
+                    class:positive={column === "amount" && row.amount > 0}
+                    data-label={t(columnLabels[column])}>{cell(row, column)}</td
+                  >{/each}
+                <td class="row-actions"
+                  ><button
                     onclick={() => {
-                      if (expandedSplits.includes(row.id)) {
-                        expandedSplits = expandedSplits.filter(
-                          (id) => id !== row.id,
-                        );
-                        selectedIds = selectedIds.filter(
-                          (id) =>
-                            !(row.children ?? []).some(
-                              (child) => child.id === id,
-                            ),
-                        );
-                      } else expandedSplits = [...expandedSplits, row.id];
+                      const local = queue.find(
+                        (item) => item.row.id === row.id,
+                      );
+                      if (local?.offlineCreated && !local.attempted) {
+                        void deleteQueued(local);
+                        return;
+                      }
+                      deleting = row;
+                      deletionEpoch = preferences.budgetEpoch;
                     }}
-                    aria-expanded={expandedSplits.includes(row.id)}
-                    >{expandedSplits.includes(row.id)
-                      ? "Hide split entries"
-                      : "Select split entries"}</button
-                  >{/if}<button
-                  onkeydown={navigateRow}
-                  onclick={() => open(row)}
-                  disabled={disconnected ||
-                    loading ||
-                    busy ||
-                    showForm ||
-                    splitActive ||
-                    bulkActive ||
-                    !!pending ||
-                    !!recoveryError ||
-                    !preferences.hasUsableShared}
-                  aria-label={`${t("Edit")} ${description(row)}`}
-                  >{t("Edit")}</button
-                >{#if row.date > today() && !row.parent_id && !row.starting_balance}<button
-                    onclick={() =>
-                      scheduleFuture({
-                        source: { transaction_id: row.id },
-                        snapshot: register!.snapshot,
-                        epoch: preferences.budgetEpoch!,
-                        format: captureAmountFormat(),
-                        dateFormat: preferences.shared.date_format,
-                      })}
-                    disabled={disconnected ||
-                      loading ||
-                      busy ||
-                      showForm ||
-                      splitActive ||
-                      bulkActive ||
-                      !!pending ||
-                      !!recoveryError ||
-                      !viewMatchesEpoch ||
-                      queue.some((item) => item.row.id === row.id)}
-                    aria-label={`Schedule future ${description(row)}`}
-                    >Schedule future transaction</button
-                  >{/if}{#if row.reconciled}<button
-                    onclick={() => void beginUnlock(row)}
-                    disabled={disconnected ||
-                      loading ||
-                      busy ||
-                      showForm ||
-                      splitActive ||
-                      bulkActive ||
-                      !!pending ||
-                      !!recoveryError}
-                    aria-label={`Unlock ${description(row)}`}>Unlock</button
-                  >{/if}<button
-                  onclick={() => {
-                    const parent = row.parent_id
-                      ? register?.data.find((item) => item.id === row.parent_id)
-                      : row;
-                    if (parent) void splitEditor?.open(parent);
-                  }}
-                  disabled={disconnected ||
-                    loading ||
-                    busy ||
-                    showForm ||
-                    splitActive ||
-                    bulkActive ||
-                    !!pending ||
-                    !!recoveryError ||
-                    row.starting_balance ||
-                    !!row.transfer_id}
-                  hidden={!!row.parent_id}
-                  >{row.is_parent
-                    ? t("Edit splits")
-                    : t("Split transaction")}</button
-                ><button
-                  onkeydown={navigateRow}
-                  onclick={() => void runAction("duplicate", row)}
-                  disabled={disconnected ||
-                    loading ||
-                    busy ||
-                    showForm ||
-                    splitActive ||
-                    bulkActive ||
-                    !!pending ||
-                    !!recoveryError ||
-                    !preferences.hasUsableShared}
-                  hidden={!!row.parent_id}
-                  aria-label={`${t("Duplicate")} ${description(row)}`}
-                  >{t("Duplicate")}</button
-                ><button
-                  onkeydown={navigateRow}
-                  onclick={() => {
-                    deleting = row;
-                    deletionEpoch = preferences.budgetEpoch;
-                  }}
-                  disabled={disconnected ||
-                    loading ||
-                    busy ||
-                    showForm ||
-                    splitActive ||
-                    bulkActive ||
-                    !!pending ||
-                    !!recoveryError ||
-                    !preferences.hasUsableShared ||
-                    row.reconciled}
-                  hidden={!!row.parent_id}
-                  aria-label={`${t("Delete")} ${description(row)}`}
-                  >{t("Delete")}</button
-                ></td
-              >
+                    disabled={!canEditRow(row)}
+                    hidden={!!row.parent_id}
+                    aria-label={`${t("Delete")} ${description(row)}`}
+                    title={t("Delete")}
+                    class="delete-transaction"
+                    ><svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.75"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                      ><path
+                        d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"
+                      /></svg
+                    ></button
+                  ></td
+                >
+              {/if}
             </tr>
             {#if deleting?.id === row.id}<tr class="delete-confirmation"
                 ><td colspan={appliedColumns.length + 2}
@@ -1323,13 +1456,8 @@
     width: 1.25rem;
     height: 1.25rem;
   }
-  .select-loaded {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 44px;
-  }
   .row-selection {
+    margin: 0;
     display: inline-flex;
     min-height: 44px;
     min-width: 44px;
@@ -1337,10 +1465,11 @@
     justify-content: center;
   }
   .register-table-scroll {
+    position: relative;
     overflow-x: auto;
   }
   .register {
-    margin-top: 2rem;
+    margin-top: 0;
     min-width: 0;
   }
   .register-heading {
@@ -1350,21 +1479,59 @@
     align-items: center;
     gap: 1rem;
   }
-  .register-heading h2 {
+  .register-heading h1 {
     margin: 0;
+    font-size: 1.4rem;
   }
+  .add-transaction {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+  }
+  .register-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.5rem;
+    align-items: start;
+    margin-block: 0.75rem 0.25rem;
+  }
+  .sort-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0;
+    min-height: 44px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+  }
+  th[aria-sort] {
+    color: var(--accent);
+  }
+  .number .sort-header {
+    justify-content: end;
+  }
+
   .register-balances {
     display: flex;
     flex-wrap: wrap;
     gap: 1.5rem;
-    margin-block: 1.5rem;
+    margin: 0;
+  }
+  .register-balances div {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
   }
   .register-balances dt {
     color: var(--muted);
     font-size: 0.875rem;
   }
   .register-balances dd {
-    margin: 0.25rem 0 0;
+    margin: 0;
     font-variant-numeric: tabular-nums;
     font-weight: 600;
   }
@@ -1385,7 +1552,7 @@
     padding: 0.65rem 0.5rem;
     text-align: left;
     border-bottom: 1px solid var(--line);
-    vertical-align: top;
+    vertical-align: middle;
   }
   .register-table th {
     font-weight: 600;
@@ -1396,19 +1563,76 @@
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
-  .entry-notes {
-    max-width: 28ch;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    color: var(--muted);
-    margin-top: 0.25rem;
-  }
   .row-actions {
-    min-width: 8rem;
+    width: 3.5rem;
+    text-align: right;
   }
   .row-actions button {
     margin: 0 0.25rem 0.25rem 0;
     font-size: 0.85rem;
+  }
+  .category-colored {
+    background: color-mix(
+      in srgb,
+      var(--category-color) 18%,
+      var(--surface, #fff)
+    );
+  }
+  .category-colored.editable:hover {
+    background: color-mix(
+      in srgb,
+      var(--category-color) 26%,
+      var(--surface, #fff)
+    );
+  }
+  .category-colored.selected {
+    background: var(--selected);
+  }
+  .editable {
+    cursor: pointer;
+  }
+  .editable:hover {
+    background: var(--hover);
+  }
+  tr:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  .positive {
+    color: var(--color-numberPositive, #226044);
+    font-weight: 600;
+  }
+  .delete-transaction {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+    color: var(--muted);
+  }
+  .delete-transaction:hover:not(:disabled) {
+    color: var(--error-text);
+    background: var(--error-bg);
+  }
+  .register-table .inline-editor {
+    padding: 1rem;
+    background: var(--hover);
+    grid-column: 1 / -1;
+  }
+  .inline-editor::before {
+    display: none !important;
+  }
+  .transaction-options {
+    margin-block: 0.5rem 1rem;
+  }
+  .context-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-block: 0.5rem;
   }
   .pending-action,
   .delete-confirmation {
@@ -1450,19 +1674,45 @@
       padding: 0.5rem 0.25rem;
     }
     .row-actions {
-      min-width: 5rem;
+      width: 3.5rem;
     }
   }
   @container (max-width: 45rem) {
     .register-heading {
-      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .register-heading h1 {
+      font-size: 1.1rem;
+    }
+    .register-balances {
+      display: none;
+    }
+    .add-transaction {
+      font-size: 0.8rem;
+      padding-inline: 0.65rem;
+    }
+    .register-toolbar {
+      gap: 0.25rem;
+    }
+
+    .register-table {
+      display: block;
+    }
+    .register-table tbody {
+      display: block;
     }
     .register-table thead {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
+      display: block;
+      overflow-x: auto;
+    }
+    .register-table thead tr {
+      display: flex;
+      align-items: center;
+      padding: 0;
+    }
+    .register-table thead th {
+      flex: 0 0 auto;
+      border: 0;
     }
     .register-table tr {
       display: grid;
@@ -1495,11 +1745,12 @@
     .delete-confirmation td {
       grid-column: 1/-1;
     }
+    .row-actions {
+      grid-column: 2;
+      justify-self: end;
+    }
     .row-actions button {
       min-height: 44px;
-    }
-    .entry-notes {
-      max-width: none;
     }
   }
 </style>

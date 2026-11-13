@@ -222,23 +222,3 @@ fn enrich_using(
     }
     Ok(())
 }
-pub(super) fn save_definition(
-    db: &Connection,
-    b: &str,
-    id: &str,
-    templates: &Value,
-    clock: &str,
-) -> Result<(), Error> {
-    let old = config(db, b, id)?;
-    if old["template_settings"]["source"] == "ui"
-        || old["goal_def"] == *templates
-        || old["goal_def"].is_null() && templates.as_array().is_some_and(|a| a.is_empty())
-    {
-        return Ok(());
-    }
-    super::super::actions::guard_field(db, b, "budget_automations", id, "goal_def", clock)?;
-    super::super::actions::guard_field(db, b, "budget_automations", id, "tombstone", clock)?;
-    db.execute("INSERT INTO budget_automations(budget_id,id,goal_def) VALUES(?1,?2,?3) ON CONFLICT(budget_id,id) DO UPDATE SET goal_def=excluded.goal_def,tombstone=0",params![b,id,if templates.as_array().is_some_and(|a|a.is_empty()){None}else{Some(templates.to_string())}])?;
-    crate::concurrency::seed_field_version(db, b, "budget_automations", id, "goal_def", clock)?;
-    crate::concurrency::mark(db, b, "budget_automations", id)
-}

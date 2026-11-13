@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { outsideClick } from "./outside-click";
   import { historyOwner } from "./history-owner";
   import { onMount, tick } from "svelte";
   import {
@@ -34,7 +35,9 @@
     categories,
     disconnected,
     active = $bindable(false),
+    inline = false,
     oncomplete,
+    onclose = () => {},
   }: {
     budgetId: string;
     accounts: Account[];
@@ -42,7 +45,9 @@
     categories: Reference[];
     disconnected: boolean;
     active?: boolean;
+    inline?: boolean;
     oncomplete: () => Promise<void>;
+    onclose?: (restoreFocus?: boolean) => void;
   } = $props();
   let draft = $state<SplitDraft | null>(null);
   let busy = $state(false);
@@ -72,9 +77,10 @@
     new Set(draft?.parent.children?.map((child) => child.id) ?? []),
   );
   let saved: SplitDraft | null = null;
+  let openedFields: string | null = null;
   let writes: Promise<void> = Promise.resolve();
   onMount(() => {
-    void recover();
+    if (!inline) void recover();
   });
   async function recover() {
     busy = true;
@@ -94,6 +100,7 @@
   }
   export async function open(parent: Transaction) {
     if (busy) return;
+    openedFields = null;
     active = true;
     snapshotChanged = false;
     page = 0;
@@ -136,7 +143,7 @@
             ? (c.retained_payee_id ?? c.payee_id)
             : c.payee_id) ?? "",
         category_id: c.category_id ?? "",
-        notes: parent.children?.length ? c.notes : "",
+        notes: "",
         transfer_account_id: c.transfer_account_id ?? "",
         counterpart_id: c.transfer_id ?? "",
       }));
@@ -159,13 +166,18 @@
           amount: formatAmountInput(parent.amount, format),
           date: parent.date,
           payee_id: parent.retained_payee_id ?? parent.payee_id ?? "",
-          notes: parent.notes,
-          cleared: parent.cleared,
+          notes: "",
+          cleared: true,
         },
         pending: null,
       };
       saved = await writeSplit(budgetId, null, next);
       draft = saved;
+      if (inline && parent.is_parent)
+        openedFields = JSON.stringify({
+          fields: saved!.fields,
+          children: saved!.children,
+        });
       active = true;
       await focusEditor();
     } catch (e) {
@@ -266,21 +278,11 @@
               "Save split edits before unsplitting. Your draft is retained.",
             );
         }
-        const protectedRows = [
-          draft.parent,
-          ...(draft.parent.children ?? []),
-        ].filter((row) => row.reconciled);
-        if (
-          (protectedRows.length || draft.transferProtectedCount) &&
-          !draft.confirmedReconciled
-        )
-          throw new Error(
-            "Confirm editing this reconciled split, or unlock it first.",
-          );
         for (const child of draft.parent.children ?? [])
           observeVersions(child.field_versions);
         const fields = {
           ...draft.fields,
+          cleared: true,
           amount: parseAmount(draft.fields.amount, draft.format),
           payee_id: draft.fields.payee_id || null,
         };
@@ -336,26 +338,6 @@
           budgetEpoch: draft.epoch,
           body: {
             snapshot: draft.snapshot,
-            ...(protectedRows.length || draft.transferProtectedCount
-              ? {
-                  confirm_reconciled: true,
-                  ...(draft.transferProtectionToken
-                    ? {
-                        transfer_protection_token:
-                          draft.transferProtectionToken,
-                      }
-                    : draft.reconciliationToken
-                      ? { reconciliation_token: draft.reconciliationToken }
-                      : {
-                          reconciled_versions: Object.fromEntries(
-                            protectedRows.map((row) => [
-                              row.id,
-                              row.field_versions?.reconciled,
-                            ]),
-                          ),
-                        }),
-                }
-              : {}),
             action,
             allocation,
             detach,
@@ -417,7 +399,7 @@
       child.category_id = "";
     persist();
   }
-  async function close() {
+  async function close(restoreFocus = true) {
     if (!draft || draft.pending || busy) return;
     try {
       await writes;
@@ -425,6 +407,7 @@
       saved = null;
       draft = null;
       active = false;
+      onclose(restoreFocus);
     } catch (e) {
       error = errorMessage(e);
     }
@@ -439,8 +422,31 @@
 {#if recovery}<button onclick={recover} disabled={busy}
     >{t("Recover saved split")}</button
   >{/if}
+{#if inline && !draft && !busy}<button onclick={() => onclose()}
+    >{t("Close")}</button
+  >{/if}
 {#if draft}
-  <section class="split-editor" aria-labelledby="split-title" aria-busy={busy}>
+  <section
+    class="split-editor"
+    aria-labelledby="split-title"
+    aria-busy={busy}
+    {@attach outsideClick(() => {
+      if (
+        inline &&
+        openedFields !== null &&
+        draft &&
+        !draft.pending &&
+        !busy &&
+        !savingDraft &&
+        !recovery &&
+        JSON.stringify({
+          fields: $state.snapshot(draft.fields),
+          children: $state.snapshot(draft.children),
+        }) === openedFields
+      )
+        void close(false);
+    })}
+  >
     <h3 id="split-title" tabindex="-1" bind:this={heading}>
       {t("Split transaction")}
     </h3>
@@ -460,21 +466,6 @@
       oninput={() => void persist()}
       onchange={() => void persist()}
     >
-      {#if draft.transferProtectedCount || draft.parent.reconciled || draft.parent.children?.some((row) => row.reconciled)}
-        <label class="checkbox"
-          ><input
-            type="checkbox"
-            bind:checked={draft.confirmedReconciled}
-            disabled={busy || !!draft.pending || recovery}
-          />{t("Confirm editing this reconciled split")}</label
-        >
-        <p>Linked transfer entries are included. Entries remain reconciled.</p>
-        <p class="hint">
-          {t(
-            "This changes settled entries. The transaction and its splits stay locked.",
-          )}
-        </p>
-      {/if}
       <fieldset disabled={busy || !!draft.pending || recovery}>
         <legend>{t("Transaction")}</legend>
         <div class="split-fields">
@@ -501,17 +492,6 @@
                   >{p.name}</option
                 >{/each}</select
             ></label
-          >
-          <label
-            >{t("Notes")}<input
-              bind:value={draft.fields.notes}
-              maxlength="10000"
-            /></label
-          >
-          <label class="checkbox"
-            ><input type="checkbox" bind:checked={draft.fields.cleared} />{t(
-              "Cleared",
-            )}</label
           >
         </div>
       </fieldset>
@@ -614,13 +594,6 @@
                   >{/each}</select
               ></label
             >
-            <label
-              >{t("Notes")}<input
-                aria-label={`Split ${index + 1} notes`}
-                bind:value={child.notes}
-                maxlength="10000"
-              /></label
-            >
           </div>
           {#if child.transfer_account_id}<p class="hint">
               Saving keeps an opposite entry in the selected account. Removing
@@ -702,7 +675,7 @@
               onclick={() => void send("unsplit")}
               >{t("Unsplit all children")}</button
             >{/if}
-          <button type="button" onclick={close} disabled={busy}
+          <button type="button" onclick={() => close()} disabled={busy}
             >{t("Discard split draft")}</button
           >
         </div>
@@ -756,16 +729,5 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-  }
-  .checkbox {
-    flex-direction: row;
-    align-items: center;
-    align-self: end;
-    min-height: 44px;
-  }
-  .checkbox input {
-    width: 1.25rem;
-    height: 1.25rem;
-    min-height: 0;
   }
 </style>

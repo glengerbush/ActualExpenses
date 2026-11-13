@@ -54,9 +54,7 @@ pub fn mirror_domain_clock(
     field: &str,
     clock: &str,
 ) -> Result<(), Error> {
-    if field != "notes"
-        || !["accounts", "categories", "category_groups", "budget_months"].contains(&entity)
-    {
+    if field != "notes" || !["accounts"].contains(&entity) {
         return Ok(());
     }
     let exists: bool = db.query_row(
@@ -67,11 +65,7 @@ pub fn mirror_domain_clock(
     if !exists {
         return Ok(());
     }
-    let id = if entity == "budget_months" {
-        format!("budget-{id}")
-    } else {
-        id.into()
-    };
+    let id = id.to_owned();
     if db.execute(
         "UPDATE notes SET note=note WHERE budget_id=?1 AND id=?2",
         params![b, id],
@@ -80,35 +74,6 @@ pub fn mirror_domain_clock(
         db.execute("INSERT INTO field_versions(budget_id,entity,entity_id,field,clock) VALUES(?1,'notes',?2,'note',?3) ON CONFLICT(budget_id,entity,entity_id,field) DO UPDATE SET clock=excluded.clock WHERE excluded.clock>field_versions.clock",params![b,id,clock])?;
     }
     Ok(())
-}
-
-pub fn guard_clock(db: &Connection, b: &str, id: &str, clock: &str) -> Result<(), Error> {
-    let newer:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM field_versions WHERE budget_id=?1 AND entity='notes' AND entity_id=?2 AND field IN('note','tombstone') AND clock>=?3)",params![b,id,clock],|r|r.get(0))?;
-    if newer {
-        return Err(Error::conflict(
-            "A newer note change prevents this action. Refresh and review its current value.",
-        ));
-    }
-    Ok(())
-}
-pub fn visible_text(db: &Connection, b: &str, id: &str, note: String) -> Result<String, Error> {
-    if note.is_empty() {
-        return Ok(note);
-    }
-    let exists: bool = db
-        .prepare_cached(
-            "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='notes')",
-        )?
-        .query_row([], |r| r.get(0))?;
-    if !exists {
-        return Ok(note);
-    }
-    let hidden: bool = db
-        .prepare_cached(
-            "SELECT EXISTS(SELECT 1 FROM notes WHERE budget_id=?1 AND id=?2 AND tombstone=1)",
-        )?
-        .query_row(params![b, id], |r| r.get(0))?;
-    Ok(if hidden { String::new() } else { note })
 }
 
 fn validate(id: &str, note: &str) -> Result<(), Error> {
@@ -142,7 +107,7 @@ fn target(
     b: &str,
     id: &str,
 ) -> Result<(&'static str, String, &'static str), Error> {
-    for table in ["accounts", "categories", "category_groups"] {
+    for table in ["accounts"] {
         if db.query_row(
             &format!("SELECT EXISTS(SELECT 1 FROM {table} WHERE budget_id=?1 AND id=?2)"),
             params![b, id],
@@ -151,22 +116,20 @@ fn target(
             return Ok((table, id.into(), "notes"));
         }
     }
-    if let Some(month) = id.strip_prefix("budget-")
-        && crate::budgeting::month(month).is_ok()
-    {
-        return Ok(("budget_months", month.into(), "notes"));
-    }
     Ok(("notes", id.into(), "note"))
 }
 pub fn get(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
     store::require_budget(db, b)?;
     validate(id, "")?;
+    if retired_budget_note(id, b) || retired_category_note(db, b, id)? {
+        return Ok(Value::Null);
+    }
     let (table, row, field) = target(db, b, id)?;
     let note: Option<String> = db
         .query_row(
             &format!(
                 "SELECT {field} FROM {table} WHERE budget_id=?1 AND id=?2{}",
-                if matches!(table, "notes" | "budget_months") {
+                if table == "notes" {
                     " AND tombstone=0"
                 } else {
                     ""
@@ -221,20 +184,12 @@ pub fn record(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
 }
 /// Domain text is authoritative; marker rows distinguish empty from absent.
 /// Versioned backfill retains native domain notes written before marker support.
-pub const QUERY_FROM: &str = "FROM (SELECT n.budget_id,n.id,CASE WHEN a.id IS NOT NULL THEN a.notes WHEN c.id IS NOT NULL THEN c.notes WHEN g.id IS NOT NULL THEN g.notes WHEN m.id IS NOT NULL THEN m.notes ELSE n.note END AS note,n.tombstone FROM notes n LEFT JOIN accounts a ON a.budget_id=n.budget_id AND a.id=n.id LEFT JOIN categories c ON c.budget_id=n.budget_id AND c.id=n.id LEFT JOIN category_groups g ON g.budget_id=n.budget_id AND g.id=n.id LEFT JOIN budget_months m ON m.budget_id=n.budget_id AND m.id=substr(n.id,8) AND substr(n.id,1,7)='budget-' AND m.tombstone=0) t";
+pub const QUERY_FROM: &str = "FROM (SELECT n.budget_id,n.id,CASE WHEN a.id IS NOT NULL THEN a.notes ELSE n.note END AS note,n.tombstone FROM notes n LEFT JOIN accounts a ON a.budget_id=n.budget_id AND a.id=n.id WHERE n.id NOT GLOB 'budget-[0-9][0-9][0-9][0-9]-[0-9][0-9]' AND n.id<>n.budget_id AND NOT EXISTS(SELECT 1 FROM categories c WHERE c.budget_id=n.budget_id AND c.id=n.id) AND NOT EXISTS(SELECT 1 FROM category_groups g WHERE g.budget_id=n.budget_id AND g.id=n.id)) t";
 /// Once per migration or explicit portable restore, never a startup ledger scan.
 pub fn domain_identities(db: &Connection, only: Option<&str>) -> Result<(), Error> {
-    for table in ["accounts", "categories", "category_groups", "budget_months"] {
-        let id = if table == "budget_months" {
-            "'budget-'||id"
-        } else {
-            "id"
-        };
-        let live = if table == "budget_months" {
-            " AND tombstone=0"
-        } else {
-            ""
-        };
+    for table in ["accounts"] {
+        let id = "id";
+        let live = "";
         let mut q=db.prepare(&format!("INSERT OR IGNORE INTO notes(budget_id,id,note) SELECT budget_id,{id},'' FROM {table} WHERE (?1 IS NULL OR budget_id=?1) AND notes<>''{live} RETURNING budget_id,id"))?;
         let inserted = q
             .query_map([only], |r| {
@@ -288,15 +243,24 @@ async fn command(
  sync::write_owned(db,&scope,&key,&payload,proposed.as_deref(),StatusCode::OK,owner.as_ref(),|db|{
  if cancel{return sync::canceled(db,&b);}crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;
  if body.as_object().is_none_or(|o|o.len()!=3||o.keys().any(|k|!["id","note","snapshot"].contains(&k.as_str()))){return Err(Error::invalid("Note command requires id,note,snapshot"));}
- let id=body["id"].as_str().ok_or_else(||Error::invalid("Provide note identity"))?;let note=body["note"].as_str().ok_or_else(||Error::invalid("Provide note text"))?;validate(id,note)?;
+ let id=body["id"].as_str().ok_or_else(||Error::invalid("Provide note identity"))?;let note=body["note"].as_str().ok_or_else(||Error::invalid("Provide note text"))?;validate(id,note)?;if retired_budget_note(id,&b) || retired_category_note(db,&b,id)? {return Err(Error::invalid("Budget and category notes are no longer supported"));}
  sync::check_snapshot(db,&b,Some(body["snapshot"].as_str().ok_or_else(||Error::invalid("Provide current snapshot"))?))?;
  let(table,row,field)=target(db,&b,id)?;let clock=sync::clock(db,&b,proposed.as_deref())?;crate::rules::guard(db,&b,table,&row,field,&clock)?;if table!="notes" {for f in ["note","tombstone"] {crate::rules::guard(db,&b,"notes",id,f,&clock)?;}}
- if matches!(table,"notes"|"budget_months") && db.query_row(&format!("SELECT EXISTS(SELECT 1 FROM {table} WHERE budget_id=?1 AND id=?2 AND tombstone=1)"),params![b,row],|r|r.get::<_,bool>(0))? {crate::rules::guard(db,&b,table,&row,"tombstone",&clock)?;}
- if table=="notes"{db.execute("INSERT INTO notes(budget_id,id,note) VALUES(?1,?2,?3) ON CONFLICT(budget_id,id) DO UPDATE SET note=excluded.note,tombstone=0",params![b,row,note])?;}else if table=="budget_months"{db.execute("INSERT INTO budget_months(budget_id,id,notes) VALUES(?1,?2,?3) ON CONFLICT(budget_id,id) DO UPDATE SET notes=excluded.notes,tombstone=0",params![b,row,note])?;}else{db.execute(&format!("UPDATE {table} SET {field}=?3 WHERE budget_id=?1 AND id=?2"),params![b,row,note])?;}
+ if table=="notes" && db.query_row(&format!("SELECT EXISTS(SELECT 1 FROM {table} WHERE budget_id=?1 AND id=?2 AND tombstone=1)"),params![b,row],|r|r.get::<_,bool>(0))? {crate::rules::guard(db,&b,table,&row,"tombstone",&clock)?;}
+ if table=="notes"{db.execute("INSERT INTO notes(budget_id,id,note) VALUES(?1,?2,?3) ON CONFLICT(budget_id,id) DO UPDATE SET note=excluded.note,tombstone=0",params![b,row,note])?;}else{db.execute(&format!("UPDATE {table} SET {field}=?3 WHERE budget_id=?1 AND id=?2"),params![b,row,note])?;}
  if table!="notes" {identity(db,&b,id)?;sync::seed_field_version(db,&b,"notes",id,"note",&clock)?;sync::mark(db,&b,"notes",id)?;}
  sync::seed_field_version(db,&b,table,&row,field,&clock)?;sync::mark(db,&b,table,&row)?;
  Ok(json!({"response_status":200,"response_body":{"data":get(db,&b,id)?,"snapshot":sync::cursor(db,&b)?,"edit_clock":clock}}))
  })}).await
+}
+fn retired_category_note(db: &Connection, b: &str, id: &str) -> Result<bool, Error> {
+    Ok(db.query_row("SELECT EXISTS(SELECT 1 FROM categories WHERE budget_id=?1 AND id=?2) OR EXISTS(SELECT 1 FROM category_groups WHERE budget_id=?1 AND id=?2)", params![b,id], |r| r.get(0))?)
+}
+fn retired_budget_note(id: &str, budget: &str) -> bool {
+    id == budget
+        || id
+            .strip_prefix("budget-")
+            .is_some_and(|m| crate::budgeting::month(m).is_ok())
 }
 pub fn convert(source: &Value) -> Result<Value, Error> {
     let mut rows = vec![];
@@ -304,20 +268,26 @@ pub fn convert(source: &Value) -> Result<Value, Error> {
         let id = row["id"]
             .as_str()
             .ok_or_else(|| Error::invalid("Invalid source note identity"))?;
-        let note = row["note"].as_str().unwrap_or("");
-        validate(id, note)?;
-        let known = ["accounts", "categories", "category_groups"]
-            .iter()
-            .any(|table| {
+        if retired_budget_note(id, "")
+            || ["categories", "category_groups"].iter().any(|table| {
                 source[*table]
                     .as_array()
                     .into_iter()
                     .flatten()
                     .any(|r| r["id"] == id)
             })
-            || id
-                .strip_prefix("budget-")
-                .is_some_and(|m| crate::budgeting::month(m).is_ok());
+        {
+            continue;
+        }
+        let note = row["note"].as_str().unwrap_or("");
+        validate(id, note)?;
+        let known = ["accounts"].iter().any(|table| {
+            source[*table]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .any(|r| r["id"] == id)
+        });
         rows.push(json!({"id":id,"note":if known {""}else{note}}));
     }
     Ok(json!(rows))

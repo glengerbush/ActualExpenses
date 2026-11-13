@@ -17,8 +17,6 @@ export const dateFormats = [
 export type DateFormat = (typeof dateFormats)[number];
 export const featureNames = [
   "newSidebarUI",
-  "goalTemplatesEnabled",
-  "goalTemplatesUIEnabled",
   "actionTemplating",
   "formulaMode",
   "currency",

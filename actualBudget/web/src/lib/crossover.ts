@@ -120,11 +120,7 @@ export async function crossoverQuery(
     start,
     end,
     expenseCategoryIds: categories
-      .filter(
-        (c) =>
-          selected.includes(c.id) &&
-          (meta.showHiddenCategories === true || !c.hidden),
-      )
+      .filter((c) => selected.includes(c.id))
       .map((c) => c.id),
     incomeAccountIds: selection(
       meta.incomeAccountIds ?? undefined,

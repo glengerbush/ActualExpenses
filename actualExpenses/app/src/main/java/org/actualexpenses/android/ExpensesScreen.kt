@@ -117,7 +117,7 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
                     Text("This expense became a split or transfer. The rejected change remains saved on this phone. Review the transaction in actualBudget, then discard the rejected change to resume syncing.")
                     OutlinedButton(onClick = actions::discardRejectedSplitEdit, enabled = !state.busy, modifier = Modifier.heightIn(min = 48.dp)) { Text("Discard rejected expense edit") }
                 }
-                if(state.screen!=Screen.EXPENSES&&(state.scheduledWorkPending||state.scheduledWorkError!=null))ScheduledWorkRecovery(state,actions)
+                if(state.screen!=Screen.EXPENSES&&state.scheduledWorkError!=null)ScheduledWorkRecovery(state,actions)
                 when (state.screen) {
                     Screen.SERVER -> ServerSelection(state, actions)
                     Screen.RECOVERY -> LegacyRecovery(state, actions)
@@ -144,7 +144,7 @@ private fun LegacyRecovery(state: ExpenseUiState, actions: ExpenseUiActions) {
         Text(state.recoveryMessage.orEmpty())
         if (state.pendingCount > 0)
             Text(
-                "${state.pendingCount} pending ${if(state.pendingCount == 1) "expense is" else "expenses are"} preserved on this phone."
+                "${state.pendingCount} ${if(state.pendingCount == 1) "expense is" else "expenses are"} saved on this phone."
             )
         OutlinedTextField(
             server,
@@ -199,7 +199,6 @@ private fun ServerSelection(state: ExpenseUiState, actions: ExpenseUiActions) {
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done), modifier = Modifier.fillMaxWidth())
         Button(onClick = { actions.connect(server.trim()) }, enabled = server.isNotBlank() && !state.busy,
             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(if (state.busy) "Connecting…" else "Connect") }
-        if (state.pendingCount > 0) Text("${state.pendingCount} pending changes are saved on this phone.", style = MaterialTheme.typography.bodyMedium)
     }
 }
 
@@ -211,7 +210,7 @@ private fun Choices(title: String, description: String, emptyMessage: String, ch
             Text(description, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp, bottom = 16.dp))
             if(onChange!=null) {
                 TextButton(onClick=onChange,enabled=canChange && !busy) {Text(changeLabel)}
-                if(!canChange)Text("Deliver pending changes before changing selection.",style=MaterialTheme.typography.bodySmall)
+                if(!canChange)Text("Reconnect before switching budgets so saved expenses can sync.",style=MaterialTheme.typography.bodySmall)
             }
         }
         if (choices.isEmpty() && !busy) item { Text(emptyMessage) }
@@ -236,34 +235,32 @@ private fun ScheduledWorkRecovery(state:ExpenseUiState,actions:ExpenseUiActions)
 
 @Composable
 private fun ExpenseList(state: ExpenseUiState, actions:ExpenseUiActions, onEdit: (ExpenseRow) -> Unit) {
+    val visibleExpenses = state.expenses.filterNot { it.pendingDeletion }
     LazyColumn(contentPadding = PaddingValues(bottom = 104.dp)) {
-        if(state.scheduledWorkPending||state.scheduledWorkError!=null)item{ScheduledWorkRecovery(state,actions)}
+        if(state.scheduledWorkError!=null)item{ScheduledWorkRecovery(state,actions)}
         item {
             Column(Modifier.padding(horizontal = 24.dp, vertical = 12.dp)) {
-                Text(if (state.busy) "Syncing…" else if (state.pendingCount > 0) "${state.pendingCount} pending · ${if (state.online) "Connected" else "Offline"}"
-                    else if(state.online&&(state.scheduledWorkPending||state.scheduledWorkError!=null))"Expenses up to date · Schedules need attention" else if (state.online) "Up to date" else "Offline · expenses saved on this phone",
+                Text(if (state.online) "Connected" else "Offline · expenses saved on this phone",
                     style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("Recent expenses", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 24.dp).semantics { heading() })
                 if (!state.online) Text("You can add expenses. Synced expenses can be edited when connected.", style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
             }
         }
-        if (state.expenses.isEmpty()) item {
+        if (visibleExpenses.isEmpty()) item {
             Column(Modifier.padding(horizontal = 24.dp, vertical = 40.dp)) {
                 Text("Ready for your next purchase", style = MaterialTheme.typography.titleLarge)
-                Text("Tap Add expense to record it. Only ordinary, unreconciled expenses appear here.",
+                Text("Tap Add expense to record it. Your recent expenses appear here.",
                     modifier = Modifier.padding(top = 12.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        items(state.expenses, key = { it.id }) { expense ->
+        items(visibleExpenses, key = { it.id }) { expense ->
             ListItem(
                 modifier = Modifier.clickable(enabled = expense.editable && !expense.pendingDeletion) { onEdit(expense) },
                 headlineContent = { Text(expense.payee.ifBlank { "Expense" }, maxLines = 2, overflow = TextOverflow.Ellipsis) },
                 supportingContent = {
                     Column {
                         Text(listOf(dateLabel(expense.date), expense.category).filter { it.isNotBlank() }.joinToString(" · "), maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        if (expense.pending) Text(if (expense.pendingDeletion) "Deletion pending" else "Pending sync", color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.labelMedium)
                     }
                 },
                 trailingContent = { Text(money(expense.amountMinor, state.currency, state.decimalPlaces), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium) },
@@ -289,8 +286,6 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
     var payee by rememberSaveable(key) { mutableStateOf(original?.payee ?: existing?.payee ?: "") }
     var categoryId by rememberSaveable(key) { mutableStateOf(original?.categoryId ?: existing?.categoryId) }
     var date by rememberSaveable(key) { mutableStateOf(original?.date ?: (existing?.date ?: LocalDate.now()).toString()) }
-    var notes by rememberSaveable(key) { mutableStateOf(original?.notes ?: existing?.notes ?: "") }
-    var showNotes by rememberSaveable(key) { mutableStateOf(!existing?.notes.isNullOrBlank()) }
     var categoryPicker by rememberSaveable { mutableStateOf(false) }
     var deleteConfirmation by rememberSaveable { mutableStateOf(false) }
     var payeeSuggestions by remember { mutableStateOf(false) }
@@ -308,7 +303,7 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
     val save: () -> Unit = {
         submitted = true
         if (valid && !saving) {
-            actions.save(ExpenseForm(transactionId, amount, LocalDate.parse(date), payee.trim(), categoryId, notes, operationId, capturedContext, editSession))
+            actions.save(ExpenseForm(transactionId, amount, LocalDate.parse(date), payee.trim(), categoryId, "", operationId, capturedContext, editSession))
         }
     }
     Scaffold(
@@ -347,8 +342,6 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
                     Text(dateLabel(LocalDate.parse(date)), Modifier.weight(1f))
                     Icon(Icons.Outlined.DateRange, contentDescription = "Change date")
                 }
-                if (showNotes) OutlinedTextField(notes, { notes = it }, label = { Text("Notes (optional)") }, enabled = !saving, minLines = 2, maxLines = 5, modifier = Modifier.fillMaxWidth())
-                else TextButton(onClick = { showNotes = true }, enabled = !saving, modifier = Modifier.heightIn(min = 48.dp)) { Text("Add notes") }
                 Button(onClick = save, enabled = !saving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text(if (saving) "Saving…" else "Save expense") }
                 if (!state.online) Text("Saved on this phone; syncs when connected.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

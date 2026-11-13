@@ -49,7 +49,7 @@ class ExpenseService(
     @Synchronized fun state(): AppState {
         val rows = projected()
         val payees = choices(rows, "payees").filter { rows["payees"]?.get(it.id)?.text("transfer_acct") == null }
-        val categories = choices(rows, "categories").filter { rows["categories"]?.get(it.id)?.flag("hidden") != true && rows["categories"]?.get(it.id)?.flag("is_income") != true }
+        val categories = choices(rows, "categories").filter { rows["categories"]?.get(it.id)?.flag("is_income") != true }
         val accounts = choices(rows, "accounts").filter { rows["accounts"]?.get(it.id)?.flag("closed") != true }
         val currency = currency(rows)
         val eligible = rows["transactions"].orEmpty().values.filter { eligible(it) && it.text("acct") == saved.accountId }

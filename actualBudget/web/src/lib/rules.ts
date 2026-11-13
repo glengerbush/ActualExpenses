@@ -133,11 +133,8 @@ export const conditionFields: Record<string, string> = {
   category: "Category",
   category_group: "Category group",
   account: "Account",
-  notes: "Notes",
   amount: "Amount",
   date: "Date",
-  cleared: "Cleared",
-  reconciled: "Reconciled",
   transfer: "Transfer",
   parent: "Split parent",
 };
@@ -149,8 +146,6 @@ export const opLabels: Record<string, string> = {
   contains: "contains",
   doesNotContain: "does not contain",
   matches: "matches regular expression",
-  hasTags: "has all tags",
-  hasAnyTag: "has any tag",
   isapprox: "is approximately",
   isbetween: "is between",
   gt: "is greater than",
@@ -175,10 +170,6 @@ export function operators(field: string): string[] {
     "doesNotContain",
     "matches",
   ];
-  if (field === "notes")
-    return ops
-      .filter((o) => !["oneOf", "notOneOf"].includes(o))
-      .concat(["hasTags", "hasAnyTag"]);
   if (field === "account") return ops.concat(["onBudget", "offBudget"]);
   return ops;
 }

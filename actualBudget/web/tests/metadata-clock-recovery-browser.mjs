@@ -64,14 +64,14 @@ try {
       .click();
     await page
       .getByRole("button", {
-        name: isAccount ? "Organize accounts" : "Categories",
+        name: isAccount ? "Organize accounts" : "Budget",
         exact: true,
       })
       .click();
     if (!isAccount)
       await page
         .getByRole("button", {
-          name: kind === "category" ? "New category" : "New group",
+          name: kind === "category" ? "Add category to Ungrouped" : "Add group",
           exact: true,
         })
         .click();
@@ -149,9 +149,7 @@ try {
     const stale = await context.newPage();
     await stale.goto(server.url);
     if (!isAccount)
-      await stale
-        .getByRole("button", { name: "Categories", exact: true })
-        .click();
+      await stale.getByRole("button", { name: "Budget", exact: true }).click();
     await expect(retry(stale)).toBeVisible();
     await page.screenshot({
       path: new URL(
@@ -220,9 +218,7 @@ try {
     await stale.close();
     await page.reload();
     if (!isAccount)
-      await page
-        .getByRole("button", { name: "Categories", exact: true })
-        .click();
+      await page.getByRole("button", { name: "Budget", exact: true }).click();
     // Correcting OS time alone leaves the captured local HLC ahead. No request may be sent.
     await save().click();
     await expect(page.getByRole("alert")).toContainText("five minutes ahead");
@@ -262,7 +258,7 @@ try {
     if (!isAccount)
       await page
         .getByRole("button", {
-          name: kind === "category" ? "New category" : "New group",
+          name: kind === "category" ? "Add category to Ungrouped" : "Add group",
           exact: true,
         })
         .click();
@@ -295,7 +291,7 @@ try {
     if (!isAccount) {
       await page
         .getByRole("button", {
-          name: kind === "category" ? "New category" : "New group",
+          name: kind === "category" ? "Add category to Ungrouped" : "Add group",
           exact: true,
         })
         .click();

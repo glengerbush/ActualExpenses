@@ -223,7 +223,7 @@ try {
   // Explicit HTTP fault injection: a stale cursor is rejected, then bootstrap
   // must recover real current references without changing pending-work identity.
   await expect(
-    page.getByRole("button", { name: "Refresh transactions", exact: true }),
+    page.getByRole("button", { name: "Refresh", exact: true }),
   ).toBeEnabled();
   const recoveredCategory = randomUUID();
   await write(`/budgets/${budget}/categories`, {
@@ -254,7 +254,7 @@ try {
   ).toBeVisible();
   await expect.poll(() => cursorRejected).toBe(true);
   await expect(
-    page.getByRole("button", { name: "Refresh transactions", exact: true }),
+    page.getByRole("button", { name: "Refresh", exact: true }),
   ).toBeEnabled();
 
   await context.route("**/api/v1/**", (route) => route.abort());

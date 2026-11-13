@@ -133,7 +133,7 @@ impl Context<'_> {
         if conditions.len() > 20 {
             return Err(Error::invalid("Maximum20 category conditions"));
         }
-        let mut statement=self.db.prepare("SELECT c.id,c.name,c.group_id,c.is_income,c.hidden,g.name FROM categories c LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE c.budget_id=?1 AND c.tombstone=0 ORDER BY c.sort_order,c.id LIMIT 10001")?;
+        let mut statement=self.db.prepare("SELECT c.id,c.name,c.group_id,c.is_income,0,g.name FROM categories c LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE c.budget_id=?1 AND c.tombstone=0 ORDER BY c.sort_order,c.id LIMIT 10001")?;
         let rows = statement
             .query_map([self.budget], |r| {
                 Ok((

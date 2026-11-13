@@ -159,6 +159,8 @@ impl Runner {
         stored: bool,
     ) -> Result<(Value, Vec<String>), Error> {
         let mut row = input.clone();
+        row["cleared"] = json!(true);
+        row["reconciled"] = json!(false);
         if stored && let Some(children) = row.get_mut("children").and_then(Value::as_array_mut) {
             // Stored child views carry display names; source child rows do not.
             // Strip once before the chain so explicit later name actions survive.

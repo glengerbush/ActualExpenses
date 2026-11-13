@@ -22,7 +22,7 @@
 
 <section class="form-section" aria-labelledby="budget-form-title">
   <h1 id="budget-form-title">{t("New budget")}</h1>
-  <p class="muted">{t("Keep related accounts together in one budget.")}</p>
+  <p class="muted">{t("Track your income and expenses.")}</p>
   {#if session.restored}<p class="hint" role="status">
       {t("Recovered your saved draft.")}
     </p>{/if}
@@ -40,23 +40,6 @@
           maxlength="120"
           autocomplete="off"
         />
-        <label for="budget-method">{t("Budgeting method")}</label>
-        <select
-          id="budget-method"
-          bind:value={
-            () => session.draft!.fields.method,
-            (value) => session.update({ method: value })
-          }
-          aria-describedby="method-hint"
-          ><option value="tracking">{t("Tracking")}</option><option
-            value="envelope">{t("Envelope")}</option
-          ></select
-        >
-        <p id="method-hint" class="hint">
-          {t(
-            "Tracking follows income and spending. Envelope assigns money to categories.",
-          )}
-        </p>
       </fieldset>
       {#if session.error}<div class="error" role="alert">
           {t(session.error)}

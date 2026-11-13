@@ -62,7 +62,6 @@
     )
       label += ` (${row.id})`;
     if (row.deleted) label += " · deleted";
-    else if (row.hidden || row.group_hidden) label += " · hidden";
     return label;
   }
   let object = $derived(

@@ -281,8 +281,8 @@
           that window later.
         </p>{/if}
       <p>
-        Scheduled entries start uncleared. Original saved entries below will be
-        removed together; their history remains available.
+        Original saved entries below will be removed together; their history
+        remains available.
       </p>
       {#if p.protected_count}<p role="alert">
           {p.protected_count} affected entries are reconciled. Unlock and review the
@@ -299,9 +299,7 @@
                 >{old.payee_name ?? "No payee"} · {old.category_name ??
                   "No category"} · {old.notes || "No notes"}</span
               ><span
-                >{old.cleared ? "Cleared" : "Uncleared"} · {old.reconciled
-                  ? "Reconciled"
-                  : "Not reconciled"}{old.is_parent
+                >{old.is_parent
                   ? " · Split parent"
                   : old.parent_id
                     ? " · Allocation"

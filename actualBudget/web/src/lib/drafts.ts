@@ -24,7 +24,7 @@ interface BaseDraft {
 }
 export interface BudgetFields {
   name: string;
-  method: "tracking" | "envelope";
+  method: "tracking";
 }
 export interface AccountFields {
   number_format?: NumberFormat;
@@ -123,12 +123,13 @@ export async function prepareSubmission(
   if (draft.kind === "budget")
     return {
       ...draft,
+      fields: { ...draft.fields, method: "tracking" },
       pending: {
         key: draft.draft_id,
         body: {
           id: draft.draft_id,
           name: draft.fields.name.trim(),
-          budget_type: draft.fields.method,
+          budget_type: "tracking",
         },
       },
     };
@@ -251,6 +252,13 @@ export function readDraft(scope: DraftScope): CreationDraft | null {
   let value: unknown;
   try {
     value = JSON.parse(raw);
+    if (
+      scope.kind === "budget" &&
+      object(value) &&
+      !value.pending &&
+      object(value.fields)
+    )
+      value.fields.method = "tracking";
   } catch {
     /* Keep unrecognized data intact. */
   }

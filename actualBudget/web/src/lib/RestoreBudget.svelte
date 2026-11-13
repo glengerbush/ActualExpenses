@@ -297,7 +297,7 @@
         <p>
           {target.epoch && !target.deleted
             ? t(
-                "This replaces the existing budget. A recovery backup is saved first. Review any pending expenses afterward.",
+                "This replaces the existing budget. A recovery backup is saved first. Saved device changes will be checked against the restored budget.",
               )
             : t("This restores the budget with its original identity.")}
         </p>

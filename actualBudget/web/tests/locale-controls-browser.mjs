@@ -79,18 +79,17 @@ try {
       .getByRole("button", { name: "Transaction history", exact: true }),
   ).toBeVisible();
   await page.keyboard.press("Escape");
-  const sort = page.getByRole("combobox", { name: "Sort by", exact: true });
   await expect(
-    sort.getByRole("option", { name: "Datum", exact: true }),
-  ).toHaveJSProperty("value", "date");
-  await expect(
-    sort.getByRole("option", { name: "Betrag", exact: true }),
-  ).toHaveJSProperty("value", "amount");
-  await sort.selectOption({ label: "Betrag" });
-  await expect(sort).toHaveValue("amount");
-  await page
-    .getByRole("button", { name: "Find transactions", exact: true })
-    .click();
+    page
+      .locator(".register-table")
+      .getByRole("button", { name: "Datum", exact: true }),
+  ).toBeVisible();
+  const amountHeader = page.getByRole("columnheader", {
+    name: "Betrag",
+    exact: true,
+  });
+  await amountHeader.getByRole("button").click();
+  await expect(amountHeader).toHaveAttribute("aria-sort", "ascending");
   await expect(page.getByTestId("register-total")).toHaveText("1,000.00");
   await page.getByRole("button", { name: "Budget", exact: true }).click();
   await expect(page.getByRole("button", { name: /^Rückgängig/ })).toBeVisible();

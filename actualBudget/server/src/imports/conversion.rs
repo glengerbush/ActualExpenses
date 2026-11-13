@@ -542,14 +542,7 @@ pub(super) fn convert_loaded(
         crate::categories::validate_group_id(text(row, "id")?)
             .map_err(|_| invalid("Invalid group identity"))?;
         validate_name(text(row, "name")?).map_err(|_| invalid("Invalid group name"))?;
-        let notes = array(&source, "notes")
-            .iter()
-            .find(|n| n["id"] == row["id"])
-            .and_then(|n| n["note"].as_str())
-            .unwrap_or("");
-        if notes.chars().count() > 10000 {
-            return Err(invalid("Category group notes exceed limit"));
-        }
+        let notes = "";
         let order = category_order(row)?;
         converted["category_groups"].as_array_mut().unwrap().push(json!({"id":row["id"],"name":row["name"],"is_income":flag(row,"is_income")?,"hidden":flag(row,"hidden")?,"notes":notes,"sort_order":order,"tombstone":flag(row,"tombstone")?}));
     }
@@ -564,14 +557,7 @@ pub(super) fn convert_loaded(
             return Err(invalid("Category refers to a missing group"));
         }
         validate_name(text(row, "name")?).map_err(|_| invalid("Invalid source category name"))?;
-        let notes = array(&source, "notes")
-            .iter()
-            .find(|n| n["id"] == id)
-            .and_then(|n| n["note"].as_str())
-            .unwrap_or("");
-        if notes.chars().count() > 10000 {
-            return Err(invalid("Category notes exceed limit"));
-        }
+        let notes = "";
         converted["categories"].as_array_mut().unwrap().push(json!({"id":id,"name":row["name"],"is_income":flag(row,"is_income")?,"group_id":row["cat_group"],"hidden":flag(row,"hidden")?,"notes":notes,"sort_order":category_order(row)?,"tombstone":flag(row,"tombstone")?}));
     }
     let mut payee_ids = BTreeSet::new();
@@ -787,7 +773,7 @@ pub(super) fn convert_loaded(
             sums[0] += amount as i128;
             sums[if cleared { 1 } else { 2 }] += amount as i128;
         }
-        converted["transactions"].as_array_mut().unwrap().push(json!({"id":id,"account_id":account,"amount":amount,"date":date,"cleared":cleared,"reconciled":flag(row,"reconciled")?,"tombstone":tombstone,"starting_balance":flag(row,"starting_balance_flag")?,"payee_id":resolve(&row["description"],&payee_map,&payee_ids)?,"category_id":resolve(&row["category"],&category_map,&category_ids)?,"notes":row["notes"].as_str().unwrap_or(""),"imported_payee":row["imported_description"],"transfer_id":row["transferred_id"],"sort_order":rank,"source_sort_order":row["sort_order"],"is_parent":flag(row,"isParent")?,"parent_id":row["parent_id"]}));
+        converted["transactions"].as_array_mut().unwrap().push(json!({"id":id,"account_id":account,"amount":amount,"date":date,"cleared":cleared,"reconciled":flag(row,"reconciled")?,"tombstone":tombstone,"starting_balance":flag(row,"starting_balance_flag")?,"payee_id":resolve(&row["description"],&payee_map,&payee_ids)?,"category_id":resolve(&row["category"],&category_map,&category_ids)?,"notes":"","imported_payee":row["imported_description"],"transfer_id":row["transferred_id"],"sort_order":rank,"source_sort_order":row["sort_order"],"is_parent":flag(row,"isParent")?,"parent_id":row["parent_id"]}));
     }
     converted["transfer_version"] = json!(1);
     for row in array(&converted, "transactions")
@@ -977,7 +963,7 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
     for expected in array(data, "balances") {
         let actual = ledger::cached_balances(db, budget, expected["account_id"].as_str().unwrap())?;
         if serde_json::to_value(actual).map_err(Error::internal)?
-            != json!({"total":expected["total"],"cleared":expected["cleared"],"uncleared":expected["uncleared"]})
+            != json!({"total":expected["total"],"cleared":expected["total"],"uncleared":0})
         {
             return Err(invalid("Converted financial totals differ from source"));
         }
@@ -1086,5 +1072,6 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
         }
         db.execute("INSERT INTO imported_field_clocks(budget_id,dataset,row_id,column_name,edit_order,serialized_value) VALUES(?1,?2,?3,?4,?5,?6)",params![budget,row["dataset"].as_str(),row["row"].as_str(),row["column"].as_str(),row["timestamp"].as_str(),row["value"].as_str()])?;
     }
+    crate::budgeting::normalize(db, Some(budget))?;
     Ok(())
 }

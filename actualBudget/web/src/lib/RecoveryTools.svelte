@@ -187,14 +187,14 @@
     <h2 id="connection-title">Connection and downloaded data</h2>
     <p>
       {offline
-        ? "Disconnected. Pending work stays on this device."
+        ? "Disconnected. Saved work stays on this device."
         : "Connected views can be refreshed from the authoritative server."}
     </p>
     <p>
       Reconnect refreshes the budget and its checkpoint. Reset removes only
       downloaded budget lists, references and transaction views on this browser.
-      Pending expenses, saved requests, delivery receipts, drafts and device
-      settings stay intact. Offline views must download again when connected.
+      Saved expenses, requests, delivery receipts, drafts and device settings
+      stay intact. Offline views must download again when connected.
     </p>
     <div class="actions">
       <button onclick={reconnect} disabled={busy}>Reconnect and refresh</button
@@ -205,9 +205,9 @@
     {#if confirmReset}<div class="reset-confirmation">
         <h3>Reset downloaded views on this browser?</h3>
         <p>
-          Saved pending work will remain available through Review pending
-          expenses. This also preserves unconfirmed budget and repair requests.
-          No server records are deleted.
+          Saved work remains on this device and syncs when connected. This also
+          preserves unconfirmed budget and repair requests. No server records
+          are deleted.
         </p>
         <div class="actions">
           <button onclick={reset} disabled={busy}>Confirm cache reset</button

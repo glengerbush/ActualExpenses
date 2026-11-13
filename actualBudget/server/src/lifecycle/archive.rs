@@ -802,6 +802,20 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             }
         }
     }
+    if manifest["schema_version"].as_u64().is_some_and(|v| v < 29) {
+        for name in ["categories", "category_groups"] {
+            let table = state
+                .tables
+                .get_mut(name)
+                .ok_or_else(|| invalid("Missing category domain"))?;
+            if !table.columns.iter().any(|c| c == "color") {
+                table.columns.push("color".into());
+                for row in &mut table.rows {
+                    row.push(Value::Null);
+                }
+            }
+        }
+    }
     if state
         .tables
         .keys()
@@ -1088,6 +1102,7 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
             Some(archive.state.budget["id"].as_str().unwrap()),
         )?;
     }
+    crate::budgeting::normalize(db, archive.state.budget["id"].as_str())?;
     Ok(())
 }
 pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Error> {

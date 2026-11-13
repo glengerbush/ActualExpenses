@@ -50,7 +50,7 @@ try {
     );
     await page.reload();
     await expect(page.getByLabel("Search transactions")).toBeEnabled();
-    await page.getByText("Filters and columns", { exact: true }).click();
+    await page.locator('summary[aria-label="Filters and columns"]').click();
     return { budget, account, context, page };
   }
   const run = process.argv[2];
@@ -59,7 +59,7 @@ try {
     const b = await context.newPage();
     await b.goto(server.url);
     await expect(b.getByLabel("Search transactions")).toBeEnabled();
-    await b.getByText("Filters and columns", { exact: true }).click();
+    await b.locator('summary[aria-label="Filters and columns"]').click();
     await a.getByLabel("Search transactions").fill("Keep my draft");
     await b.getByRole("button", { name: "Save view", exact: true }).click();
     await expect(
@@ -175,7 +175,7 @@ try {
         .query.filter.conditions[0].value,
     ).toEqual({ num1: 7036874417766401, num2: 7036874417766401 });
     await page.reload();
-    await page.getByText("Filters and columns", { exact: true }).click();
+    await page.locator('summary[aria-label="Filters and columns"]').click();
     await expect(page.getByLabel("From amount 1", { exact: true })).toHaveValue(
       "70368744177664.01",
     );
@@ -203,7 +203,7 @@ try {
         .columns,
     ).not.toContain("notes");
     await page.reload();
-    await page.getByText("Filters and columns", { exact: true }).click();
+    await page.locator('summary[aria-label="Filters and columns"]').click();
     await expect(page.getByLabel(/^Account scope/)).toHaveCount(0);
     await expect(
       page.getByLabel("Show Notes column", { exact: true }),
@@ -214,7 +214,7 @@ try {
       page.getByText("Register settings saved.", { exact: true }),
     ).toBeVisible();
     await page.reload();
-    await page.getByText("Filters and columns", { exact: true }).click();
+    await page.locator('summary[aria-label="Filters and columns"]').click();
     await expect(
       page.getByLabel("Show Notes column", { exact: true }),
     ).toBeChecked();
@@ -290,9 +290,7 @@ try {
         notes: "Boundary",
       });
     }
-    await page
-      .getByRole("button", { name: "Refresh transactions", exact: true })
-      .click();
+    await page.getByRole("button", { name: "Refresh", exact: true }).click();
     await expect(
       page.getByText("Outside exact range", { exact: true }),
     ).toBeVisible();
@@ -353,7 +351,7 @@ try {
     );
     await page.reload();
     await expect(page.getByLabel("Search transactions")).toBeEnabled();
-    await page.getByText("Filters and columns", { exact: true }).click();
+    await page.locator('summary[aria-label="Filters and columns"]').click();
     await page
       .getByRole("combobox", { name: /^Saved filter/ })
       .selectOption({ label: "Identity" });
@@ -409,7 +407,7 @@ try {
         group_id,
       });
     await page.reload();
-    await page.getByText("Filters and columns", { exact: true }).click();
+    await page.locator('summary[aria-label="Filters and columns"]').click();
     await page
       .getByRole("combobox", { name: /^Saved filter/ })
       .selectOption({ label: "Identity" });

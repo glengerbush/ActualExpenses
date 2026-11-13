@@ -1,4 +1,10 @@
 <script lang="ts">
+  import {
+    categoryShade,
+    groupColor,
+    type CategoryLaunch,
+  } from "./category-colors";
+  import CategoryColor from "./CategoryColor.svelte";
   import { historyOwner } from "./history-owner";
   import { onMount, tick } from "svelte";
   import { request, uuid, errorMessage, RequestError } from "./api";
@@ -12,29 +18,37 @@
   import type { Transaction, PendingMutation } from "./register-api";
   import { t } from "./i18n.svelte";
   import { offlineStatus, subscribeOffline } from "./offline/events";
-  import MarkdownNotes from "./MarkdownNotes.svelte";
-  let { budgetId, onclose }: { budgetId: string; onclose: () => void } =
-    $props();
+  let {
+    budgetId,
+    onclose,
+    launch,
+    onchanged,
+  }: {
+    budgetId: string;
+    onclose: () => void;
+    launch?: CategoryLaunch;
+    onchanged?: () => Promise<void>;
+  } = $props();
   type Category = {
+    color: string | null;
+    resolved_color: string;
     id: string;
     name: string;
     group_id: string | null;
     is_income: boolean;
-    hidden: boolean;
     deleted: boolean;
-    notes: string;
     sort_order: number | null | undefined;
     field_versions: Record<string, string>;
   };
   type Kind = "categories" | "category-groups";
   type Draft = {
+    new_id?: string;
+    color?: string | null;
     kind: Kind;
     id: string | null;
     name: string;
     group_id: string;
     is_income: boolean;
-    hidden: boolean;
-    notes: string;
     sort_order: number | null | undefined;
     epoch: string;
     original: Category | null;
@@ -50,8 +64,7 @@
     epoch = $state(""),
     ready = $state(false),
     storageError = $state("");
-  let showHidden = $state(true),
-    deleting = $state(false),
+  let deleting = $state(false),
     replacement = $state(""),
     retired = $state(false);
   let history = $state.raw<{
@@ -71,14 +84,18 @@
   let savedRaw: string | null = null;
   let savedPayload = "";
   const storageKey = $derived(`actualBudget.categories.v1.${budgetId}`);
-  const visible = $derived(
-    categories.filter(
-      (c) =>
-        !c.deleted &&
-        (showHidden ||
-          (!c.hidden && !groups.find((g) => g.id === c.group_id)?.hidden)),
-    ),
+  const automaticColor = $derived(
+    draft
+      ? draft.kind === "category-groups"
+        ? groupColor(draft.id ?? draft.new_id!)
+        : categoryShade(
+            groups.find((g) => g.id === draft?.group_id)?.resolved_color ??
+              groupColor("ungrouped"),
+            draft.id ?? draft.new_id!,
+          )
+      : "#397C8C",
   );
+  const visible = $derived(categories.filter((c) => !c.deleted));
   const retained = $derived([
     ...categories
       .filter((row) => row.deleted)
@@ -143,6 +160,12 @@
       const payload = JSON.stringify({ draft, pending, deleting, replacement });
       if (payload === savedPayload || (!savedRaw && !draft && !pending))
         return true;
+      if (!draft && !pending) {
+        localStorage.removeItem(storageKey);
+        savedRaw = null;
+        savedPayload = payload;
+        return true;
+      }
       const next = JSON.stringify({
         draft,
         pending,
@@ -179,6 +202,11 @@
       if (savedRaw) {
         const state = JSON.parse(savedRaw);
         draft = state.draft;
+        if (draft && !draft.id && !draft.new_id)
+          draft.new_id =
+            typeof state.pending?.body?.id === "string"
+              ? state.pending.body.id
+              : uuid();
         pending = state.pending;
         deleting = !!state.deleting;
         replacement = state.replacement ?? "";
@@ -190,7 +218,20 @@
       return;
     }
     ready = true;
-    void load();
+    void load().then(async () => {
+      if (launch && !draft && !pending && !error) {
+        const row = launch.id
+          ? (launch.kind === "categories" ? categories : groups).find(
+              (r) => r.id === launch.id,
+            )
+          : undefined;
+        if (launch.id && !row) {
+          error = "This category or group is no longer available.";
+          return;
+        }
+        await begin(launch.kind, row);
+      }
+    });
   });
   $effect(() => {
     if (ready) {
@@ -213,12 +254,16 @@
     notice = "";
     draft = {
       kind,
+      new_id: row?.id ?? uuid(),
       id: row?.id ?? null,
       name: row?.name ?? "",
-      group_id: row?.group_id ?? "",
-      is_income: row?.is_income ?? false,
-      hidden: row?.hidden ?? false,
-      notes: row?.notes ?? "",
+      group_id: row?.group_id ?? launch?.groupId ?? "",
+      color: row?.color ?? null,
+      is_income:
+        row?.is_income ??
+        groups.find((g) => g.id === launch?.groupId)?.is_income ??
+        launch?.income ??
+        false,
       sort_order: row
         ? row.sort_order
         : (kind === "categories" ? categories : groups).length,
@@ -235,6 +280,7 @@
     deleting = false;
     error = "";
     persist();
+    if (launch) onclose();
   }
   async function send() {
     if (!pending || busy || storageError || !persist()) return;
@@ -265,6 +311,8 @@
         ? t("A newer edit was kept. Review the current category.")
         : t("Saved.");
       await load();
+      await onchanged?.();
+      if (launch && !result.conflicts?.length) onclose();
       if (operation.budgetEpoch && epoch && operation.budgetEpoch !== epoch)
         notice = t(
           "Original request confirmed. The current budget has since been restored; review its categories.",
@@ -308,10 +356,9 @@
       if (!draft || pending || busy) return;
       const values = {
         name: draft.name,
+        color: draft.color ?? null,
         group_id: draft.group_id || null,
         is_income: draft.is_income,
-        hidden: draft.hidden,
-        notes: draft.notes,
         sort_order: draft.sort_order ?? null,
       };
       let body: Record<string, unknown> = {};
@@ -320,7 +367,7 @@
         if (!draft.original || draft.original[key as keyof Category] !== value)
           body[key] = value;
       }
-      if (!draft.id) body.id = uuid();
+      if (!draft.id) body.id = draft.new_id ?? uuid();
       if (deleting) body = { replacement_id: replacement || null };
       if (!Object.keys(body).length) {
         closeEditor();
@@ -407,15 +454,15 @@
 </script>
 
 <svelte:window onstorage={storageChanged} />
-<div class="page-heading">
-  <div>
-    <h1>{t("Categories")}</h1>
-    <p class="muted">
-      {t("Organize spending and income. History stays connected.")}
-    </p>
-  </div>
-  <button onclick={onclose}>{t("Done")}</button>
-</div>
+{#if !launch}<div class="page-heading">
+    <div>
+      <h1>{t("Categories")}</h1>
+      <p class="muted">
+        {t("Organize spending and income. History stays connected.")}
+      </p>
+    </div>
+    <button onclick={onclose}>{t("Done")}</button>
+  </div>{/if}
 {#if offline}<p role="status">
     {t("Reconnect before changing categories or groups.")}
   </p>{/if}
@@ -466,7 +513,9 @@
         : draft.id
           ? t("Edit category or group")
           : draft.kind === "categories"
-            ? t("New category")
+            ? draft.group_id
+              ? `New category in ${groups.find((g) => g.id === draft?.group_id)?.name ?? "group"}`
+              : t("New category")
             : t("New group")}
     </h2>
     <fieldset disabled={busy || !!pending || loading || !!storageError}>
@@ -474,7 +523,7 @@
       {#if deleting}
         <p>
           {t("Delete")} <strong>{draft.name}</strong>? {t(
-            "Transactions keep their amounts. Notes remain in retained category history.",
+            "Transactions keep their amounts.",
           )}
         </p>
         {#if draft.kind === "category-groups"}<p>
@@ -498,7 +547,9 @@
           maxlength="120"
           required
         />
-        {#if !draft.id}<label for="category-type">{t("Type")}</label><select
+        {#if !draft.id && !(launch && draft.kind === "categories")}<label
+            for="category-type">{t("Type")}</label
+          ><select
             id="category-type"
             bind:value={draft.is_income}
             onchange={() => {
@@ -510,13 +561,32 @@
           >{:else}<p class="muted">
             {draft.is_income ? t("Income") : t("Expense")}
           </p>{/if}
-        {#if draft.kind === "categories"}<label for="category-group"
-            >{t("Group")}</label
+        {#if draft.kind === "categories" && (!launch || draft.id)}<label
+            for="category-group">{t("Group")}</label
           ><select id="category-group" bind:value={draft.group_id}
             ><option value="">{t("Ungrouped")}</option
             >{#each groups.filter((g) => !g.deleted && (g.is_income === draft!.is_income || g.id === draft!.group_id)) as group (group.id)}<option
                 value={group.id}>{group.name}</option
               >{/each}</select
+          >{/if}
+        <label for="category-color"
+          >{draft.kind === "categories"
+            ? "Category shade"
+            : "Group color"}</label
+        >
+        <input
+          id="category-color"
+          type="color"
+          value={draft.color ?? automaticColor}
+          oninput={(e) => {
+            if (draft) draft.color = e.currentTarget.value;
+          }}
+        />
+        {#if draft.kind === "categories"}<button
+            type="button"
+            onclick={() => {
+              if (draft) draft.color = null;
+            }}>Use automatic shade</button
           >{/if}
         <label for="category-order">{t("Order")}</label><input
           id="category-order"
@@ -527,16 +597,6 @@
           bind:value={draft.sort_order}
         />
         <p class="hint">{t("Lower numbers appear first within the group.")}</p>
-        <label for="category-notes">{t("Notes")}</label><textarea
-          id="category-notes"
-          rows="4"
-          maxlength="10000"
-          bind:value={draft.notes}></textarea>
-        <label class="check-label"
-          ><input type="checkbox" bind:checked={draft.hidden} />{t(
-            "Hidden",
-          )}</label
-        >
       {/if}
       <div class="category-actions">
         <button type="submit" class="primary" disabled={offline}
@@ -576,7 +636,6 @@
                 {tx.payee_name ?? t("No payee")} · {tx.category_name ??
                   t("Uncategorized")}
               </p>
-              {#if tx.notes}<p>{tx.notes}</p>{/if}
             </div>
             <strong class="amount">{formatAmount(tx.amount)}</strong>
           </article>{/each}
@@ -586,7 +645,7 @@
         >{t("Load more")}</button
       >{/if}
   </section>
-{:else}
+{:else if !launch}
   <div class="category-actions">
     <button
       onclick={() => begin("categories")}
@@ -607,44 +666,52 @@
     ><button
       onclick={() => drill("uncategorized", t("Uncategorized"))}
       disabled={loading}>{t("Uncategorized transactions")}</button
-    ><label class="check-label"
-      ><input type="checkbox" bind:checked={showHidden} />{t(
-        "Show hidden",
-      )}</label
     >
   </div>
   {#each [false, true] as income (income)}<section class="category-section">
       <h2>{income ? t("Income") : t("Expenses")}</h2>
-      {#each [...groups.filter((g) => !g.deleted && (g.is_income === income || visible.some((c) => c.group_id === g.id && c.is_income === income)) && (showHidden || !g.hidden)), null] as group (group?.id ?? "ungrouped")}
+      {#each [...groups.filter((g) => !g.deleted && (g.is_income === income || visible.some((c) => c.group_id === g.id && c.is_income === income))), null] as group (group?.id ?? "ungrouped")}
         {@const children = visible.filter(
           (c) => c.is_income === income && c.group_id === (group?.id ?? null),
         )}
         {#if group || children.length}<div class="category-group">
             <div class="group-heading">
               <h3>
-                {group?.name ?? t("Ungrouped")}{group?.hidden
-                  ? ` · ${t("Hidden")}`
-                  : ""}
+                {group?.name ?? t("Ungrouped")}
               </h3>
-              {#if group}<button
+              {#if group}<CategoryColor
+                  {budgetId}
+                  id={group.id}
+                  kind="category-groups"
+                  name={group.name}
+                  color={group.resolved_color}
+                  disabled={busy || loading || offline || !!draft || !!pending}
+                  onchanged={load}
+                /><button
                   onclick={() => begin("category-groups", group)}
                   disabled={offline || !!pending || !!storageError}
                   >{t("Edit group")}
                   <span class="sr-only">{group.name}</span></button
                 >{/if}
             </div>
-            {#if group?.notes}<div class="notes">
-                <MarkdownNotes text={group.notes} />
-              </div>{/if}
+
             {#each children as row (row.id)}<div class="category-row">
                 <div>
-                  <strong>{row.name}</strong>{#if row.hidden}<span
-                      class="muted"
-                    >
-                      · {t("Hidden")}</span
-                    >{/if}{#if row.notes}<div class="notes">
-                      <MarkdownNotes text={row.notes} />
-                    </div>{/if}
+                  <CategoryColor
+                    {budgetId}
+                    id={row.id}
+                    kind="categories"
+                    name={row.name}
+                    color={row.resolved_color}
+                    automatic={!row.color}
+                    disabled={busy ||
+                      loading ||
+                      offline ||
+                      !!draft ||
+                      !!pending}
+                    onchanged={load}
+                  />
+                  <strong>{row.name}</strong>
                 </div>
                 <div class="category-actions">
                   <button onclick={() => drill(row.id, row.name)}
@@ -663,20 +730,6 @@
           </div>{/if}
       {/each}
     </section>{/each}
-  {#if retained.length}<details>
-      <summary>{t("Retained category notes")}</summary
-      >{#each retained as row (row.key)}<div class="category-row">
-          <div>
-            <strong>{row.name}</strong>
-            <div class="notes">
-              <MarkdownNotes text={row.notes || t("No notes")} />
-            </div>
-          </div>
-          <span class="muted"
-            >{row.group ? t("Deleted group") : t("Deleted")}</span
-          >
-        </div>{/each}
-    </details>{/if}
 {/if}
 
 <style>
@@ -705,15 +758,6 @@
     padding: 0;
     margin: 0;
     min-width: 0;
-  }
-  .category-editor textarea {
-    width: 100%;
-    font: inherit;
-    color: var(--input-text);
-    background: var(--input-surface);
-    border: 1px solid var(--control-border);
-    padding: 0.75rem;
-    resize: vertical;
   }
   .category-editor input,
   .category-editor select {
@@ -751,11 +795,6 @@
   .category-row > div:first-child {
     min-width: 0;
   }
-  .notes {
-    overflow-wrap: anywhere;
-    margin: 0.25rem 0;
-    color: var(--muted);
-  }
   .amount {
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -766,13 +805,6 @@
   .category-row strong,
   .group-heading h3 {
     overflow-wrap: anywhere;
-  }
-  details {
-    margin-top: 2rem;
-  }
-  summary {
-    cursor: pointer;
-    min-height: 44px;
   }
   @media (max-width: 700px) {
     .category-row {

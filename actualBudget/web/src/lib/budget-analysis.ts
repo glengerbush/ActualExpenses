@@ -41,7 +41,7 @@ export interface AnalysisProjection {
   as_of: string;
   recorded: false;
   basis: "budget_allocations_and_recorded_entries";
-  method: "envelope" | "tracking";
+  method: "tracking";
   assumptions: { code: string; message: string }[];
   cache: { hit: boolean; input_revision: string };
 }
@@ -97,7 +97,6 @@ export async function analysisQuery(
       endDate: isoDate(last),
       conditions: (meta.conditions ?? []) as unknown[],
       conditionsOp: String(meta.conditionsOp ?? "and"),
-      showHiddenCategories: meta.showHiddenCategories === true,
     },
   };
 }

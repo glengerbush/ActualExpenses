@@ -245,6 +245,7 @@ fn refusal(
     ))
 }
 pub enum Mutation {
+    WithRecurrence(Box<Mutation>, Value),
     Create(Box<NewTransaction>),
     Patch(String, Value),
     ExpensePatch(String, Value),
@@ -304,6 +305,35 @@ pub fn execute(
         other => other,
     };
     match mutation {
+        Mutation::WithRecurrence(inner, recurrence) => {
+            let mut result = match *inner {
+                Mutation::Patch(ref id, ref fields)
+                | Mutation::ExpensePatch(ref id, ref fields)
+                    if fields.as_object().is_some_and(|f| f.is_empty()) =>
+                {
+                    success(
+                        db,
+                        budget,
+                        ledger::get(db, budget, id)?,
+                        &edit_clock,
+                        vec![],
+                        StatusCode::OK,
+                    )?
+                }
+                inner => execute(db, budget, Some(&edit_clock), false, expected_epoch, inner)?,
+            };
+            if result["response_status"].as_u64().unwrap_or(500) < 400 {
+                let id = result["response_body"]["data"]["id"]
+                    .as_str()
+                    .ok_or_else(|| Error::internal("Missing transaction identity"))?
+                    .to_owned();
+                crate::schedules::apply_recurrence(db, budget, &id, recurrence, &edit_clock)?;
+                result["response_body"]["data"] = ledger::get(db, budget, &id)?;
+                result["response_body"]["snapshot"] = json!(cursor(db, budget)?);
+            }
+            Ok(result)
+        }
+
         Mutation::ExpensePatch(..) | Mutation::ExpenseDelete(..) => unreachable!(),
         Mutation::Split(id, input) => {
             let data = crate::splits::apply(db, budget, &id, input, &edit_clock)?;

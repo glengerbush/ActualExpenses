@@ -89,7 +89,6 @@ fn column(field: &str) -> Result<(&'static str, &'static str), Error> {
         "category_group_name" => ("g.name", "name"),
         "transfer" => ("(t.transfer_id IS NOT NULL)", "bool"),
         "parent" => ("t.is_parent", "bool"),
-        "notes" => ("t.notes", "text"),
         "imported_payee" => ("t.imported_payee", "text"),
         "date" => ("t.date", "date"),
         "amount" => ("t.amount", "money"),
@@ -252,41 +251,6 @@ fn condition_sql(condition: &Condition, values: &mut Vec<SqlValue>) -> Result<St
             comparisons.join(if op == "in" { " OR " } else { " AND " })
         )));
     }
-    if matches!(op, "hasTags" | "hasAnyTag") && condition.field == "notes" {
-        let text = condition
-            .value
-            .as_str()
-            .filter(|s| s.len() <= 1000)
-            .ok_or_else(|| Error::invalid("Invalid tags"))?;
-        let tags = text
-            .split(|c: char| c == '#' || c.is_whitespace())
-            .filter(|s| !s.is_empty())
-            .collect::<Vec<_>>();
-        if tags.len() > 100 {
-            return Err(Error::invalid("At most 100 tags"));
-        }
-        let expressions = tags
-            .iter()
-            .map(|tag| {
-                let parameter = bind(
-                    values,
-                    SqlValue::Text(format!(
-                        "(?<!#)#{}([\\s#]|$)",
-                        crate::register_regex::escape(tag)
-                    )),
-                );
-                format!("register_regex({parameter},t.notes)")
-            })
-            .collect::<Vec<_>>();
-        return Ok(if expressions.is_empty() {
-            "0".into()
-        } else {
-            format!(
-                "({})",
-                expressions.join(if op == "hasTags" { " AND " } else { " OR " })
-            )
-        });
-    }
     if matches!(op, "contains" | "not_contains") && matches!(kind, "text" | "name") {
         let SqlValue::Text(pattern) = scalar_value(&condition.value)? else {
             unreachable!()
@@ -422,16 +386,13 @@ impl Query {
         if !self.search.is_empty() {
             let p = bind(values, SqlValue::Text(self.search.clone()));
             let extra = search_extras(&self.search, preferences, values);
-            clauses.push(format!("(instr(register_lower(coalesce(y.name,p.name,'')),register_lower({p}))>0 OR instr(register_lower(t.notes),register_lower({p}))>0 OR instr(register_lower(coalesce(c.name,'')),register_lower({p}))>0 OR instr(register_lower(a.name),register_lower({p}))>0 OR instr(t.date,{p})>0{extra})"));
-        }
-        if self.hide_cleared {
-            clauses.push("t.cleared=0".into());
-        }
-        if self.hide_reconciled {
-            clauses.push("t.reconciled=0".into());
+            clauses.push(format!("(instr(register_lower(coalesce(y.name,p.name,'')),register_lower({p}))>0 OR instr(register_lower(coalesce(c.name,'')),register_lower({p}))>0 OR instr(register_lower(a.name),register_lower({p}))>0 OR instr(t.date,{p})>0{extra})"));
         }
         let mut conditions = Vec::new();
         for condition in &self.filter.conditions {
+            if matches!(condition.field.as_str(), "cleared" | "reconciled") {
+                continue;
+            }
             conditions.push(condition_sql(condition, values)?);
         }
         if !conditions.is_empty() {
@@ -456,7 +417,7 @@ impl Query {
             Sort::Payee => "coalesce(y.name,p.name,'') COLLATE NOCASE",
             Sort::Category => "coalesce(c.name,'') COLLATE NOCASE",
             Sort::Account => "a.name COLLATE NOCASE",
-            Sort::Notes => "t.notes COLLATE NOCASE",
+            Sort::Notes => "t.date",
             Sort::Cleared => "t.cleared",
             Sort::Reconciled => "t.reconciled",
         };

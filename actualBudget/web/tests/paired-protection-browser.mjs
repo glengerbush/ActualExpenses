@@ -1,3 +1,4 @@
+import { transactionRows, transactionAction } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
@@ -77,12 +78,13 @@ try {
     .locator(".budget-list button")
     .filter({ hasText: "Paired protection" })
     .click();
-  await page
-    .locator(".register-table tbody tr")
-    .filter({ hasText: "Settled transfer" })
-    .filter({ has: page.getByRole("button", { name: /^Edit -/ }) })
-    .getByRole("button", { name: /^Edit / })
-    .click();
+  await transactionRows(
+    page
+      .locator(".register-table tbody tr")
+      .filter({ hasText: "Settled transfer" })
+      .and(page.getByRole("row", { name: /^Edit -/ })),
+    { name: /^Edit / },
+  ).click();
   const confirmation = page.getByLabel(
     "Confirm editing reconciled entries in this transfer",
   );
@@ -154,12 +156,13 @@ try {
     amount: 2700,
     reconciled: true,
   });
-  await page
-    .locator(".register-table tbody tr")
-    .filter({ hasText: "Settled transfer" })
-    .filter({ has: page.getByRole("button", { name: /^Edit -/ }) })
-    .getByRole("button", { name: /^Edit / })
-    .click();
+  await transactionRows(
+    page
+      .locator(".register-table tbody tr")
+      .filter({ hasText: "Settled transfer" })
+      .and(page.getByRole("row", { name: /^Edit -/ })),
+    { name: /^Edit / },
+  ).click();
   await page.setViewportSize({ width: 390, height: 844 });
   await page
     .getByLabel("Confirm editing reconciled entries in this transfer")
@@ -215,7 +218,9 @@ try {
   await lock(z, 3300);
   await page.setViewportSize({ width: 1280, height: 1000 });
   await page.reload();
-  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await (
+    await transactionAction(page, { name: "Edit splits", exact: true })
+  ).click();
   await page.getByLabel("Split 1 amount", { exact: true }).fill("-7.00");
   await page.getByLabel("Split 2 amount", { exact: true }).fill("-3.00");
   await page

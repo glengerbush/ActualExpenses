@@ -149,7 +149,6 @@
               aria-label={`Select payment ${row.date} ${row.notes || row.payee_name || row.id}`}
               checked={selectedIds.has(row.id)}
               disabled={busy ||
-                row.reconciled ||
                 (selected.length >= 500 && !selectedIds.has(row.id))}
               onchange={(e) => select(row, e.currentTarget.checked)}
             /><span
@@ -157,9 +156,7 @@
                 >{row.account_name} · {row.payee_name ?? "No payee"} · {row.category_name ??
                   "No category"}</span
               ><span>{row.notes || "No notes"}</span><span
-                >{row.cleared ? "Cleared" : "Uncleared"} · {row.reconciled
-                  ? "Reconciled"
-                  : "Not reconciled"}{row.is_parent
+                >{row.is_parent
                   ? " · Split parent"
                   : row.parent_id
                     ? " · Split allocation"

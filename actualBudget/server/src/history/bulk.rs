@@ -1,23 +1,8 @@
-use crate::{
-    concurrency as sync,
-    error::Error,
-    ledger,
-    register_regex::{self, Pattern},
-    splits,
-};
+use crate::{concurrency as sync, error::Error, ledger, splits};
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct Notes {
-    pub mode: String,
-    #[serde(default)]
-    pub find: String,
-    #[serde(default)]
-    pub use_regex: bool,
-}
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Bulk {
@@ -28,8 +13,6 @@ pub struct Bulk {
     pub fields: Option<Value>,
     #[serde(default)]
     pub duplicate_ids: Vec<String>,
-    #[serde(default)]
-    pub notes: Option<Notes>,
 }
 impl Bulk {
     pub fn validate(&self) -> Result<(), Error> {
@@ -65,12 +48,12 @@ impl Bulk {
                 "Create the payee or category before applying it to selected entries",
             ));
         }
-        if let Some(notes) = &self.notes
-            && (self.action != "update"
-                || self.fields.as_ref().is_none_or(|v| !v["notes"].is_string())
-                || !["replace", "prepend", "append", "find_replace"].contains(&notes.mode.as_str()))
+        if self
+            .fields
+            .as_ref()
+            .is_some_and(|v| v.get("notes").is_some())
         {
-            return Err(Error::invalid("Invalid bulk notes mode"));
+            return Err(Error::invalid("Transaction notes are no longer supported"));
         }
         Ok(())
     }
@@ -96,42 +79,8 @@ pub fn apply(
             entry.insert((parent, index));
         }
     }
-    let regex_budget = register_regex::replacement_budget();
-    let pattern = input
-        .notes
-        .as_ref()
-        .filter(|n| n.mode == "find_replace" && !n.find.is_empty())
-        .map(|n| {
-            Pattern::compile(
-                &if n.use_regex {
-                    n.find.clone()
-                } else {
-                    register_regex::escape(&n.find)
-                },
-                false,
-            )
-            .map_err(|e| e.api_error())
-        })
-        .transpose()?;
-    let patch = |row: &Value| -> Result<Value, Error> {
-        let mut fields = input.fields.clone().unwrap_or(json!({}));
-        if let Some(notes) = &input.notes {
-            let old = row["notes"].as_str().unwrap_or("");
-            let value = fields["notes"].as_str().unwrap();
-            fields["notes"] = json!(match notes.mode.as_str() {
-                "prepend" => format!("{value}{old}"),
-                "append" => format!("{old}{value}"),
-                "find_replace" =>
-                    if let Some(pattern) = &pattern {
-                        pattern.replace_all(old, value, &regex_budget)?
-                    } else {
-                        old.to_string()
-                    },
-                _ => value.to_string(),
-            });
-        }
-        Ok(fields)
-    };
+    let patch =
+        |_row: &Value| -> Result<Value, Error> { Ok(input.fields.clone().unwrap_or(json!({}))) };
     let mut outcomes = vec![];
     for (root, (parent, index)) in groups {
         // Every selected group was read live before writes. A now-deleted root

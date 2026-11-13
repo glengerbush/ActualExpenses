@@ -1,3 +1,4 @@
+import { transactionAction } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
@@ -64,7 +65,7 @@ try {
   await page.reload();
   await expect(page.locator(".register-table tbody tr")).toHaveCount(3);
   await expect(
-    page.getByRole("button", { name: "Refresh history", exact: true }),
+    page.getByRole("button", { name: "Refresh", exact: true }),
   ).toBeEnabled();
   const boxes = page.locator(".register-table tbody input[type=checkbox]");
   await boxes.first().focus();
@@ -218,12 +219,14 @@ try {
       })
     ).status,
   ).toBe(200);
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await (
+    await transactionAction(page, { name: "Select split entries", exact: true })
+  ).click();
   await page
-    .getByRole("button", { name: "Refresh transactions", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Select split entries", exact: true })
-    .click();
+    .locator(`tr[data-transaction-id="${ids[0]}"]`)
+    .getByRole("checkbox")
+    .uncheck();
   const childBoxes = page.locator(".split-child input[type=checkbox]");
   await childBoxes.nth(0).check();
   await childBoxes.nth(1).check();
@@ -338,10 +341,10 @@ try {
   await Promise.all([left.goto(server.url), right.goto(server.url)]);
   await Promise.all([
     expect(
-      left.getByRole("button", { name: "Refresh history", exact: true }),
+      left.getByRole("button", { name: "Refresh", exact: true }),
     ).toBeEnabled(),
     expect(
-      right.getByRole("button", { name: "Refresh history", exact: true }),
+      right.getByRole("button", { name: "Refresh", exact: true }),
     ).toBeEnabled(),
   ]);
   await left

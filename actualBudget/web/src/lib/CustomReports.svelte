@@ -567,7 +567,7 @@
                 >{/if}
             </fieldset>
             <div class="checks">
-              {#each [["show_empty", "Show empty groups", false], ["show_offbudget", "Include off-budget accounts", false], ["show_hidden", "Include hidden categories and groups", true], ["show_uncategorized", "Include uncategorized on-budget entries", true], ["trim_intervals", "Trim empty leading and trailing intervals", false], ["show_trend_lines", "Show trend lines for line reports", false]] as option (String(option[0]))}<label
+              {#each [["show_empty", "Show empty groups", false], ["show_offbudget", "Include off-budget accounts", false], ["show_uncategorized", "Include uncategorized on-budget entries", true], ["trim_intervals", "Trim empty leading and trailing intervals", false], ["show_trend_lines", "Show trend lines for line reports", false]] as option (String(option[0]))}<label
                   class="check"
                   ><input
                     type="checkbox"

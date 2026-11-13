@@ -1,5 +1,7 @@
-//! Monthly planning derives from live on-budget leaf transactions. Plans for both
-//! methods persist independently; no cached financial result becomes authority.
+//! Monthly planning derives from live on-budget leaf transactions.
+//! Tracking allocations are authoritative; cached results never replace them.
+mod retirement;
+pub use retirement::normalize;
 mod actions;
 pub(crate) mod templates;
 pub use actions::category_deleted;
@@ -8,13 +10,13 @@ use crate::{concurrency as sync, error::Error, models::MAX_MONEY, store::Store};
 use axum::{
     Json, Router,
     extract::{Path, Query, State},
-    routing::{get, post},
+    routing::get,
 };
 pub use import::{
     clock as import_clock, convert as convert_actual, enrich as enrich_legacy_imports,
     install as install_actual, validate,
 };
-use rusqlite::{Connection, OptionalExtension, params, params_from_iter};
+use rusqlite::{Connection, params, params_from_iter};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
@@ -25,30 +27,6 @@ pub fn router() -> Router<Store> {
             get(read).post(actions::mutate),
         )
         .route("/api/v1/budgets/{budget}/budget/transactions", get(detail))
-        .route(
-            "/api/v1/budgets/{budget}/budget/templates",
-            get(templates::read),
-        )
-        .route(
-            "/api/v1/budgets/{budget}/budget/templates/parse",
-            axum::routing::post(templates::parse_notes),
-        )
-        .route(
-            "/api/v1/budgets/{budget}/budget/templates/preview",
-            axum::routing::post(templates::preview),
-        )
-        .route(
-            "/api/v1/budgets/{budget}/budget/templates/projection",
-            axum::routing::post(templates::projection),
-        )
-        .route(
-            "/api/v1/budgets/{budget}/budget/templates/migration-preview",
-            post(templates::migration_preview),
-        )
-        .route(
-            "/api/v1/budgets/{budget}/budget/templates/commands",
-            axum::routing::post(templates::mutate),
-        )
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -101,12 +79,9 @@ struct Category {
     id: String,
     name: String,
     income: bool,
-    hidden: bool,
     group: Option<String>,
-    group_hidden: bool,
     group_income: bool,
     group_name: String,
-    notes: String,
 }
 #[derive(Clone, Default)]
 struct Cell {
@@ -259,19 +234,15 @@ fn scoped_view_inner(
     let method: String = db.query_row("SELECT budget_type FROM budgets WHERE id=?1", [b], |r| {
         r.get(0)
     })?;
-    let tracking = method == "tracking";
-    let note_column = if reporting { "''" } else { "c.notes" };
-    let mut q=db.prepare(&format!("SELECT c.id,c.name,c.is_income,c.hidden,c.group_id,COALESCE(g.hidden,0),{note_column},COALESCE(g.name,'Ungrouped'),COALESCE(g.is_income,0) FROM categories c LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE c.budget_id=?1 AND c.tombstone=0 ORDER BY COALESCE(g.sort_order,0),COALESCE(c.sort_order,0),c.id"))?;
+
+    let mut q=db.prepare(&format!("SELECT c.id,c.name,c.is_income,0,c.group_id,0,'',COALESCE(g.name,'Ungrouped'),COALESCE(g.is_income,0) FROM categories c LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE c.budget_id=?1 AND c.tombstone=0 ORDER BY COALESCE(g.sort_order,0),COALESCE(c.sort_order,0),c.id"))?;
     let categories = q
         .query_map([b], |r| {
             Ok(Category {
                 id: r.get(0)?,
                 name: r.get(1)?,
                 income: r.get(2)?,
-                hidden: r.get(3)?,
                 group: r.get(4)?,
-                group_hidden: r.get(5)?,
-                notes: r.get(6)?,
                 group_name: r.get(7)?,
                 group_income: r.get(8)?,
             })
@@ -286,11 +257,6 @@ fn scoped_view_inner(
             "Sankey budget scope exceeds5000 categories or20000 category/month cells",
         ));
     }
-    let income_group: Option<String> = if summary_report {
-        db.query_row("SELECT id FROM category_groups WHERE budget_id=?1 AND tombstone=0 AND is_income=1 ORDER BY sort_order,id LIMIT 1",[b],|r|r.get(0)).optional()?
-    } else {
-        None
-    };
     let mut earliest = start;
     let mut actuals = BTreeMap::<(i32, String), i128>::new();
     let mut actual_values = vec![b.to_owned()];
@@ -310,12 +276,8 @@ fn scoped_view_inner(
         )
     } else if summary_report {
         actual_values.push(format!("{}-31", month_name(end)?));
-        if tracking {
-            actual_values.push(format!("{}-01", month_name(start)?));
-            " AND t.date<=?2 AND t.date>=?3".into()
-        } else {
-            " AND t.date<=?2".into()
-        }
+        actual_values.push(format!("{}-01", month_name(start)?));
+        " AND t.date<=?2 AND t.date>=?3".into()
     } else {
         String::new()
     };
@@ -377,12 +339,8 @@ fn scoped_view_inner(
         )
     } else if summary_report {
         cell_values.push(month_name(end)?);
-        if tracking {
-            cell_values.push(month_name(start)?);
-            " AND month<=?3 AND month>=?4".into()
-        } else {
-            " AND month<=?3".into()
-        }
+        cell_values.push(month_name(start)?);
+        " AND month<=?3 AND month>=?4".into()
     } else {
         String::new()
     };
@@ -425,35 +383,6 @@ fn scoped_view_inner(
             cells.insert((m, id), cell);
         }
     }
-    let mut months = BTreeMap::new();
-    if scope.is_none() && !(summary_report && tracking) {
-        let month_sql = if summary_report {
-            "SELECT id,buffered,'' FROM budget_months WHERE budget_id=?1 AND tombstone=0 AND id<=?2"
-        } else {
-            "SELECT id,buffered,notes FROM budget_months WHERE budget_id=?1 AND tombstone=0"
-        };
-        let month_params = if summary_report {
-            vec![b.to_owned(), month_name(end)?]
-        } else {
-            vec![b.to_owned()]
-        };
-        let mut q = db.prepare(month_sql)?;
-        for row in q.query_map(params_from_iter(month_params), |r| {
-            Ok((
-                r.get::<_, String>(0)?,
-                r.get::<_, i64>(1)?,
-                r.get::<_, String>(2)?,
-            ))
-        })? {
-            let (m, held, notes) = row?;
-            let notes = crate::notes::visible_text(db, b, &format!("budget-{m}"), notes)?;
-            let m = month(&m)?;
-            if m <= end {
-                earliest = earliest.min(m);
-                months.insert(m, (held, notes));
-            }
-        }
-    }
     // Bound adversarial centuries × huge category sets without silently truncating.
     if (end - earliest + 1) as usize * categories.len().max(1) > 5_000_000 {
         return Err(Error::invalid(
@@ -465,9 +394,6 @@ fn scoped_view_inner(
         *remaining=remaining.checked_sub(used).ok_or_else(||Error::invalid("Formula cumulative budget work limit reached; select fewer categories or shorter history"))?;
     }
     let mut previous = BTreeMap::<String, Previous>::new();
-    let mut prior_to = 0i128;
-    let mut prior_hold = 0i128;
-    let mut prior_over = 0i128;
     let mut output = BTreeMap::new();
     for m in earliest..=end {
         let mut rows = vec![];
@@ -477,79 +403,35 @@ fn scoped_view_inner(
         let mut allocated = 0i128;
         let mut planned_income = 0i128;
         let mut balance = 0i128;
-        let mut auto_hold = 0i128;
-        let mut overspent = 0i128;
         for cat in &categories {
             let cell = cells.get(&(m, cat.id.clone())).cloned().unwrap_or_default();
             let actual = *actuals.get(&(m, cat.id.clone())).unwrap_or(&0);
             let prev = previous.get(&cat.id);
-            // The source envelope-month command emits only actuals for income
-            // groups, even when a legacy category's own income flag differs.
+            // Scoped analysis reports income-group actuals without allocations.
             let actual_only = scope.is_some() && cat.group_income;
-            let carried = if actual_only || summary_report && tracking {
+            let carried = if actual_only || summary_report {
                 0
             } else {
-                prev.map_or(0, |p| {
-                    if tracking {
-                        if p.carry { p.left } else { 0 }
-                    } else if p.carry {
-                        p.left
-                    } else {
-                        p.left.max(0)
-                    }
-                })
+                prev.map_or(0, |p| if p.carry { p.left } else { 0 })
             };
-            let left = if actual_only || summary_report && tracking {
+            let left = if actual_only || summary_report {
                 0
             } else if cat.income {
-                if tracking {
-                    cell.amount as i128 - actual + carried
-                } else {
-                    0
-                }
+                cell.amount as i128 - actual + carried
             } else {
                 cell.amount as i128 + actual + carried
             };
-            if scope.is_some() {
-                if !actual_only {
-                    money(cell.amount as i128)?;
-                    money(left)?;
-                }
-                money(actual)?;
-            } else if summary_report {
-                // Source summary groups; category flags still own category carry,
-                // overspending and automatic income holds, as in envelope.ts.
-                if cat.group.as_ref() == income_group.as_ref() && income_group.is_some() {
-                    income += actual;
-                }
-                if cat.group.is_some() && !cat.group_income && !cat.income {
-                    allocated += cell.amount as i128;
-                }
-                if cat.income && cell.carry {
-                    auto_hold += actual;
-                }
-                if !cat.income && !cell.carry {
-                    overspent += left.min(0);
-                }
-            } else {
-                let visible = !tracking || (!cat.hidden && (cat.income || !cat.group_hidden));
+            money(cell.amount as i128)?;
+            money(left)?;
+            money(actual)?;
+            if scope.is_none() && !summary_report {
                 if cat.income {
-                    if visible {
-                        income += actual;
-                        planned_income += cell.amount as i128;
-                    }
-                    if cell.carry {
-                        auto_hold += actual;
-                    }
+                    income += actual;
+                    planned_income += cell.amount as i128;
                 } else {
-                    if visible {
-                        spending += actual;
-                        allocated += cell.amount as i128;
-                        balance += left;
-                    }
-                    if !cell.carry {
-                        overspent += left.min(0);
-                    }
+                    spending += actual;
+                    allocated += cell.amount as i128;
+                    balance += left;
                 }
             }
             next.insert(
@@ -560,25 +442,19 @@ fn scoped_view_inner(
                 },
             );
             if m >= start {
-                rows.push(json!({"id":cat.id,"name":cat.name,"is_income":cat.income,"hidden":cat.hidden,"group_id":cat.group,"group_hidden":cat.group_hidden,"group_name":cat.group_name,"notes":cat.notes,"budgeted":if actual_only || !tracking&&cat.income{0}else{cell.amount},"actual":money(actual)?,"balance":money(left)?,"carryover":!actual_only && cell.carry,"goal":cell.goal,"long_goal":cell.long_goal}));
+                rows.push(json!({"id":cat.id,"name":cat.name,"is_income":cat.income,"group_id":cat.group,"group_name":cat.group_name,"budgeted":if actual_only{0}else{cell.amount},"actual":money(actual)?,"balance":money(left)?,"carryover":!actual_only && cell.carry,"goal":cell.goal,"long_goal":cell.long_goal}));
             }
         }
-        if scope.is_some() || summary_report && tracking {
+        if m >= start && scope.is_none() && !summary_report {
+            crate::categories::decorate_colors(db, b, &mut rows, "id")?;
+        }
+        if scope.is_some() || summary_report {
             if m >= start {
                 output.insert(month_name(m)?, json!({"categories":rows}));
             }
             previous = next;
             continue;
         }
-        let (manual, notes) = months.get(&m).cloned().unwrap_or_default();
-        let held = if manual != 0 {
-            manual as i128
-        } else {
-            auto_hold
-        };
-        let from = prior_to + prior_hold;
-        let available = income + from;
-        let to = available + prior_over - allocated - held;
         // Reject overflow in intermediate carry months as well as displayed months.
         for n in [
             income,
@@ -586,31 +462,19 @@ fn scoped_view_inner(
             allocated,
             planned_income,
             balance,
-            held,
-            from,
-            available,
-            to,
-            prior_over,
             income + spending,
             planned_income - allocated,
         ] {
             money(n)?;
         }
         if m >= start {
-            let summary = if tracking {
-                json!({"total_budgeted":money(allocated)?,"total_budget_income":money(planned_income)?,"total_saved":money(planned_income-allocated)?,"total_income":money(income)?,"total_spent":money(spending)?,"real_saved":money(income+spending)?,"total_leftover":money(balance)?})
-            } else {
-                json!({"available_funds":money(available)?,"last_month_overspent":money(prior_over)?,"buffered":manual,"buffered_selected":money(held)?,"total_budgeted":money(-allocated)?,"to_budget":money(to)?,"from_last_month":money(from)?,"total_income":money(income)?,"total_spent":money(spending)?,"total_leftover":money(balance)?})
-            };
+            let summary = json!({"total_budgeted":money(allocated)?,"total_budget_income":money(planned_income)?,"total_saved":money(planned_income-allocated)?,"total_income":money(income)?,"total_spent":money(spending)?,"real_saved":money(income+spending)?,"total_leftover":money(balance)?});
             output.insert(
                 month_name(m)?,
-                json!({"month":month_name(m)?,"summary":summary,"categories":rows,"notes":notes}),
+                json!({"month":month_name(m)?,"summary":summary,"categories":rows}),
             );
         }
         previous = next;
-        prior_to = to;
-        prior_hold = held;
-        prior_over = overspent;
     }
     Ok(
         json!({"method":method,"months":output,"snapshot":sync::cursor(db,b)?,"epoch":crate::lifecycle::epoch(db,b)?,"edit_clock":db.query_row("SELECT clock FROM budget_sync WHERE budget_id=?1",[b],|r|r.get::<_,String>(0))?}),
@@ -653,19 +517,11 @@ async fn detail(
 
 /// Change cursors include authoritative planning records, including retired cells.
 pub fn record(db: &Connection, b: &str, entity: &str, id: &str) -> Result<Value, Error> {
-    let mut value = match entity {
+    let value = match entity {
         "budget_cells" => db.query_row("SELECT method,month,category_id,amount,carryover,goal,long_goal,tombstone FROM budget_cells WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":id,"method":r.get::<_,String>(0)?,"month":r.get::<_,String>(1)?,"category_id":r.get::<_,String>(2)?,"amount":r.get::<_,i64>(3)?,"carryover":r.get::<_,bool>(4)?,"goal":r.get::<_,Option<String>>(5)?,"long_goal":r.get::<_,Option<String>>(6)?,"deleted":r.get::<_,bool>(7)?})))?,
         "budget_months" => db.query_row("SELECT buffered,notes,tombstone FROM budget_months WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":id,"buffered":r.get::<_,i64>(0)?,"notes":r.get::<_,String>(1)?,"deleted":r.get::<_,bool>(2)?})))?,
         "budget_settings" => db.query_row("SELECT method,template_currency,template_currency_review FROM budget_settings WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":id,"method":r.get::<_,String>(0)?,"template_currency":r.get::<_,Option<String>>(1)?,"template_currency_review":r.get::<_,bool>(2)?,"deleted":false})))?,
         _ => return Err(Error::internal("Unknown planning change entity")),
     };
-    if entity == "budget_months" {
-        value["notes"] = json!(crate::notes::visible_text(
-            db,
-            b,
-            &format!("budget-{id}"),
-            value["notes"].as_str().unwrap_or_default().to_owned()
-        )?);
-    }
     Ok(value)
 }

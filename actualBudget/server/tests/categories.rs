@@ -812,6 +812,27 @@ fn assert_legacy_import_metadata(s: &Server, budget: &str, post_import: Option<&
                 .as_object_mut()
                 .unwrap()
                 .remove("category_group_name");
+            // Presentation colors are additive; compare the original financial shape.
+            if !after["category_id"].is_null() {
+                assert!(
+                    after["category_color"]
+                        .as_str()
+                        .is_some_and(|c| c.starts_with('#'))
+                );
+            }
+            for field in [
+                "category_color",
+                "category_group_color",
+                "color_override",
+                "group_sort_order",
+            ] {
+                original_shape.as_object_mut().unwrap().remove(field);
+            }
+            // Manual-entry completion intentionally retires the old status flags.
+            assert_eq!(after["cleared"], true);
+            assert_eq!(after["reconciled"], false);
+            original_shape["cleared"] = before["cleared"].clone();
+            original_shape["reconciled"] = before["reconciled"].clone();
             original_shape["running_balance"] = before["running_balance"].clone();
             assert_eq!(&original_shape, before);
         }

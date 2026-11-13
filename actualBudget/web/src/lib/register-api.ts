@@ -1,7 +1,10 @@
 import type { RegisterQuery } from "./register-query";
 import { request } from "./api";
 export interface Transaction {
+  category_color?: string;
+  category_group_color?: string;
   schedule_id?: string | null;
+  recurrence?: import("./recurrence").Recurrence;
   transfer_id?: string | null;
   transfer_account_id?: string | null;
   is_parent?: boolean;
@@ -31,13 +34,13 @@ export interface Transaction {
   running_balance_error?: "exact_money_range";
 }
 export interface Reference {
+  color?: string | null;
+  resolved_color?: string;
   id: string;
   name: string;
   transfer_account_id?: string | null;
   learn_categories?: boolean;
   is_income?: boolean;
-  hidden?: boolean;
-  group_hidden?: boolean;
   group_id?: string | null;
   deleted?: boolean;
 }

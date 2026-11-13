@@ -135,10 +135,14 @@ pub fn decorate(db: &Connection, b: &str, rows: &mut [Value]) -> Result<(), Erro
             .join(",");
         let mut args = vec![b.to_owned()];
         args.extend(batch.iter().map(|r| r["id"].as_str().unwrap().to_owned()));
-        let values=db.prepare(&format!("SELECT l.id,l.schedule_id FROM schedule_links l JOIN schedules s ON s.budget_id=l.budget_id AND s.id=l.schedule_id AND s.tombstone=0 WHERE l.budget_id=?1 AND l.tombstone=0 AND l.id IN ({placeholders})"))?.query_map(rusqlite::params_from_iter(args.iter()),|r|Ok((r.get::<_,String>(0)?,r.get::<_,String>(1)?)))?.collect::<Result<std::collections::BTreeMap<_,_>,_>>()?;
+        let values=db.prepare(&format!("SELECT l.id,l.schedule_id,s.completed,r.conditions FROM schedule_links l JOIN rules r ON r.budget_id=l.budget_id AND r.id=(SELECT rule_id FROM schedules WHERE budget_id=l.budget_id AND id=l.schedule_id) JOIN schedules s ON s.budget_id=l.budget_id AND s.id=l.schedule_id AND s.tombstone=0 WHERE l.budget_id=?1 AND l.tombstone=0 AND l.id IN ({placeholders})"))?.query_map(rusqlite::params_from_iter(args.iter()),|r|Ok((r.get::<_,String>(0)?,(r.get::<_,String>(1)?,r.get::<_,bool>(2)?,r.get::<_,String>(3)?))))?.collect::<Result<std::collections::BTreeMap<_,_>,_>>()?;
         for row in batch {
-            if let Some(id) = values.get(row["id"].as_str().unwrap()) {
+            if let Some((id, completed, conditions)) = values.get(row["id"].as_str().unwrap()) {
                 row["schedule_id"] = json!(id);
+                let conditions: Vec<Value> =
+                    serde_json::from_str(conditions).map_err(Error::internal)?;
+                let date = calendar::date_condition(&conditions)?;
+                row["recurrence"] = json!({"enabled":!completed,"config":date["value"]});
             }
         }
     }

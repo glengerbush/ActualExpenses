@@ -1,31 +1,5 @@
 //! Rules own parsing/order/evaluation; guarded ledger seams own financial writes.
 mod actions;
-pub(crate) use expressions::Budget as ExpressionBudget;
-pub(crate) fn template_actions(
-    db: &rusqlite::Connection,
-    b: &str,
-    row: &serde_json::Value,
-    rule: &Rule,
-    budget: &mut ExpressionBudget,
-) -> Result<serde_json::Value, crate::error::Error> {
-    engine::validate_with_budget(rule, budget)?;
-    let mut context = if rule.actions.iter().any(expressions::calculated) {
-        Some(budget.read(db, || {
-            let mut context = expressions::Context::new(db, b, row, false, None)?;
-            context.prefetch(db, b, std::iter::once(rule))?;
-            context.begin_rule(db, b, row, rule)?;
-            Ok(context)
-        })?)
-    } else {
-        None
-    };
-    let mut result = actions::apply(db, b, row, rule, context.as_mut(), budget, false)?;
-    numbers::project(&mut result);
-    if result["is_parent"] == true {
-        result["category_id"] = Value::Null;
-    }
-    Ok(result)
-}
 mod conditions;
 mod engine;
 mod entry;
@@ -121,6 +95,12 @@ pub fn load(db: &Connection, b: &str) -> Result<Vec<Rule>, Error> {
     if rules.len() > 100000 {
         return Err(Error::invalid("Rule set exceeds100000 saved rules"));
     }
+    rules.retain(|rule| {
+        !rule
+            .conditions
+            .iter()
+            .any(|c| matches!(c["op"].as_str(), Some("hasTags" | "hasAnyTag")))
+    });
     // Resolve real merges once per load. Never normalize an unreplaced removal
     // to null: that would broaden equality into an uncategorized predicate.
     let mut redirects = std::collections::BTreeMap::new();

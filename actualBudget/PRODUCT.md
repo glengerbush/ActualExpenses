@@ -29,6 +29,8 @@ Use the names actualBudget and actualExpenses. Keep financial language concrete 
 Canonical Obsidian rewrite spec and ticket02; pinned Actual 26.10.0 reference source. No financial customer data or marketing claims are supplied.
 
 ## Product Principles
+- Tracking is the only budgeting method. No method switch, envelope calculations, budget/category/transaction notes, or bulk Clear allocations action. Old active envelope plans convert on migration/import; transactions remain unchanged.
+- Manual entries are complete when saved. No cleared, uncleared, reconciled, or pending-expense lifecycle. Offline delivery is internal; show only actionable failures.
 - Put the account and the current task first.
 - Retain entered information when a request fails.
 - Confirm persisted results rather than showing optimistic financial balances.
@@ -36,3 +38,5 @@ Canonical Obsidian rewrite spec and ticket02; pinned Actual 26.10.0 reference so
 
 ## Accessibility & Inclusion
 Visible focus, explicit labels, useful errors, sensible reading order, reduced-motion support and responsive layouts are required by the specification.
+
+- Category planned amounts save inline on blur or after one second. Pencil buttons open advanced edits. Compact month controls use abbreviated month/year and a This month reset.

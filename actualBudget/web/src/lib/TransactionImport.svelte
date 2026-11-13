@@ -57,7 +57,7 @@
     out_value: "",
     flip_amount: false,
     multiplier: "",
-    import_notes: true,
+    import_notes: false,
     clear_on_import: true,
     reconcile: true,
     reimport_deleted: true,
@@ -530,9 +530,6 @@
     ["payee_name", "Payee"],
     ["payee_id", "Payee reference"],
     ["category_id", "Category"],
-    ["notes", "Notes"],
-    ["cleared", "Cleared"],
-    ["reconciled", "Reconciled"],
     ["deleted", "Deleted"],
     ["is_parent", "Split parent"],
     ["parent_id", "Parent reference"],
@@ -662,7 +659,7 @@
                 >{/each}</select
             ></label
           >
-          {#each [["import_notes", "Import notes"], ["flip_amount", "Reverse amount signs"], ["clear_on_import", "Mark imported records cleared"], ["reconcile", "Match existing transactions"], ["reimport_deleted", "Allow previously deleted bank records to be imported again"]] as [key, label] (key)}<label
+          {#each [["flip_amount", "Reverse amount signs"], ["reconcile", "Match existing transactions"], ["reimport_deleted", "Allow previously deleted bank records to be imported again"]] as [key, label] (key)}<label
               ><input
                 type="checkbox"
                 checked={options[key as keyof FileOptions] === true}
@@ -731,7 +728,7 @@
           {#if csv}<fieldset disabled={locked}>
               <legend>Column mapping</legend>
               <div class="options">
-                {#each [["date", "Date column"], ["payee", "Payee column"], ["amount", "Amount column"], ["notes", "Notes column"], ["category", "Category column"], ["inflow", "Inflow column"], ["outflow", "Outflow column"], ["in_out", "Direction column"]] as [key, label] (key)}<label
+                {#each [["date", "Date column"], ["payee", "Payee column"], ["amount", "Amount column"], ["category", "Category column"], ["inflow", "Inflow column"], ["outflow", "Outflow column"], ["in_out", "Direction column"]] as [key, label] (key)}<label
                     >{label}<select bind:value={mapping[key]} onchange={changed}
                       ><option value={null}>Not mapped</option
                       >{#each columns as c (c)}<option value={c}>{c}</option

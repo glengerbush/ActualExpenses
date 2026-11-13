@@ -94,7 +94,7 @@
           ? t("Independent budget copy created.")
           : operation.kind === "restored"
             ? t(
-                "Budget restored. Review pending expenses before applying them to the restored budget.",
+                "Budget restored. Saved device changes will be checked against the restored budget.",
               )
             : operation.kind === "deleted"
               ? t("Budget deleted. Its recovery backup is available below.")

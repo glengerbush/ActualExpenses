@@ -2,14 +2,15 @@ import { validClock } from "./edit-clock";
 import type { AmountFormat } from "./money";
 import type { PendingMutation } from "./register-api";
 export interface PlanCategory {
+  group_sort_order?: number | null;
+  category_color?: string;
+  category_group_color?: string;
+  color_override?: string | null;
   id: string;
   name: string;
   is_income: boolean;
-  hidden: boolean;
-  group_hidden: boolean;
   group_id: string | null;
   group_name: string;
-  notes: string;
   budgeted: number;
   actual: number;
   balance: number;
@@ -21,10 +22,9 @@ export interface PlanMonth {
   month: string;
   summary: Record<string, number>;
   categories: PlanCategory[];
-  notes: string;
 }
 export interface PlanView {
-  method: "tracking" | "envelope";
+  method: "tracking";
   months: Record<string, PlanMonth>;
   snapshot: string;
   epoch: string;
@@ -36,10 +36,9 @@ export interface PlanningDraft {
   month: string;
   action: string;
   category: string;
-  from: string;
-  to: string;
   amount: string;
-  notes: string;
+  quick?: boolean;
+  quickClock?: string;
   method: "tracking" | "envelope";
   enabled: boolean;
   format: AmountFormat;
@@ -82,9 +81,11 @@ export function readPlanningDraft(budget: string): PlanningDraft | null {
       "redo",
     ].includes(value.action) ||
     !["tracking", "envelope"].includes(value.method) ||
-    !["amount", "notes", "category", "from", "to"].every(
+    !["amount", "category"].every(
       (k) => typeof value[k as keyof PlanningDraft] === "string",
     ) ||
+    (value.quick !== undefined && typeof value.quick !== "boolean") ||
+    (value.quickClock !== undefined && !validClock(value.quickClock)) ||
     typeof value.enabled !== "boolean" ||
     ![0, 2].includes(value.format?.decimal_places) ||
     ![

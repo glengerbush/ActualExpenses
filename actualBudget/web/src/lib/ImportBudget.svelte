@@ -271,7 +271,7 @@
         <h3>{t("Review migration differences")}</h3>
         <p>
           {t(
-            "Credit-card reserves and available funds follow Actual's envelope model. Recheck card debt and historical overspending after migration.",
+            "Imported allocations become tracking plans. Review category plans and balances after migration.",
           )}
         </p>
         {#each retained.filter( (item) => item.feature.endsWith("source_model") ) as item (item.feature)}<p

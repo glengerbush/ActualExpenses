@@ -82,7 +82,7 @@ async function drain() {
                   ? "This change had already been saved. Its confirmed result was recovered."
                   : entry.pending.method === "DELETE"
                     ? "Transaction deleted."
-                    : "Expense synced.",
+                    : "",
         });
         setReachable(true);
       } catch (error) {

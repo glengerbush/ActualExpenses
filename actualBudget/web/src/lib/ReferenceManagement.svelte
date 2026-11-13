@@ -31,15 +31,11 @@
   } = $props();
   interface Row {
     id: string;
-    name?: string;
-    tag?: string;
+    name: string;
     favorite?: boolean;
-    hidden?: boolean;
     deleted: boolean;
     transfer_account_id?: string | null;
     transaction_count?: number;
-    color?: string | null;
-    description?: string | null;
     field_versions?: Record<string, string>;
   }
   let draft = $state.raw<ReferenceDraft | null>(null),
@@ -56,16 +52,14 @@
   let visible = $derived(
     rows.filter(
       (r) =>
-        (r.name ?? r.tag ?? "")
+        r.name
           .toLocaleLowerCase()
           .includes(search.toLocaleLowerCase()) &&
-        (visibility !== "unused" || r.transaction_count === 0) &&
-        (visibility !== "hidden" || r.hidden) &&
-        (visibility !== "visible" || !r.hidden),
+        (visibility !== "unused" || r.transaction_count === 0),
     ),
   );
   let locked = $derived(busy || !!draft?.pending || !online),
-    kind = $derived(draft?.kind ?? "payees");
+    kind = "payees";
   async function snapshot() {
     const checkpoint = await request<{
       data: { epoch: string; snapshot: string };
@@ -75,7 +69,7 @@
     let offset: number | null = 0;
     do {
       const page: { data: Row[]; next_offset: number | null } = await request(
-        `/budgets/${budgetId}/${draft?.kind ?? "payees"}?include_hidden=true&limit=1000&offset=${offset}&snapshot=${checkpoint.data.snapshot}`,
+        `/budgets/${budgetId}/${draft?.kind ?? "payees"}?limit=1000&offset=${offset}&snapshot=${checkpoint.data.snapshot}`,
       );
       values.push(...page.data);
       offset = page.next_offset;
@@ -123,27 +117,6 @@
       error = errorMessage(e);
     }
   }
-  async function chooseKind(value: "payees" | "tags") {
-    if (locked) return;
-    visibility = "all";
-    change({
-      kind: value,
-      selected: [],
-      editing: "",
-      name: "",
-      color: "",
-      description: "",
-      target: "",
-    });
-    busy = true;
-    try {
-      await snapshot();
-    } catch (e) {
-      error = errorMessage(e);
-    } finally {
-      busy = false;
-    }
-  }
   function select(id: string, checked: boolean) {
     if (!draft) return;
     change({
@@ -155,9 +128,9 @@
   function edit(row: Row) {
     change({
       editing: row.id,
-      name: row.name ?? row.tag ?? "",
-      color: row.color ?? "",
-      description: row.description ?? "",
+      name: row.name,
+      color: "",
+      description: "",
     });
   }
   async function prepare(
@@ -169,7 +142,7 @@
     error = "";
     try {
       if (!navigator.onLine || !offlineStatus.reachable)
-        throw new Error("Reconnect before managing payees or tags.");
+        throw new Error("Reconnect before managing payees.");
       const owner = await historyOwner();
       if (!draft || locked) return;
       const intent: ReferenceIntent = {
@@ -288,18 +261,7 @@
       error = "Enter a name.";
       return;
     }
-    if (kind === "tags" && /[#\s]/u.test(name)) {
-      error = "Use one word without #.";
-      return;
-    }
-    const body: Record<string, unknown> =
-      kind === "payees"
-        ? { name }
-        : {
-            tag: name,
-            color: draft.color || null,
-            description: draft.description || null,
-          };
+    const body: Record<string, unknown> = { name };
     if (!draft.editing) body.id = uuid();
     await prepare(
       `${kind}${draft.editing ? `/${draft.editing}` : ""}`,
@@ -334,14 +296,12 @@
 
 <section aria-labelledby="reference-title" class="reference-management">
   <header>
-    <h1 id="reference-title">{t("Payees and tags")}</h1>
+    <h1 id="reference-title">{t("Payees")}</h1>
     <button onclick={done} disabled={busy || !!draft?.pending}
       >{t("Done")}</button
     >
   </header>
-  <p class="hint">
-    Clean up names and organize transactions with tags in notes.
-  </p>
+  <p class="hint">Manage payee names.</p>
   {#if error}<p class="error" role="alert">{error}</p>
     <button onclick={load} disabled={busy}>{t("Reload saved work")}</button
     >{/if}
@@ -356,7 +316,7 @@
     >
   {/if}
   {#if !online}<p role="status">
-      Reconnect to manage payees or tags. Your saved work stays here.
+      Reconnect to manage payees. Your saved work stays here.
     </p>{/if}
   {#if busy}<p role="status">{t("Loading or saving\u2026")}</p>{/if}
   {#if draft?.pending}<div class="pending">
@@ -371,17 +331,6 @@
       >
     </div>{/if}
   {#if draft}
-    <nav aria-label="Manage records">
-      <button
-        aria-pressed={kind === "payees"}
-        onclick={() => chooseKind("payees")}
-        disabled={locked}>{t("Payees")}</button
-      ><button
-        aria-pressed={kind === "tags"}
-        onclick={() => chooseKind("tags")}
-        disabled={locked}>{t("Tags")}</button
-      >
-    </nav>
     <div class="management-columns">
       <div>
         <label for="reference-search">Search {kind}</label><input
@@ -392,11 +341,9 @@
         <label for="reference-visibility">{t("Show")}</label><select
           id="reference-visibility"
           bind:value={visibility}
-          ><option value="all">All {kind}</option>{#if kind === "payees"}<option
-              value="unused">{t("Without transactions")}</option
-            >{:else}<option value="visible">{t("Visible tags")}</option><option
-              value="hidden">{t("Hidden tags")}</option
-            >{/if}</select
+          ><option value="all">All {kind}</option><option value="unused"
+            >{t("Without transactions")}</option
+          ></select
         >
         {#if visible.length}
           <label class="select-all"
@@ -421,17 +368,14 @@
                     disabled={locked}
                     onchange={(e) => select(row.id, e.currentTarget.checked)}
                   /><span
-                    >{row.name ?? `#${row.tag}`}{#if row.hidden}<small
-                        >{t("Hidden")}</small
-                      >{/if}{#if row.favorite}<small>{t("Favorite")}</small
-                      >{/if}{#if kind === "payees"}<small
-                        >{row.transaction_count} transactions</small
-                      >{/if}</span
+                    >{row.name}{#if row.favorite}<small>{t("Favorite")}</small
+                      >{/if}<small>{row.transaction_count} transactions</small
+                    ></span
                   ></label
                 ><button
                   onclick={() => edit(row)}
                   disabled={locked}
-                  aria-label={`Edit ${row.name ?? row.tag}`}>{t("Edit")}</button
+                  aria-label={`Edit ${row.name}`}>{t("Edit")}</button
                 >
                 {#if kind === "payees" && !row.transfer_account_id}<button
                     onclick={() => {
@@ -453,36 +397,28 @@
         {:else if !busy}<p>No {kind} match this view.</p>{/if}
         {#if draft.selected.length}<div class="bulk">
             <h2>{draft.selected.length} selected</h2>
-            {#if kind === "payees"}<label for="merge-target"
-                >{t("Merge into")}</label
-              ><select
-                id="merge-target"
-                value={draft.target}
-                onchange={(e) => change({ target: e.currentTarget.value })}
-                disabled={locked}
-                ><option value="">{t("Choose the payee to keep")}</option
-                >{#each rows.filter((r) => !draft!.selected.includes(r.id)) as row (row.id)}<option
-                    value={row.id}>{row.name}</option
-                  >{/each}</select
-              ><button
-                onclick={() => batch("merge")}
-                disabled={locked || !draft.target}
-                >{t("Merge selected payees")}</button
-              ><button onclick={() => batch("favorite")} disabled={locked}
-                >{t("Favorite")}</button
-              ><button onclick={() => batch("unfavorite")} disabled={locked}
-                >{t("Unfavorite")}</button
-              >{:else}<button onclick={() => batch("hide")} disabled={locked}
-                >{t("Hide selected tags")}</button
-              ><button onclick={() => batch("show")} disabled={locked}
-                >{t("Show selected tags")}</button
-              >{/if}<button
-              onclick={() => (confirmRemove = true)}
-              disabled={locked}>Remove selected {kind}</button
+            <label for="merge-target">{t("Merge into")}</label><select
+              id="merge-target"
+              value={draft.target}
+              onchange={(e) => change({ target: e.currentTarget.value })}
+              disabled={locked}
+              ><option value="">{t("Choose the payee to keep")}</option
+              >{#each rows.filter((r) => !draft!.selected.includes(r.id)) as row (row.id)}<option
+                  value={row.id}>{row.name}</option
+                >{/each}</select
+            ><button
+              onclick={() => batch("merge")}
+              disabled={locked || !draft.target}
+              >{t("Merge selected payees")}</button
+            ><button onclick={() => batch("favorite")} disabled={locked}
+              >{t("Favorite")}</button
+            ><button onclick={() => batch("unfavorite")} disabled={locked}
+              >{t("Unfavorite")}</button
+            ><button onclick={() => (confirmRemove = true)} disabled={locked}
+              >Remove selected {kind}</button
             >{#if confirmRemove}<p>
-                {kind === "payees"
-                  ? "Remove these payees from selection? Transaction history and imported text are retained."
-                  : "Remove these tags from management? Tags already written in notes remain."}
+                Remove these payees from selection? Transaction history and
+                imported text are retained.
               </p>
               <button
                 class="danger"
@@ -500,61 +436,24 @@
         }}
       >
         <h2>
-          {t(
-            kind === "payees"
-              ? draft.editing
-                ? "Edit payee"
-                : "Add payee"
-              : draft.editing
-                ? "Edit tag"
-                : "Add tag",
-          )}
+          {t(draft.editing ? "Edit payee" : "Add payee")}
         </h2>
-        <label for="reference-name"
-          >{t(kind === "payees" ? "Payee name" : "Tag name")}</label
-        ><input
+        <label for="reference-name">{t("Payee name")}</label><input
           id="reference-name"
           value={draft.name}
           oninput={(e) => change({ name: e.currentTarget.value })}
           disabled={locked}
-          maxlength={kind === "payees" ? 120 : 1000}
+          maxlength="120"
           required
         />
-        {#if kind === "tags"}<p class="hint">
-            One word, without #. Renaming updates matching tags in transaction
-            notes.
-          </p>
-          <label for="tag-color">Color (optional)</label><input
-            id="tag-color"
-            placeholder="#RRGGBB"
-            value={draft.color}
-            oninput={(e) => change({ color: e.currentTarget.value })}
-            disabled={locked}
-            pattern="#[0-9a-fA-F]{6}"
-          /><label for="tag-description">Description (optional)</label><textarea
-            id="tag-description"
-            value={draft.description}
-            oninput={(e) => change({ description: e.currentTarget.value })}
-            disabled={locked}
-            maxlength="10000"></textarea>{/if}
+
         <button class="primary" disabled={locked}
-          >{t(
-            draft.editing
-              ? "Save changes"
-              : kind === "payees"
-                ? "Add payee"
-                : "Add tag",
-          )}</button
+          >{t(draft.editing ? "Save changes" : "Add payee")}</button
         >{#if draft.editing}<button
             type="button"
             onclick={() =>
               change({ editing: "", name: "", color: "", description: "" })}
             disabled={locked}>{t("Add another")}</button
-          >{/if}
-        {#if kind === "tags"}<button
-            type="button"
-            onclick={() => prepare("tags/discover", {})}
-            disabled={locked}>{t("Discover tags from notes")}</button
           >{/if}
       </form>
     </div>
@@ -563,7 +462,6 @@
 
 <style>
   header,
-  nav,
   .bulk {
     display: flex;
     align-items: center;
@@ -601,10 +499,6 @@
   .row-select {
     margin: 0;
   }
-  nav button[aria-pressed="true"] {
-    background: var(--selected);
-    color: var(--selected-text);
-  }
   .row-select span {
     overflow-wrap: anywhere;
   }
@@ -629,9 +523,6 @@
   form button {
     margin-top: 0.75rem;
     margin-right: 0.5rem;
-  }
-  nav {
-    margin-top: 1.5rem;
   }
   @media (max-width: 700px) {
     .management-columns {

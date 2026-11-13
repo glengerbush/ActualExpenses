@@ -16,7 +16,7 @@ own validation and revision contracts.
 | SDK/resource family | Remote interface |
 | --- | --- |
 | Load/list/download/export budgets | `GET /budgets`; explicit budget scope; retained imports and portable backup/download routes. No local sync cache/password handshake. |
-| Accounts/groups, categories/groups, payees, tags | Existing typed resource CRUD/lifecycle/merge routes. Queries expose fixed profiles where advertised. |
+| Accounts/groups, categories/groups, payees | Existing typed resource CRUD/lifecycle/merge routes. Queries expose fixed profiles where advertised. |
 | Transactions/import/merge | Register pages; bank-file upload→read-only preview→selected commit; graph-aware merge preview/commit. Plain entry preserves manual intent; rule-entry route is opt-in. |
 | Query | `POST /budgets/{b}/query`, typed JSON below. `runQuery` is deprecated upstream; both SDK calls map here. |
 | Notes | `POST /notes/read` with `{id}`; `POST /notes/commands` with `{id,note,snapshot}`. Arbitrary bounded IDs, domain aliases, missing/null vs explicit empty. |
@@ -24,7 +24,7 @@ own validation and revision contracts.
 | Rules/schedules | Typed routes, preview/apply and explicit foreground posting/catch-up. GET/query never posts. Payee-associated rules use `GET /rules?payee_id=...`. |
 | Preferences/saved filters | `/preferences`, `/register-settings`. Translate supported source preference IDs to native typed fields; budgetType uses budgeting method action. Retained/deferred source data is not silently made executable. |
 | Reports/cards/pages | `/reporting`, `/reports/query`, drilldown and dedicated report routes. Metadata/calculations use their validated schemas, not arbitrary table access. |
-| Cleanup pools / payee locations | `/budget/templates` pools / `/payee-locations`. Native metadata types and bounds remain authoritative. |
+| Payee locations | `/payee-locations`. Native metadata types and bounds remain authoritative. |
 | Bank refresh | Removed by the user's manual-only scope. No connection or refresh routes exist; use explicit file imports. |
 | SDK callbacks/batching | Supported-format staged imports or explicit typed calls. No remote JS callback. Transaction batches are atomic; there is no cross-command rollback promise for arbitrary custom construction. |
 

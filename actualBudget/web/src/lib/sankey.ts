@@ -73,7 +73,7 @@ export interface SankeyProjection {
   epoch: string;
   as_of: string;
   mode: "spent" | "budgeted";
-  method: "tracking" | "envelope";
+  method: "tracking";
   recorded: boolean;
   basis: string;
   cache: { hit: boolean; input_revision: string };
@@ -194,7 +194,7 @@ export function validSankey(value: SankeyProjection, epoch: string): boolean {
       value?.epoch === epoch &&
       typeof value.snapshot === "string" &&
       ["spent", "budgeted"].includes(value.mode) &&
-      ["tracking", "envelope"].includes(value.method) &&
+      value.method === "tracking" &&
       typeof value.as_of === "string" &&
       typeof value.basis === "string" &&
       typeof value.recorded === "boolean" &&

@@ -1,7 +1,7 @@
 export interface Budget {
   id: string;
   name: string;
-  budget_type: "tracking" | "envelope";
+  budget_type: "tracking";
   epoch?: string;
   generation?: number;
 }

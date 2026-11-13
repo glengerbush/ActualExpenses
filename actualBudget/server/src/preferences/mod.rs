@@ -19,8 +19,6 @@ mod currency_codes;
 pub use conversion::convert_actual;
 pub const FEATURES: &[&str] = &[
     "newSidebarUI",
-    "goalTemplatesEnabled",
-    "goalTemplatesUIEnabled",
     "actionTemplating",
     "formulaMode",
     "currency",
@@ -112,6 +110,8 @@ pub(crate) fn remove_retired_features(values: &mut Value) {
     {
         flags.remove("enableBanking");
         flags.remove("akahuBankSync");
+        flags.remove("goalTemplatesEnabled");
+        flags.remove("goalTemplatesUIEnabled");
     }
 }
 /// Storage preserves absence for source formula locale/currency fallbacks.

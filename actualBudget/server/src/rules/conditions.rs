@@ -6,7 +6,7 @@ fn kind(field: &str) -> Option<&'static str> {
     Some(match field {
         "date" => "date",
         "account" | "payee" | "category" | "category_group" => "id",
-        "notes" | "imported_payee" | "payee_name" => "string",
+        "imported_payee" | "payee_name" => "string",
         "amount" => "number",
         "cleared" | "reconciled" | "transfer" | "parent" => "boolean",
         _ => return None,
@@ -39,20 +39,10 @@ pub fn validate(c: &Value) -> Result<(), Error> {
         }
         _ => matches!(
             op,
-            "is" | "isNot"
-                | "oneOf"
-                | "notOneOf"
-                | "contains"
-                | "doesNotContain"
-                | "matches"
-                | "hasTags"
-                | "hasAnyTag"
+            "is" | "isNot" | "oneOf" | "notOneOf" | "contains" | "doesNotContain" | "matches"
         ),
     };
-    if !allowed
-        || field == "notes" && matches!(op, "oneOf" | "notOneOf")
-        || field == "imported_payee" && matches!(op, "hasTags" | "hasAnyTag")
-    {
+    if !allowed || field == "notes" && matches!(op, "oneOf" | "notOneOf") {
         return Err(Error::invalid(
             "Operator is unavailable for this condition field",
         ));
@@ -115,10 +105,7 @@ pub fn validate(c: &Value) -> Result<(), Error> {
             } else if !(kind == "id" && v.is_null())
                 && v.as_str().is_none_or(|s| {
                     s.chars().count() > 2000
-                        || matches!(
-                            op,
-                            "contains" | "doesNotContain" | "matches" | "hasTags" | "hasAnyTag"
-                        ) && s.is_empty()
+                        || matches!(op, "contains" | "doesNotContain" | "matches") && s.is_empty()
                 })
             {
                 return Err(Error::invalid("Condition requires text"));
@@ -207,9 +194,7 @@ pub fn matches(
     let mut expected = c["value"].clone();
     if kind == "string" {
         if let Some(text) = expected.as_str() {
-            if !matches!(op, "hasTags" | "hasAnyTag") {
-                expected = json!(text.to_lowercase());
-            }
+            expected = json!(text.to_lowercase());
         } else if let Some(values) = expected.as_array() {
             expected = json!(
                 values
@@ -302,29 +287,6 @@ pub fn matches(
                     v.as_str().unwrap_or(""),
                     work,
                 )?
-        }
-        "hasTags" | "hasAnyTag" => {
-            let mut matches = vec![];
-            for tag in expected
-                .as_str()
-                .unwrap()
-                .split(|c: char| c == '#' || crate::payees_tags::js_whitespace(c))
-                .filter(|s| !s.is_empty())
-            {
-                matches.push(regex(
-                    &format!(
-                        "(?<!#)#{}([\\s#]|$)",
-                        crate::register_regex::escape(&tag.to_lowercase())
-                    ),
-                    v.as_str().unwrap_or(""),
-                    work,
-                )?);
-            }
-            if op == "hasTags" {
-                matches.into_iter().all(|v| v)
-            } else {
-                matches.into_iter().any(|v| v)
-            }
         }
         _ => false,
     })

@@ -44,8 +44,8 @@
     aria-labelledby="scheduled-preview-title"
   >
     <div class="heading">
-      <h2 id="scheduled-preview-title">Upcoming scheduled entries</h2>
-      <button onclick={onmanage}>Manage schedules</button>
+      <h2 id="scheduled-preview-title">Upcoming recurring transactions</h2>
+      <button onclick={onmanage}>Review recurrence</button>
     </div>
     <p>Forecast only. These entries are excluded from balances until posted.</p>
     {#if error}<p role="status">

@@ -460,8 +460,6 @@
           : "None";
       case "cleared":
         return row.cleared ? "Yes" : "No";
-      case "notes":
-        return row.notes || "None";
       case "date":
         return row.date;
       default:
@@ -478,8 +476,6 @@
       account_id: "Account",
       payee_id: "Payee",
       category_id: "Category",
-      notes: "Notes",
-      cleared: "Cleared",
     })
       .filter(
         ([field]) =>
@@ -913,7 +909,7 @@
                 /><span
                   >{row.date} · {row.payee_name ?? row.account_name} · {formatAmount(
                     row.amount,
-                  )}<small>{row.notes || "No notes"}</small></span
+                  )}</span
                 ></label
               >
             </li>{/each}
@@ -1027,10 +1023,7 @@
                     entry.before.account_name}</strong
                 >
                 <small
-                  >Current amount: {formatAmount(
-                    entry.before.amount,
-                  )}{#if entry.before.notes}
-                    · {entry.before.notes}{/if}</small
+                  >Current amount: {formatAmount(entry.before.amount)}</small
                 >
                 {#if entry.after.deleted}<strong
                     >{t("Delete transaction")}</strong

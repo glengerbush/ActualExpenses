@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { outsideClick } from "./outside-click";
+  import RecurrenceFields from "./RecurrenceFields.svelte";
+  import { transactionRecurrence } from "./recurrence";
   import type { ConversionContext } from "./future-conversion";
   import { draftKey } from "./register-api";
   import { historyOwner } from "./history-owner";
@@ -16,6 +19,7 @@
   import { setReachable } from "./offline/events";
   import { readBudget } from "./offline/cache";
   import { parseAmount } from "./money";
+  import PayeePicker from "./PayeePicker.svelte";
   import PayeeLocations from "./PayeeLocations.svelte";
   import type { LocationPayee } from "./payee-locations";
   import DateInput from "./DateInput.svelte";
@@ -59,6 +63,7 @@
     type TransactionFields as Fields,
   } from "./register-storage";
   let {
+    inline = false,
     budgetId,
     accounts,
     payees,
@@ -68,9 +73,11 @@
     disconnected = false,
     defaultAccountId = null,
     oncomplete,
+    onpayeecreated,
     oncancel,
     onschedule,
   }: {
+    inline?: boolean;
     budgetId: string;
     accounts: Account[];
     payees: Reference[];
@@ -79,11 +86,14 @@
     queued?: OutboxEntry | null;
     disconnected?: boolean;
     defaultAccountId?: string | null;
+    onpayeecreated?: (payee: Reference) => void;
     oncomplete: (transaction: Transaction | null, notice?: string) => void;
-    oncancel: () => void;
+    oncancel: (restoreFocus?: boolean) => void;
     onschedule?: (context: ConversionContext) => void;
   } = $props();
   let draft = $state<Draft | null>(null);
+  let openedFields: string | null = null;
+  let payeeSearching = $state(false);
   let associations = $state.raw<Record<string, string>>({});
   let rulesAvailable = $state(false),
     rulesNotice = $state("");
@@ -123,9 +133,69 @@
     persist(resolved);
     draft = resolved;
   }
+  async function createPayee(name: string, cancel = false) {
+    if (!draft || busy || disconnected || externalChanged) return;
+    busy = true;
+    error = "";
+    try {
+      if (!draft.payeeCreation) {
+        const existing = availablePayees.find(
+          (p) =>
+            p.name.trim().toLocaleLowerCase() ===
+            name.trim().toLocaleLowerCase(),
+        );
+        if (existing) {
+          update("payee", existing.id);
+          return;
+        }
+        const pending: PendingMutation = {
+          path: `/budgets/${budgetId}/payees`,
+          method: "POST",
+          body: { id: uuid(), name: name.trim() },
+          key: uuid(),
+          edit_clock: nextEditClock(),
+          budgetEpoch: draft.budgetEpoch,
+          historyOwner: await historyOwner(),
+        };
+        const next = { ...$state.snapshot(draft), payeeCreation: pending };
+        persist(next);
+        draft = next;
+      }
+      const pending = draft.payeeCreation!;
+      if (cancel) requestCancellation(pending);
+      persist($state.snapshot(draft));
+      try {
+        const result = await mutate<Reference>(pending, cancel);
+        const next = {
+          ...$state.snapshot(draft),
+          payeeCreation: undefined,
+          fields: {
+            ...$state.snapshot(draft.fields),
+            payee: result.data.id,
+            newPayee: result.data.name,
+          },
+        };
+        saveTransactionDraft(next, pending);
+        draft = next;
+        if (!availablePayees.some((p) => p.id === result.data.id))
+          addedPayees = [...addedPayees, result.data];
+        update("payee", result.data.id);
+        onpayeecreated?.(result.data);
+      } catch (e) {
+        if (e instanceof RequestError && e.code === "operation_canceled") {
+          const next = { ...$state.snapshot(draft), payeeCreation: undefined };
+          saveTransactionDraft(next, pending);
+          draft = next;
+        } else throw e;
+      }
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
+  }
   let error = $state("");
   let busy = $state(false);
-  let confirmReconciled = $state(false);
   let restored = $state(false);
   let externalChanged = $state(false);
   async function checkSharedIntent() {
@@ -160,7 +230,7 @@
         clearTransactionDraft(draft, true);
         oncomplete(
           receipt?.row ?? null,
-          receipt?.message ?? t("Saved on this device. Waiting to sync."),
+          receipt?.message ?? t("Expense saved."),
         );
         return;
       }
@@ -201,6 +271,7 @@
   }
   function load() {
     error = "";
+    openedFields = null;
     try {
       const saved = readTransactionDraft(budgetId);
       if (!saved && queued?.draft && !queued.attempted) {
@@ -253,6 +324,10 @@
             : preferences.budgetEpoch,
           beganOnline: !disconnected,
           fields: {
+            recurrence: transactionRecurrence(
+              initial?.recurrence,
+              initial?.date ?? today(),
+            ),
             account_id:
               initial?.account_id ?? defaultAccountId ?? accounts[0]?.id ?? "",
             date: initial?.date ?? today(),
@@ -262,8 +337,8 @@
             direction: initial && initial.amount >= 0 ? "income" : "expense",
             payee: initial?.payee_id ?? "",
             category: initial?.category_id ?? "",
-            notes: initial?.notes ?? "",
-            cleared: initial?.cleared ?? disconnected,
+            notes: "",
+            cleared: true,
             newPayee: "",
             newCategory: "",
             categoryIncome: false,
@@ -271,6 +346,8 @@
           },
         };
         persist(draft);
+        if (inline && initial && !queued)
+          openedFields = JSON.stringify($state.snapshot(draft.fields));
       }
     } catch (e) {
       error = errorMessage(e);
@@ -334,6 +411,17 @@
   function update<K extends keyof Fields>(field: K, value: Fields[K]) {
     if (!draft || draft.pending || externalChanged) return;
     const manual = draft.fields.categoryManual ?? !!draft.fields.category;
+    if (
+      field === "date" &&
+      !draft.original &&
+      !draft.fields.recurrence?.enabled &&
+      draft.fields.recurrence
+    ) {
+      draft.fields.recurrence.config.start = parseDateInput(
+        String(value),
+        draft.dateFormat,
+      );
+    }
     draft.fields[field] = value;
     if (field === "category") {
       draft.fields.categoryManual = true;
@@ -363,6 +451,7 @@
     if (
       !draft ||
       draft.pending ||
+      draft.payeeCreation ||
       draft.original ||
       draft.replaces ||
       !draft.automaticRules ||
@@ -420,8 +509,8 @@
           f.category === "new"
             ? draft.referenceIds.category
             : f.category || null,
-        notes: f.notes,
-        cleared: f.cleared,
+
+        cleared: true,
       };
       const result = await request<{
         data: {
@@ -453,7 +542,6 @@
         f.category === "new" && after.category_id === transaction.category_id
           ? "new"
           : (after.category_id ?? "");
-      draft.fields.notes = after.notes ?? "";
       draft.fields.cleared = after.cleared;
       if (after.amount !== transaction.amount) {
         draft.fields.amount = formatAmountInput(
@@ -535,6 +623,8 @@
       !draft ||
       draft.original ||
       draft.pending ||
+      draft.payeeCreation ||
+      payeeSearching ||
       draft.replaces ||
       queued ||
       busy ||
@@ -556,8 +646,8 @@
         account_id: f.account_id,
         date,
         amount: (f.direction === "expense" ? -1 : 1) * Math.abs(amount),
-        notes: f.notes,
-        cleared: f.cleared,
+
+        cleared: true,
         payee_id: f.payee === "new" ? null : f.payee || null,
         category_id:
           selectedAccount?.off_budget || f.category === "new"
@@ -677,8 +767,8 @@
     const body: Record<string, unknown> = {
       account_id: f.account_id,
       date,
-      cleared: f.cleared,
-      notes: f.notes,
+      cleared: true,
+
       payee_id: f.payee === "new" ? null : f.payee || null,
       category_id:
         (selectedAccount?.off_budget &&
@@ -730,6 +820,33 @@
         }
       }
     }
+    const recurrence = f.recurrence;
+    if (
+      recurrence &&
+      (recurrence.enabled ||
+        (draft.original?.recurrence?.enabled &&
+          typeof draft.original.recurrence.config === "object"))
+    ) {
+      const config = { ...recurrence.config };
+      if (recurrence.enabled) {
+        config.start = parseDateInput(config.start, draft.dateFormat);
+        if (!validDate(config.start))
+          throw new Error("Enter a valid recurrence start date.");
+        if (config.endMode === "on_date") {
+          config.endDate = parseDateInput(
+            config.endDate ?? "",
+            draft.dateFormat,
+          );
+          if (!validDate(config.endDate) || config.endDate < config.start)
+            throw new Error(
+              "End date must be on or after the recurrence start.",
+            );
+        }
+        if (config.endMode === "after_n_occurrences")
+          config.endOccurrences ??= 1;
+      }
+      body.recurrence = { ...recurrence, config };
+    }
     if (draft.original) {
       for (const key of Object.keys(body))
         if (
@@ -738,12 +855,6 @@
         )
           delete body[key];
       if (Object.keys(body).length === 0) return null;
-      if (draft.original.reconciled) {
-        if (!confirmReconciled)
-          throw new Error(t("Confirm editing this reconciled transaction."));
-        body.confirm_reconciled = true;
-        body.reconciled_version = draft.original.field_versions?.reconciled;
-      }
     } else body.id = draft.id;
     if (useAutomaticRules) body.snapshot = draft.ruleSnapshot;
     if (
@@ -771,8 +882,6 @@
       account_id: t("Account"),
       amount: t("Amount"),
       date: t("Date"),
-      cleared: t("Cleared"),
-      notes: t("Notes"),
       payee_id: t("Payee"),
       category_id: t("Category"),
     };
@@ -808,14 +917,15 @@
     return {
       id: draft!.id,
       account_id: fields.account_id,
+      notes: "",
       account_name:
         accounts.find((a) => a.id === fields.account_id)?.name ?? "",
       amount: body.amount ?? draft!.original?.amount ?? 0,
       date: parseDateInput(fields.date, draft!.dateFormat),
-      cleared: fields.cleared,
+      cleared: true,
       reconciled: draft!.original?.reconciled ?? false,
       starting_balance: false,
-      notes: fields.notes,
+
       payee_id: fields.payee || null,
       payee_name:
         availablePayees.find((p) => p.id === fields.payee)?.name ?? null,
@@ -823,11 +933,20 @@
       category_name:
         categories.find((c) => c.id === draft?.fields.category)?.name ?? null,
       category_is_income: false,
+      recurrence: $state.snapshot(draft!.fields.recurrence),
     };
   }
   async function submit(event: SubmitEvent) {
     event.preventDefault();
-    if (!draft || externalChanged || locationDependency) return;
+    if (
+      !draft ||
+      externalChanged ||
+      locationDependency ||
+      draft.payeeCreation ||
+      payeeSearching ||
+      busy
+    )
+      return;
     busy = true;
     error = "";
     try {
@@ -925,7 +1044,7 @@
       if (receipt) {
         oncomplete(receipt.row ?? null, receipt.message);
       } else {
-        oncomplete(null, t("Saved on this device. Waiting to sync."));
+        oncomplete(null, t("Expense saved."));
       }
     } catch (e) {
       error = errorMessage(e);
@@ -991,18 +1110,39 @@
       error = errorMessage(e);
     }
   }
-  function cancel() {
-    if (!draft || draft.pending || busy) return;
+  function cancel(restoreFocus = true) {
+    if (!draft || draft.pending || draft.payeeCreation || busy) return;
     try {
       clearTransactionDraft(draft);
-      oncancel();
+      oncancel(restoreFocus);
     } catch (e) {
       error = errorMessage(e);
     }
   }
 </script>
 
-<section class="transaction-form" aria-labelledby="transaction-form-title">
+<section
+  {@attach outsideClick(() => {
+    if (
+      inline &&
+      openedFields !== null &&
+      draft &&
+      !draft.pending &&
+      !draft.payeeCreation &&
+      !payeeSearching &&
+      !busy &&
+      !externalChanged &&
+      !restored &&
+      !draft.replaces &&
+      !locationDependency &&
+      JSON.stringify($state.snapshot(draft.fields)) === openedFields
+    )
+      cancel(false);
+  })}
+  class="transaction-form"
+  class:inline
+  aria-labelledby="transaction-form-title"
+>
   <h2 id="transaction-form-title">
     {draft?.original ? t("Edit transaction") : t("Add transaction")}
   </h2>
@@ -1022,24 +1162,17 @@
           {#each draft.ruleChildren as child (child.id)}<li>
               {formatSavedAmount(child.amount, draft.format)} · {categories.find(
                 (c) => c.id === child.category_id,
-              )?.name ?? "Uncategorized"} · {child.notes}
+              )?.name ?? "Uncategorized"}
             </li>{/each}
         </ul>
       </section>{/if}
     <form onsubmit={submit} aria-busy={busy}>
-      <fieldset disabled={busy || !!draft.pending || externalChanged}>
-        {#if draft.original?.reconciled}<p>
-            {t(
-              "This transaction is reconciled. Confirmed edits keep it locked.",
-            )}
-          </p>
-          <label
-            ><input
-              type="checkbox"
-              bind:checked={confirmReconciled}
-              required
-            />{t("Confirm editing this reconciled transaction")}</label
-          >{/if}
+      <fieldset
+        disabled={busy ||
+          !!draft.pending ||
+          !!draft.payeeCreation ||
+          externalChanged}
+      >
         <div class="entry-pair">
           <div>
             <DateInput
@@ -1054,20 +1187,43 @@
         </div>
         <div class="entry-pair">
           <div>
-            <label for="transaction-direction">{t("Transaction type")}</label
-            ><select
-              id="transaction-direction"
-              bind:value={
-                () => draft!.fields.direction, (v) => update("direction", v)
-              }
-              ><option value="expense">{t("Expense")}</option><option
-                disabled={disconnected &&
-                  (!draft.original ||
-                    !!draft.replaces ||
-                    !!queued?.offlineCreated)}
-                value="income">{t("Income or refund")}</option
-              ></select
+            <span id="transaction-direction-label" class="direction-label"
+              >{t("Transaction type")}</span
             >
+            <div
+              class="direction-toggle"
+              class:income={draft.fields.direction === "income"}
+              role="radiogroup"
+              aria-labelledby="transaction-direction-label"
+            >
+              <span class="direction-thumb" aria-hidden="true"></span>
+              <label class:chosen={draft.fields.direction === "expense"}>
+                <input
+                  type="radio"
+                  name="transaction-direction"
+                  value="expense"
+                  aria-label={t("Expense")}
+                  checked={draft.fields.direction === "expense"}
+                  onchange={() => update("direction", "expense")}
+                />
+                <span class="expense-sign" aria-hidden="true">−</span>
+              </label>
+              <label class:chosen={draft.fields.direction === "income"}>
+                <input
+                  type="radio"
+                  name="transaction-direction"
+                  value="income"
+                  aria-label={t("Income")}
+                  checked={draft.fields.direction === "income"}
+                  onchange={() => update("direction", "income")}
+                  disabled={disconnected &&
+                    (!draft.original ||
+                      !!draft.replaces ||
+                      !!queued?.offlineCreated)}
+                />
+                <span class="income-sign" aria-hidden="true">+</span>
+              </label>
+            </div>
           </div>
           <div>
             <label for="transaction-amount">{t("Amount")}</label>
@@ -1084,7 +1240,21 @@
               /><button
                 type="button"
                 onclick={calculate}
-                disabled={disconnected}>{t("Calculate")}</button
+                disabled={disconnected}
+                aria-label={t("Calculate")}
+                title={t("Calculate")}
+                >{#if inline}<svg
+                    aria-hidden="true"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.75"
+                    ><path
+                      d="M5 3h14v18H5zM8 7h8M8 12h2m4 0h2M8 16h2m4 0h2"
+                    /></svg
+                  >{:else}{t("Calculate")}{/if}</button
               >
             </div>
             <p id="calculator-hint" class="hint">
@@ -1098,44 +1268,39 @@
         </div>
         <div class="entry-pair">
           <div>
-            <label for="transaction-payee">{t("Payee")}</label><select
+            <label for="transaction-payee">{t("Payee")}</label>
+            <PayeePicker
               id="transaction-payee"
-              bind:value={() => draft!.fields.payee, (v) => update("payee", v)}
-              ><option value="">{t("No payee")}</option
-              >{#each availablePayees as payee (payee.id)}<option
-                  value={payee.id}>{payee.name}</option
-                >{/each}<option value="new" disabled={disconnected}
-                >{t("Create payee…")}</option
-              ></select
-            >
-            <PayeeLocations
-              {budgetId}
-              payeeId={draft.fields.payee}
-              newPayee={{
-                id: draft.referenceIds.payee,
-                name: draft.fields.newPayee,
-              }}
+              payees={availablePayees}
+              value={draft.fields.payee}
+              newName={draft.fields.newPayee}
               disabled={busy ||
                 !!draft.pending ||
-                externalChanged ||
-                disconnected}
-              onselect={selectNearby}
-              oncreated={locationPayeeCreated}
-              onpendingpayee={(id) => (pendingLocationPayee = id)}
+                !!draft.payeeCreation ||
+                externalChanged}
+              canCreate={!disconnected}
+              onselect={(value) => update("payee", value)}
+              oncreate={createPayee}
+              onsearch={(searching) => (payeeSearching = searching)}
             />
+            {#if !inline}<PayeeLocations
+                {budgetId}
+                payeeId={draft.fields.payee}
+                newPayee={{
+                  id: draft.referenceIds.payee,
+                  name: draft.fields.newPayee,
+                }}
+                disabled={busy ||
+                  !!draft.pending ||
+                  externalChanged ||
+                  disconnected}
+                onselect={selectNearby}
+                oncreated={locationPayeeCreated}
+                onpendingpayee={(id) => (pendingLocationPayee = id)}
+              />{/if}
             {#if initial?.imported_payee}<p class="hint">
                 {t("Imported payee")}: {initial.imported_payee}
               </p>{/if}
-            {#if draft.fields.payee === "new"}<label for="new-payee-name"
-                >{t("New payee name")}</label
-              ><input
-                id="new-payee-name"
-                required
-                maxlength="120"
-                bind:value={
-                  () => draft!.fields.newPayee, (v) => update("newPayee", v)
-                }
-              />{/if}
           </div>
           <div>
             <label for="transaction-category">{t("Category")}</label><select
@@ -1145,7 +1310,7 @@
                 () => draft!.fields.category, (v) => update("category", v)
               }
               ><option value="">{t("Uncategorized")}</option
-              >{#each categories.filter((c) => (!c.hidden && !c.group_hidden && !c.deleted) || c.id === draft?.fields.category) as category (category.id)}<option
+              >{#each categories.filter((c) => !c.deleted || c.id === draft?.fields.category) as category (category.id)}<option
                   value={category.id}>{category.name}</option
                 >{/each}<option value="new" disabled={disconnected}
                 >{t("Create category…")}</option
@@ -1175,22 +1340,33 @@
               </p>{/if}
           </div>
         </div>
-        <label for="transaction-notes">{t("Notes")}</label><textarea
-          id="transaction-notes"
-          rows="2"
-          maxlength="10000"
-          bind:value={() => draft!.fields.notes, (v) => update("notes", v)}
-        ></textarea>
-        <label class="check"
-          ><input
-            type="checkbox"
-            bind:checked={
-              () => draft!.fields.cleared, (v) => update("cleared", v)
-            }
-          />{t("Cleared")}</label
-        >
+        <RecurrenceFields
+          compact={inline}
+          value={draft.fields.recurrence ??
+            transactionRecurrence(
+              draft.original?.recurrence,
+              parseDateInput(draft.fields.date, draft.dateFormat),
+            )}
+          onchange={(value) => update("recurrence", value)}
+        />
       </fieldset>
       {#if error}<p class="error" role="alert">{error}</p>{/if}
+      {#if draft.payeeCreation && !busy}<div class="payee-recovery">
+          <p role="status">
+            Creation of “{(draft.payeeCreation.body as { name: string }).name}”
+            needs confirmation. Retry the saved request.
+          </p>
+          <button
+            type="button"
+            disabled={disconnected}
+            onclick={() => void createPayee("")}>Retry payee creation</button
+          ><button
+            type="button"
+            disabled={disconnected}
+            onclick={() => void createPayee("", true)}
+            >Cancel payee creation</button
+          >
+        </div>{/if}
       {#if draft.pending && !draft.clockRejected && !busy}<p role="status">
           {t(
             draft.pending.cancelRequested
@@ -1225,17 +1401,51 @@
             disconnected}>Schedule future transaction</button
         >{/if}
       <div class="actions">
-        <button class="primary" disabled={busy || locationDependency}
-          >{busy
+        <button
+          class="primary"
+          class:compact-action={inline}
+          disabled={busy || locationDependency || !!draft.payeeCreation}
+          aria-label={busy
             ? t("Saving…")
             : draft.pending
               ? t("Retry saved transaction")
-              : t("Save transaction")}</button
-        ><button
-          type="button"
-          onclick={cancel}
-          disabled={busy || !!draft.pending}>{t("Cancel")}</button
+              : t("Save transaction")}
+          title={draft.pending
+            ? t("Retry saved transaction")
+            : t("Save transaction")}
         >
+          {#if inline}<svg
+              aria-hidden="true"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"><path d="m5 12 4 4L19 6" /></svg
+            >
+          {:else}{busy
+              ? t("Saving…")
+              : draft.pending
+                ? t("Retry saved transaction")
+                : t("Save transaction")}{/if}
+        </button><button
+          type="button"
+          class:compact-action={inline}
+          onclick={() => cancel()}
+          disabled={busy || !!draft.pending || !!draft.payeeCreation}
+          aria-label={t("Cancel")}
+          title={t("Cancel")}
+        >
+          {#if inline}<svg
+              aria-hidden="true"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"><path d="m6 6 12 12M6 18 18 6" /></svg
+            >{:else}{t("Cancel")}{/if}
+        </button>
       </div>
     </form>
   {:else}<p class="error" role="alert">{error}</p>
@@ -1248,6 +1458,95 @@
     padding-block: 1rem;
     border-block: 1px solid var(--line);
   }
+  .inline {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .inline :global(#transaction-date-format) {
+    display: none;
+  }
+  .compact-action {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+  }
+  .inline form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    align-items: start;
+  }
+  .inline form > p {
+    grid-column: 1 / -1;
+  }
+  .inline .actions {
+    margin: 0;
+  }
+  @container (max-width: 60rem) {
+    .inline form {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .inline fieldset {
+    display: grid;
+    grid-template-columns:
+      9rem 5.5rem 10rem minmax(8rem, 1fr) minmax(8rem, 1fr)
+      auto;
+    column-gap: 0.5rem;
+    align-items: center;
+  }
+  .inline .entry-pair {
+    display: contents;
+  }
+  .inline :global(label[for="transaction-date"]),
+  .inline label[for="transaction-amount"],
+  .inline label[for="transaction-payee"],
+  .inline label[for="transaction-category"],
+  .inline .direction-label,
+  .inline #calculator-hint,
+  .inline h2 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .inline .actions {
+    margin-top: 0;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+  .inline .amount-entry {
+    gap: 0.2rem;
+  }
+  .inline .amount-entry button {
+    padding: 0.25rem;
+    min-width: 32px;
+  }
+  .inline .amount-entry input {
+    width: 6rem;
+  }
+  @container (max-width: 65rem) {
+    .inline fieldset {
+      grid-template-columns: 9rem 5.5rem minmax(8rem, 1fr);
+    }
+  }
+
+  @container (max-width: 45rem) {
+    .inline fieldset {
+      grid-template-columns: 1fr;
+    }
+  }
+  .inline h2 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
   h2 {
     margin-top: 0;
   }
@@ -1258,6 +1557,81 @@
   }
   .entry-pair > div {
     min-width: 0;
+  }
+  .direction-label {
+    display: block;
+    font-weight: 600;
+    margin: 1.25rem 0 0.4rem;
+  }
+  .direction-toggle {
+    position: relative;
+    display: flex;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--hover);
+    isolation: isolate;
+  }
+  .direction-thumb {
+    position: absolute;
+    inset: 3px auto 3px 3px;
+    width: calc((100% - 6px) / 2);
+    border-radius: 5px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+  .direction-toggle.income .direction-thumb {
+    transform: translateX(100%);
+  }
+  .direction-toggle label {
+    position: relative;
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 36px;
+    margin: 0;
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--text);
+  }
+  .expense-sign {
+    color: #a33230;
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+  .income-sign {
+    color: #246344;
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+  .direction-toggle label:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+  .direction-toggle label:has(input:disabled) {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+  .direction-toggle input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: inherit;
+  }
+  .direction-toggle label > span {
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .direction-thumb {
+      transition: none;
+    }
   }
   .amount-entry {
     display: flex;

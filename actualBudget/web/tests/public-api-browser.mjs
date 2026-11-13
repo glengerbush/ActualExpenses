@@ -140,9 +140,7 @@ try {
     outbox,
   ]);
   await python(["send", "--outbox", outbox]);
-  await page
-    .getByRole("button", { name: "Refresh transactions", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(page.getByTestId("register-total")).toHaveText("-12.34");
   const corrected = page
       .locator(".register-table tbody tr")

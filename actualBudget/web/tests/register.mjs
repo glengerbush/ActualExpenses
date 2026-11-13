@@ -1,3 +1,4 @@
+import { transactionRows, transactionAction } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
@@ -78,7 +79,7 @@ try {
     .filter({ hasText: "Receipt" });
   await expect(row).toContainText("Food");
   await expect(row).toContainText("Café");
-  await row.getByRole("button", { name: /^Edit / }).click();
+  await transactionRows(row, { name: /^Edit / }).click();
   await page.getByLabel("Notes", { exact: true }).fill("Edited receipt");
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
@@ -87,7 +88,7 @@ try {
   row = page
     .locator(".register-table tbody tr")
     .filter({ hasText: "Edited receipt" });
-  await row.getByRole("button", { name: /^Duplicate / }).click();
+  await (await transactionAction(row, { name: /^Duplicate / })).click();
   await expect(page.getByTestId("register-total")).toHaveText("975.32");
   await expect(page.getByTestId("register-cleared")).toHaveText("987.66");
   await expect(page.getByTestId("register-uncleared")).toHaveText("-12.34");
@@ -109,7 +110,7 @@ try {
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("2.34");
-  await page.getByLabel("Transaction type").selectOption("income");
+  await page.getByRole("radio", { name: "Income", exact: true }).check();
   await page.getByLabel("Date", { exact: true }).fill("01/03/2026");
   await page.getByLabel("Notes", { exact: true }).fill("Refund");
   let dropped = false;
@@ -156,7 +157,7 @@ try {
   let refundRow = page
     .locator(".register-table tbody tr")
     .filter({ hasText: "Refund" });
-  await refundRow.getByRole("button", { name: /^Edit / }).click();
+  await transactionRows(refundRow, { name: /^Edit / }).click();
   await page.getByLabel("Notes", { exact: true }).fill("Edit survives");
   const second = await context.newPage();
   await second.goto(server.url);
@@ -255,11 +256,11 @@ try {
       .locator(".register-table tbody tr")
       .filter({ hasText: "Edit survives" })
       .first();
-    await row
-      .getByRole("button", {
-        name: action === "duplicate" ? /^Duplicate / : /^Delete /,
-      })
-      .click();
+    await (
+      action === "duplicate"
+        ? await transactionAction(row, { name: /^Duplicate / })
+        : row.getByRole("button", { name: /^Delete / })
+    ).click();
     if (action === "delete")
       await page
         .getByRole("button", { name: "Confirm delete", exact: true })
@@ -353,11 +354,12 @@ try {
   });
   expect(hidden.ok).toBe(true);
   await page.reload();
-  await page
-    .locator(".register-table tbody tr")
-    .filter({ hasText: "Edit survives" })
-    .getByRole("button", { name: /^Edit / })
-    .click();
+  await transactionRows(
+    page
+      .locator(".register-table tbody tr")
+      .filter({ hasText: "Edit survives" }),
+    { name: /^Edit / },
+  ).click();
   await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("2.34");
   await page
     .getByLabel("Notes", { exact: true })

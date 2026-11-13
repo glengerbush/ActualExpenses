@@ -157,11 +157,9 @@
         )}
       </p>{/if}
     <p>
-      {t(
-        projection.method === "tracking"
-          ? "Tracking budget"
-          : "Envelope budget",
-      )} · {t(projection.mode === "spent" ? "Spent" : "Budgeted")}
+      {t("Tracking budget")} · {t(
+        projection.mode === "spent" ? "Spent" : "Budgeted",
+      )}
     </p>
     <p>
       {t("Saved maximum nodes per layer:")}

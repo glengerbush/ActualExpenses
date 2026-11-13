@@ -19,8 +19,6 @@
     ["payee_id", "Payee"],
     ["category_id", "Category"],
     ["notes", "Notes"],
-    ["cleared", "Cleared"],
-    ["reconciled", "Reconciled"],
     ["deleted", "Deleted"],
     ["is_parent", "Split parent"],
     ["parent_id", "Parent"],

@@ -24,7 +24,7 @@ An Android phone, at shops and on the move, reaching an existing HTTP Actual ser
 
 ## Capabilities and Constraints
 
-Setup is server address, budget, account, without login. Remember the account. Legacy encrypted data remains untouched behind an explicit recovery screen until its migration is available. Positive amount is required; payee, category, date and notes are optional. Cached payees and categories work offline. Preserve pending changes and show their state. Restrict offline editing to unsynced offline-created expenses, retaining an edit begun online if connectivity fails. Exclude transfers, income, splits and reconciled entries. Retain a backdated addition below the recent list. No idle background refresh.
+Setup is server address, budget, account, without login. Remember the account. Legacy encrypted data remains untouched behind an explicit recovery screen until its migration is available. Positive amount is required; payee, category and date are optional; notes are not supported. Cached payees and categories work offline. Preserve pending changes and show their state. Restrict offline editing to unsynced offline-created expenses, retaining an edit begun online if connectivity fails. Exclude transfers, income, splits and reconciled entries. Retain a backdated addition below the recent list. No idle background refresh.
 
 ## Brand Commitments
 
@@ -35,6 +35,7 @@ Name: ActualExpenses. The user requires a very limited interface: return to acco
 Approved Obsidian spec, CONTEXT glossary and direct-integration ADR. No incumbent UI, illustrations, logos or product screenshots.
 
 ## Product Principles
+- Expenses are complete when entered. Keep durable offline entry and silent background synchronization; no clearing or pending-sync badges. Deleted entries disappear immediately while delivery completes.
 
 - Save locally before promising success.
 - Keep the expense task obvious and short.

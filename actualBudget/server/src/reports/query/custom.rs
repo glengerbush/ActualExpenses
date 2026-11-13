@@ -108,8 +108,7 @@ fn row_key(row: &Row, by: &str) -> Option<String> {
     }
 }
 fn visible(row: &Row, o: &Value) -> bool {
-    (o["showHiddenCategories"] != false || !row.hidden)
-        && (o["showOffBudget"] == true || !row.off)
+    (o["showOffBudget"] == true || !row.off)
         && (o["showUncategorized"] != false || row.category.is_some() || row.off)
 }
 fn metric(o: &Value) -> Result<&str, Error> {
@@ -195,14 +194,7 @@ fn budget_rows(db: &Connection, b: &str, o: &Value) -> Result<Vec<Row>, Error> {
             "Budgeted reports use monthly/yearly category or category-group totals",
         ));
     }
-    let current: String =
-        db.query_row("SELECT budget_type FROM budgets WHERE id=?1", [b], |r| {
-            r.get(0)
-        })?;
-    let method = text(o, "budgetType", &current);
-    if !["tracking", "envelope"].contains(&method) {
-        return Err(Error::invalid("Invalid budget method"));
-    }
+    let method = "tracking";
     let month = |key| {
         let raw = text(o, key, "");
         if raw.len() == 4 {
@@ -246,7 +238,7 @@ fn budget_rows(db: &Connection, b: &str, o: &Value) -> Result<Vec<Row>, Error> {
     )?
     .replace("t.category_id", "c.id");
     let sql = format!(
-        "SELECT cell.id,cell.month,cell.amount,c.id,c.name,c.group_id,(c.hidden OR coalesce(g.hidden,0)) FROM budget_cells cell JOIN categories c ON c.budget_id=cell.budget_id AND c.id=cell.category_id LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id LEFT JOIN transactions t ON 0 LEFT JOIN accounts a ON 0 LEFT JOIN payees p ON 0 LEFT JOIN accounts y ON 0 WHERE cell.budget_id=?1 AND cell.method=?2 AND cell.month>=?3 AND cell.month<=?4 AND cell.tombstone=0 AND c.tombstone=0 AND c.is_income=0 AND cell.amount<>0 AND ({filter}) ORDER BY cell.month,cell.id LIMIT 100001"
+        "SELECT cell.id,cell.month,cell.amount,c.id,c.name,c.group_id,0 FROM budget_cells cell JOIN categories c ON c.budget_id=cell.budget_id AND c.id=cell.category_id LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id LEFT JOIN transactions t ON 0 LEFT JOIN accounts a ON 0 LEFT JOIN payees p ON 0 LEFT JOIN accounts y ON 0 WHERE cell.budget_id=?1 AND cell.method=?2 AND cell.month>=?3 AND cell.month<=?4 AND cell.tombstone=0 AND c.tombstone=0 AND c.is_income=0 AND cell.amount<>0 AND ({filter}) ORDER BY cell.month,cell.id LIMIT 100001"
     );
     let rows = db
         .prepare(&sql)?
@@ -259,7 +251,6 @@ fn budget_rows(db: &Connection, b: &str, o: &Value) -> Result<Vec<Row>, Error> {
                 category: r.get(3)?,
                 category_name: r.get(4)?,
                 group: r.get(5)?,
-                hidden: r.get(6)?,
                 account: "".into(),
                 account_name: format!("Budget allocation ({method})"),
                 off: false,

@@ -223,7 +223,7 @@ async fn activate(
             db.execute("INSERT INTO imported_sources(budget_id,import_id,source_local_id,source_cloud_id,source_group_id,source_metadata) VALUES(?1,?2,?3,?4,?5,?6)",params![budget,id,source["id"].as_str(),source["cloudFileId"].as_str(),source["groupId"].as_str(),source.to_string()])?;
             db.execute("UPDATE staged_imports SET status='activated' WHERE id=?1",[&id])?;
         }
-        Ok(json!({"id":budget,"name":converted["name"],"budget_type":converted["budget_type"]}))
+        Ok(json!({"id":budget,"name":converted["name"],"budget_type":"tracking"}))
     })).await?;
     Ok((StatusCode::CREATED, data(result)))
 }

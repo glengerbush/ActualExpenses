@@ -10,6 +10,7 @@ import {
   type Transaction,
 } from "./register-api";
 export interface TransactionFields {
+  recurrence?: import("./recurrence").Recurrence;
   account_id: string;
   date: string;
   amount: string;
@@ -25,6 +26,7 @@ export interface TransactionFields {
   manualCategory?: string;
 }
 export interface TransactionDraft {
+  payeeCreation?: PendingMutation;
   version: 1;
   origin: string;
   budgetId: string;
@@ -154,6 +156,15 @@ function validDraft(value: unknown, budget: string): value is TransactionDraft {
     return false;
   const f = value.fields;
   if (
+    f.recurrence !== undefined &&
+    (!isObject(f.recurrence) ||
+      typeof f.recurrence.enabled !== "boolean" ||
+      !isObject(f.recurrence.config) ||
+      !text(f.recurrence.config.start, 10) ||
+      typeof f.recurrence.config.frequency !== "string")
+  )
+    return false;
+  if (
     !uuid(f.account_id) ||
     !text(f.date, 10) ||
     !text(f.amount, 256) ||
@@ -219,6 +230,20 @@ function validDraft(value: unknown, budget: string): value is TransactionDraft {
     typeof value.clockRejected !== "boolean"
   )
     return false;
+  const payee = value.payeeCreation;
+  if (
+    payee !== undefined &&
+    (!isObject(payee) ||
+      payee.path !== `/budgets/${budget}/payees` ||
+      payee.method !== "POST" ||
+      !uuid(payee.key) ||
+      !validClock(payee.edit_clock) ||
+      payee.budgetEpoch !== value.budgetEpoch ||
+      !isObject(payee.body) ||
+      !uuid(payee.body.id) ||
+      !text(payee.body.name, 120))
+  )
+    return false;
   if (value.pending === null) return !value.clockRejected;
   if (
     !validPending(value.pending, budget) ||
@@ -267,6 +292,14 @@ export function saveTransactionDraft(
     throw new Error(
       "An unconfirmed transaction is already saved. Reload and retry it before changing its details.",
     );
+  if (
+    stored?.payeeCreation &&
+    !equalPending(stored.payeeCreation, draft.payeeCreation) &&
+    !equalPending(stored.payeeCreation, acknowledged)
+  )
+    throw new Error(
+      "Resolve the saved payee creation before changing this draft.",
+    );
   if (draft.clockRejected && stored?.attemptId !== draft.attemptId)
     throw new Error(
       "Another retry may have reached the server. Reload and retry the saved transaction.",
@@ -288,6 +321,10 @@ export function clearTransactionDraft(
     (!acknowledged || !equalPending(stored.pending, draft.pending))
   )
     throw new Error("Retry the saved transaction before discarding its draft.");
+  if (stored.payeeCreation)
+    throw new Error(
+      "Resolve the saved payee creation before discarding this draft.",
+    );
   localStorage.removeItem(draftKey(draft.budgetId));
   if (acknowledged && draft.pending) clearCancellation(draft.pending);
 }

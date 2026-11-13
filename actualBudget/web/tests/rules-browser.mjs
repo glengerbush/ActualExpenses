@@ -1,3 +1,4 @@
+import { transactionRows } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -381,10 +382,10 @@ try {
   expect(saved.notes).toBe("Manual / captured");
   expect(saved.category_id).toBe(travel);
   // Empty new categories remain fillable, while explicit existing clearing stays clear.
-  const edit = page
-    .locator(".register-table tr")
-    .filter({ hasText: "Manual / captured" })
-    .getByRole("button", { name: /^Edit / });
+  const edit = transactionRows(
+    page.locator(".register-table tr").filter({ hasText: "Manual / captured" }),
+    { name: /^Edit / },
+  );
   await edit.click();
   await page.getByLabel("Category", { exact: true }).selectOption("");
   await page

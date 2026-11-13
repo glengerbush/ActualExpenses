@@ -142,7 +142,7 @@ try {
       .getByRole("button", { name: "Edit pending expense", exact: true })
       .click();
     await expect(
-      page.getByLabel("Transaction type").locator('option[value="income"]'),
+      page.getByRole("radio", { name: "Income", exact: true }),
     ).toBeDisabled();
     await expect(
       page.getByLabel("Payee", { exact: true }).locator('option[value="new"]'),

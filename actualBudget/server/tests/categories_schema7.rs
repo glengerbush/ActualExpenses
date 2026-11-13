@@ -111,6 +111,25 @@ fn qualify(server: &Server, expected: &Value) {
                 row.as_object_mut().unwrap().remove("imported_payee");
                 row.as_object_mut().unwrap().remove("retained_payee_id");
                 row.as_object_mut().unwrap().remove("category_group_name");
+                if !row["category_id"].is_null() {
+                    assert!(
+                        row["category_color"]
+                            .as_str()
+                            .is_some_and(|c| c.starts_with('#'))
+                    );
+                }
+                for field in [
+                    "category_color",
+                    "category_group_color",
+                    "color_override",
+                    "group_sort_order",
+                ] {
+                    row.as_object_mut().unwrap().remove(field);
+                }
+                assert_eq!(row["cleared"], true);
+                assert_eq!(row["reconciled"], false);
+                row["cleared"] = saved["cleared"].clone();
+                row["reconciled"] = saved["reconciled"].clone();
                 row["running_balance"] = saved["running_balance"].clone();
             }
         }

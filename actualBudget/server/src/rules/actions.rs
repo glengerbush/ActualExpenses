@@ -39,14 +39,7 @@ pub fn validate(a: &Value) -> Result<(), Error> {
         "set" if super::expressions::calculated(a) => {
             if !matches!(
                 field,
-                "account"
-                    | "payee"
-                    | "category"
-                    | "amount"
-                    | "date"
-                    | "cleared"
-                    | "notes"
-                    | "payee_name"
+                "account" | "payee" | "category" | "amount" | "date" | "cleared" | "payee_name"
             ) {
                 return Err(Error::invalid("Unsupported rule action field"));
             }
@@ -81,7 +74,6 @@ pub fn validate(a: &Value) -> Result<(), Error> {
                         return Err(Error::invalid("Cleared action requires true or false"));
                     }
                 }
-                "notes" => text(value, 10000)?,
                 "payee_name" => {
                     let v = value
                         .as_str()
@@ -93,7 +85,6 @@ pub fn validate(a: &Value) -> Result<(), Error> {
                 _ => return Err(Error::invalid("Unsupported rule action field")),
             };
         }
-        "prepend-notes" | "append-notes" => text(value, 10000)?,
         "delete-transaction" => {}
         "link-schedule" => {
             crate::models::validate_id(
@@ -125,13 +116,7 @@ pub fn validate(a: &Value) -> Result<(), Error> {
     }
     Ok(())
 }
-fn text(value: &Value, max: usize) -> Result<(), Error> {
-    if value.as_str().is_none_or(|s| s.chars().count() > max) {
-        Err(Error::invalid("Invalid rule action text"))
-    } else {
-        Ok(())
-    }
-}
+
 pub fn money(n: i128) -> Result<i64, Error> {
     if n.abs() > crate::models::MAX_MONEY as i128 {
         Err(Error::invalid("Rule amount exceeds the exact-money range"))
@@ -201,6 +186,9 @@ fn key(field: &str) -> &str {
     }
 }
 fn exec(a: &Value, row: &mut Value) -> Result<(), Error> {
+    if matches!(a["field"].as_str(), Some("cleared" | "reconciled")) {
+        return Ok(());
+    }
     match a["op"].as_str().unwrap() {
         "set" => {
             if a["field"] == "payee_name" {
@@ -212,20 +200,6 @@ fn exec(a: &Value, row: &mut Value) -> Result<(), Error> {
                     row.as_object_mut().unwrap().remove("_rule_payee_name");
                 }
             }
-        }
-        "append-notes" => {
-            row["notes"] = json!(format!(
-                "{}{}",
-                row["notes"].as_str().unwrap_or(""),
-                a["value"].as_str().unwrap()
-            ))
-        }
-        "prepend-notes" => {
-            row["notes"] = json!(format!(
-                "{}{}",
-                a["value"].as_str().unwrap(),
-                row["notes"].as_str().unwrap_or("")
-            ))
         }
         "delete-transaction" => row["deleted"] = json!(true),
         "link-schedule" => row["schedule_id"] = a["value"].clone(),

@@ -37,7 +37,7 @@ pub fn associations(db: &Connection, b: &str) -> Result<BTreeMap<String, String>
             continue;
         };
         let Some(category) = category else { continue };
-        let valid:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM payees p JOIN categories c ON c.budget_id=p.budget_id LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE p.budget_id=?1 AND p.id=?2 AND p.tombstone=0 AND p.transfer_account_id IS NULL AND c.id=?3 AND c.tombstone=0 AND c.is_income=0 AND c.hidden=0 AND COALESCE(g.hidden,0)=0)",params![b,payee,category],|r|r.get(0))?;
+        let valid:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM payees p JOIN categories c ON c.budget_id=p.budget_id LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE p.budget_id=?1 AND p.id=?2 AND p.tombstone=0 AND p.transfer_account_id IS NULL AND c.id=?3 AND c.tombstone=0 AND c.is_income=0)",params![b,payee,category],|r|r.get(0))?;
         if valid {
             values.entry(payee).or_default().insert(category);
         }

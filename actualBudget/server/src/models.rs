@@ -46,8 +46,8 @@ impl NewBudget {
     pub fn validate(&self) -> Result<(), Error> {
         validate_id(&self.id)?;
         validate_name(&self.name)?;
-        if !["tracking", "envelope"].contains(&self.budget_type.as_str()) {
-            return Err(Error::invalid("budget_type must be tracking or envelope"));
+        if self.budget_type != "tracking" {
+            return Err(Error::invalid("budget_type must be tracking"));
         }
         Ok(())
     }

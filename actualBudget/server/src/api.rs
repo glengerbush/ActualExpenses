@@ -48,7 +48,6 @@ pub fn router(store: Store) -> Router {
         .merge(crate::splits::router())
         .merge(crate::history::router())
         .merge(crate::accounts::router())
-        .merge(crate::reconciliation::router())
         .merge(crate::budgeting::router())
         .merge(crate::rules::router())
         .merge(crate::schedules::router())
@@ -115,7 +114,6 @@ async fn cancellation_scope(
                     | "/api/v1/budgets/{budget}/rules/learning"
                     | "/api/v1/budgets/{budget}/rules/rename-payee"
                     | "/api/v1/budgets/{budget}/budget"
-                    | "/api/v1/budgets/{budget}/budget/templates/commands"
                     | "/api/v1/budgets/{budget}/transactions"
                     | "/api/v1/budgets/{budget}/transactions/bulk"
                     | "/api/v1/budgets/{budget}/transactions/batch"
@@ -161,7 +159,6 @@ async fn cancellation_scope(
                     | "/api/v1/budgets/{budget}/rules/learning"
                     | "/api/v1/budgets/{budget}/rules/rename-payee"
                     | "/api/v1/budgets/{budget}/budget"
-                    | "/api/v1/budgets/{budget}/budget/templates/commands"
                     | "/api/v1/budgets/{budget}/transactions"
                     | "/api/v1/budgets/{budget}/transactions/bulk"
                     | "/api/v1/budgets/{budget}/transactions/batch"
@@ -192,9 +189,7 @@ async fn cancellation_scope(
                     | "/api/v1/budgets/{budget}/category-groups/{id}"
             ) | (
                 "POST",
-                "/api/v1/budgets/{budget}/accounts/{id}/reconciliation"
-                    | "/api/v1/budgets/{budget}/transactions/{id}/unlock"
-                    | "/api/v1/budgets/{budget}/accounts/{id}/close"
+                "/api/v1/budgets/{budget}/accounts/{id}/close"
                     | "/api/v1/budgets/{budget}/accounts/{id}/reopen"
                     | "/api/v1/budgets/{budget}/accounts/{id}/move"
                     | "/api/v1/budgets/{budget}/account-groups/{id}/move"
@@ -235,7 +230,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["unified_ledger", "ynab_imports", "transaction_csv_export", "transaction_file_imports", "transaction_file_parsing", "transaction_import_settings", "transaction_matching", "transaction_merge", "recovery", "recovery_cancellation", "budget_templates", "budget_template_projection", "budget_automations", "schedules", "schedule_catch_up", "schedule_matching", "schedule_discovery", "schedule_conversion", "android_upgrade", "rules", "rule_entry", "rule_preview", "rule_cancellation", "rule_receipt_lookup", "category_learning", "category_associations", "budget_planning", "tracking_budget", "envelope_budget", "bulk_transactions", "undo_redo", "history_cancellation", "history_receipt_lookup", "payee_locations", "location_cancellation", "reconciliation", "reconciled_confirmation", "paired_reconciled_confirmation", "reconciliation_cancellation", "expense_kind_precondition", "transfers", "transfer_cancellation", "transfer_receipt_lookup", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags", "splits", "register_queries", "register_settings", "reporting", "historical_reports", "bounded_report_inspection", "custom_reports", "balance_forecast", "bounded_queries", "notes", "budget_analysis", "atomic_transaction_batch", "sankey", "crossover", "formulas", "monte_carlo", "monte_carlo_cancellation"],
+        "capabilities": ["unified_ledger", "category_colors", "transaction_recurrence", "ynab_imports", "transaction_csv_export", "transaction_file_imports", "transaction_file_parsing", "transaction_import_settings", "transaction_matching", "transaction_merge", "recovery", "recovery_cancellation", "schedules", "schedule_catch_up", "schedule_matching", "schedule_discovery", "schedule_conversion", "android_upgrade", "rules", "rule_entry", "rule_preview", "rule_cancellation", "rule_receipt_lookup", "category_learning", "category_associations", "budget_planning", "tracking_budget", "bulk_transactions", "undo_redo", "history_cancellation", "history_receipt_lookup", "payee_locations", "location_cancellation", "expense_kind_precondition", "transfers", "transfer_cancellation", "transfer_receipt_lookup", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "splits", "register_queries", "register_settings", "reporting", "historical_reports", "bounded_report_inspection", "custom_reports", "balance_forecast", "bounded_queries", "notes", "budget_analysis", "atomic_transaction_batch", "sankey", "crossover", "formulas", "monte_carlo", "monte_carlo_cancellation"],
         "openapi": "/api/v1/openapi.json"
     }))
 }
@@ -275,12 +270,12 @@ async fn create_budget(
     input: Result<Json<NewBudget>, JsonRejection>,
 ) -> Result<(StatusCode, Json<Value>), Error> {
     let Json(input) = input.map_err(json_error)?;
-    input.validate()?;
     let key = idempotency_key(&headers)?;
     let payload = serde_json::to_string(&input).map_err(Error::internal)?;
     let result = store
         .run(move |db| {
             store::write(db, "POST /budgets", &key, &payload, |db| {
+                input.validate()?;
                 store::create_budget(db, input)
             })
         })
@@ -358,7 +353,10 @@ async fn list_transactions(
         validate_id(id)?;
     }
     if let Some(tag) = &query.tag {
-        crate::payees_tags::validate_tag(tag)?;
+        let _ = tag;
+        return Err(Error::invalid(
+            "Tag filtering has been removed; search notes instead",
+        ));
     }
     if let Some(date) = &query.as_of {
         crate::models::validate_date(date)?;
@@ -443,17 +441,27 @@ async fn create_transaction(
     State(store): State<Store>,
     path: Result<Path<String>, PathRejection>,
     headers: HeaderMap,
-    input: Result<Json<NewTransaction>, JsonRejection>,
+    input: Result<Json<Value>, JsonRejection>,
 ) -> Result<(StatusCode, Json<Value>), Error> {
     let budget = budget_id(path)?;
-    let Json(input) = input.map_err(json_error)?;
+    let Json(mut body) = input.map_err(json_error)?;
+    let recurrence = body.as_object_mut().and_then(|b| b.remove("recurrence"));
+    let input: NewTransaction =
+        serde_json::from_value(body).map_err(|e| Error::invalid(e.to_string()))?;
     input.validate()?;
     let key = idempotency_key(&headers)?;
     let owner = crate::history::owner_header(&headers)?;
     let clock = concurrency::header(&headers)?;
     let cancel = concurrency::cancel_header(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
-    let payload = serde_json::to_string(&input).map_err(Error::internal)?;
+    let payload = if let Some(ref recurrence) = recurrence {
+        let mut payload = serde_json::to_value(&input).map_err(Error::internal)?;
+        payload["recurrence"] = recurrence.clone();
+        payload.to_string()
+    } else {
+        // Preserve receipt identity for requests queued before recurrence support.
+        serde_json::to_string(&input).map_err(Error::internal)?
+    };
     store
         .run(move |db| {
             if headers.contains_key("X-Actual-Receipt-Only") {
@@ -482,7 +490,13 @@ async fn create_transaction(
                         clock.as_deref(),
                         cancel,
                         epoch.as_deref(),
-                        Mutation::Create(Box::new(input)),
+                        match recurrence {
+                            Some(value) => Mutation::WithRecurrence(
+                                Box::new(Mutation::Create(Box::new(input))),
+                                value,
+                            ),
+                            None => Mutation::Create(Box::new(input)),
+                        },
                     )
                 },
             )
@@ -514,13 +528,14 @@ async fn update_transaction(
     input: Result<Json<Value>, JsonRejection>,
 ) -> Result<(StatusCode, Json<Value>), Error> {
     let (budget, id) = transaction_path(path)?;
-    let Json(input) = input.map_err(json_error)?;
+    let Json(mut input) = input.map_err(json_error)?;
     let key = idempotency_key(&headers)?;
     let owner = crate::history::owner_header(&headers)?;
     let clock = concurrency::header(&headers)?;
     let cancel = concurrency::cancel_header(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
     let payload = input.to_string();
+    let recurrence = input.as_object_mut().and_then(|b| b.remove("recurrence"));
     store
         .run(move |db| {
             if headers.contains_key("X-Actual-Receipt-Only") {
@@ -543,20 +558,25 @@ async fn update_transaction(
                 StatusCode::OK,
                 owner.as_ref(),
                 |db| {
+                    let mutation = if headers
+                        .get("X-Actual-Expense-Only")
+                        .is_some_and(|v| v == "true")
+                    {
+                        Mutation::ExpensePatch(id, input)
+                    } else {
+                        Mutation::Patch(id, input)
+                    };
+                    let mutation = match recurrence {
+                        Some(value) => Mutation::WithRecurrence(Box::new(mutation), value),
+                        None => mutation,
+                    };
                     concurrency::execute(
                         db,
                         &budget,
                         clock.as_deref(),
                         cancel,
                         epoch.as_deref(),
-                        if headers
-                            .get("X-Actual-Expense-Only")
-                            .is_some_and(|v| v == "true")
-                        {
-                            Mutation::ExpensePatch(id, input)
-                        } else {
-                            Mutation::Patch(id, input)
-                        },
+                        mutation,
                     )
                 },
             )

@@ -1,3 +1,4 @@
+import { transactionAction } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
@@ -65,9 +66,9 @@ try {
     .locator(".budget-list button")
     .filter({ hasText: "Split household" })
     .click();
-  await page
-    .getByRole("button", { name: "Split transaction", exact: true })
-    .click();
+  await (
+    await transactionAction(page, { name: "Split transaction", exact: true })
+  ).click();
   await expect(
     page.getByRole("heading", { name: "Split transaction", exact: true }),
   ).toBeVisible();
@@ -84,7 +85,9 @@ try {
   expect(register.data[0].children.map((c) => c.amount)).toEqual([
     -2000, -3001,
   ]);
-  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await (
+    await transactionAction(page, { name: "Edit splits", exact: true })
+  ).click();
   await page
     .getByLabel("Split 1 notes", { exact: true })
     .fill("Keep exact retry");
@@ -142,7 +145,9 @@ try {
   ).toHaveCount(0);
   expect(attempts[1]).toEqual(attempts[0]);
   await page.unroute("**/transactions/*/splits");
-  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await (
+    await transactionAction(page, { name: "Edit splits", exact: true })
+  ).click();
   const peer = await page.context().newPage();
   await peer.goto(server.url);
   await expect(
@@ -188,7 +193,9 @@ try {
     page.getByRole("heading", { name: "Split transaction", exact: true }),
   ).toHaveCount(0);
   await expect(page.getByText("2 splits", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await (
+    await transactionAction(page, { name: "Edit splits", exact: true })
+  ).click();
   await expect(page.getByLabel("Split 1 notes", { exact: true })).toHaveValue(
     "Owner retained",
   );
@@ -247,7 +254,9 @@ try {
     page.getByRole("heading", { name: "Split transaction", exact: true }),
   ).toHaveCount(0);
   await expect(page.getByText("2 splits", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await (
+    await transactionAction(page, { name: "Edit splits", exact: true })
+  ).click();
   await mkdir("../../.scratch/ticket14-visuals", { recursive: true });
   await page.getByLabel("Split 1 amount", { exact: true }).focus();
   await page.keyboard.press("Tab");
@@ -268,7 +277,7 @@ try {
   });
   await page.getByRole("button", { name: "Recombine", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Split transaction", exact: true }),
+    await transactionAction(page, { name: "Split transaction", exact: true }),
   ).toBeVisible();
   // Integrated payee removal preserves historical references through split edits.
   const splitPath = `${base}/transactions/${register.data[0].id}/splits`;
@@ -286,7 +295,9 @@ try {
     ids: [childPayee.id],
   });
   await page.reload();
-  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await (
+    await transactionAction(page, { name: "Edit splits", exact: true })
+  ).click();
   await expect(page.getByLabel("Split 1 payee", { exact: true })).toHaveValue(
     childPayee.id,
   );
@@ -335,7 +346,9 @@ try {
   expect(retained.payee_id).toBeNull();
   expect(retained.children[0].retained_payee_id).toBe(childPayee.id);
   expect(retained.children[0].notes).toBe("Keep historical payee");
-  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await (
+    await transactionAction(page, { name: "Edit splits", exact: true })
+  ).click();
   await page
     .getByRole("button", { name: "Unsplit all children", exact: true })
     .click();

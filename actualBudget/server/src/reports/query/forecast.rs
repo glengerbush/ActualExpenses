@@ -650,7 +650,7 @@ fn tracking_plans(
     end: &str,
 ) -> Result<BTreeMap<String, (i128, i128)>, Error> {
     let first_income:Option<String>=db.query_row("SELECT id FROM category_groups WHERE budget_id=?1 AND tombstone=0 AND is_income=1 ORDER BY sort_order,id LIMIT 1",[b],|r|r.get(0)).optional()?;
-    let mut statement=db.prepare("SELECT cell.month,cell.amount,c.is_income,c.group_id,g.id,coalesce(g.is_income,0),coalesce(g.hidden,0) FROM budget_cells cell JOIN categories c ON c.budget_id=cell.budget_id AND c.id=cell.category_id AND c.tombstone=0 LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id AND g.tombstone=0 WHERE cell.budget_id=?1 AND cell.method='tracking' AND cell.month>=?2 AND cell.month<=?3 AND cell.tombstone=0 AND cell.amount<>0 AND c.hidden=0 ORDER BY cell.month,cell.id LIMIT 100001")?;
+    let mut statement=db.prepare("SELECT cell.month,cell.amount,c.is_income,c.group_id,g.id,coalesce(g.is_income,0),0 FROM budget_cells cell JOIN categories c ON c.budget_id=cell.budget_id AND c.id=cell.category_id AND c.tombstone=0 LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id AND g.tombstone=0 WHERE cell.budget_id=?1 AND cell.method='tracking' AND cell.month>=?2 AND cell.month<=?3 AND cell.tombstone=0 AND cell.amount<>0 ORDER BY cell.month,cell.id LIMIT 100001")?;
     let mut rows = statement.query(params![b, start, end])?;
     let mut totals = BTreeMap::<String, (i128, i128)>::new();
     let mut count = 0usize;
@@ -670,7 +670,6 @@ fn tracking_plans(
         let group: Option<String> = row.get(3)?;
         let found: Option<String> = row.get(4)?;
         let group_income: bool = row.get(5)?;
-        let hidden: bool = row.get(6)?;
         if group.is_some() && found.is_none() {
             return Err(Error::invalid(
                 "A planned category has an unavailable group. Review categories or repair data before forecasting.",
@@ -687,7 +686,7 @@ fn tracking_plans(
             if group == first_income {
                 total.0 += amount as i128;
             }
-        } else if !hidden {
+        } else {
             total.1 += amount as i128;
         }
     }
@@ -710,14 +709,6 @@ fn tracking(
     if months > 12 {
         return Err(Error::invalid(
             "Tracking-budget forecasts support at most12 months; shorten the date range",
-        ));
-    }
-    let method: String = db.query_row("SELECT budget_type FROM budgets WHERE id=?1", [b], |r| {
-        r.get(0)
-    })?;
-    if method != "tracking" {
-        return Err(Error::invalid(
-            "Tracking-budget forecasts require a Tracking Budget file; choose scheduled transactions",
         ));
     }
     let plans = tracking_plans(db, b, &q.options.start_date[..7], &q.options.end_date[..7])?;

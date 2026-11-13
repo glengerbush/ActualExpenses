@@ -45,7 +45,7 @@ pub(super) fn ensure_cell(
     c: &str,
 ) -> Result<String, Error> {
     let id = cell_id(kind, m, c);
-    db.execute("INSERT INTO budget_cells(budget_id,id,method,month,category_id) VALUES(?1,?2,?3,?4,?5) ON CONFLICT(budget_id,id) DO UPDATE SET tombstone=0",params![b,id,kind,m,c])?;
+    db.execute("INSERT INTO budget_cells(budget_id,id,method,month,category_id,carryover) VALUES(?1,?2,?3,?4,?5,1) ON CONFLICT(budget_id,id) DO UPDATE SET tombstone=0",params![b,id,kind,m,c])?;
     Ok(id)
 }
 pub(super) fn put(
@@ -119,7 +119,6 @@ pub fn apply(db: &Connection, b: &str, body: &Value, clock: &str) -> Result<(), 
         "set" => &["category", "amount"],
         "carryover" => &["category", "enabled"],
         "copy_previous" => &["category"],
-        "copy_year" => &["category"],
         _ => &[],
     };
     if body.as_object().unwrap().keys().any(|k| {
@@ -177,15 +176,6 @@ pub fn apply(db: &Connection, b: &str, body: &Value, clock: &str) -> Result<(), 
                         put(db, b, kind, m, &c, n as i128, clock)?;
                     }
                 }
-            }
-        }
-        "copy_year" => {
-            let c = required(body, "category")?;
-            let cat = selectable(data, c)?;
-            let n = cat["budgeted"].as_i64().unwrap();
-            let end = (month_number / 12 * 12 + 11).min(horizon(month_number));
-            for next in month_number + 1..=end {
-                put(db, b, kind, &month_name(next)?, c, n as i128, clock)?;
             }
         }
         _ => return Err(Error::invalid("Unknown budgeting action")),

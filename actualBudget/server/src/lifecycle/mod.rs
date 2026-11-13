@@ -80,6 +80,7 @@ pub fn snapshot_query(
 }
 pub fn router() -> Router<Store> {
     Router::new()
+        .merge(automatic::router())
         .route(
             "/api/v1/budgets/{budget}",
             get(read).patch(rename).delete(delete_budget),
@@ -251,6 +252,15 @@ fn receipt_budget(
         } else {
             None
         }
+    } else if path.starts_with("/imports/") && path.ends_with("/merge") && method == "POST" {
+        let input: Value = serde_json::from_str(payload).map_err(Error::internal)?;
+        let output: Value = serde_json::from_str(response).map_err(Error::internal)?;
+        if input["budget_id"] != output["id"] {
+            return Err(Error::conflict(
+                "Import merge receipt identity is inconsistent",
+            ));
+        }
+        input["budget_id"].as_str().map(str::to_owned)
     } else if path.starts_with("/imports/") && path.ends_with("/activate") && method == "POST" {
         let id = path
             .trim_start_matches("/imports/")

@@ -4,9 +4,13 @@
   let {
     value,
     compact = false,
+    disabled = false,
+    part = "all",
     onchange,
   }: {
     compact?: boolean;
+    disabled?: boolean;
+    part?: "all" | "toggle" | "options";
     value: Recurrence;
     onchange: (value: Recurrence) => void;
   } = $props();
@@ -16,17 +20,19 @@
 </script>
 
 <div class="recurrence" class:compact>
-  <label class="recurring-toggle">
-    <input
-      type="checkbox"
-      role="switch"
-      checked={value.enabled}
-      onchange={(e) => onchange({ ...value, enabled: e.currentTarget.checked })}
-    />
-    <span class="track" aria-hidden="true"></span>
-    <span>Recurring</span>
-  </label>
-  {#if value.enabled}
+  {#if part !== "options"}<label class="recurring-toggle">
+      <input
+        type="checkbox"
+        role="switch"
+        {disabled}
+        checked={value.enabled}
+        onchange={(e) =>
+          onchange({ ...value, enabled: e.currentTarget.checked })}
+      />
+      <span class="track" aria-hidden="true"></span>
+      <span>Recurring</span>
+    </label>{/if}
+  {#if value.enabled && part !== "toggle"}
     <div class="recurrence-options">
       <label
         >Repeat every

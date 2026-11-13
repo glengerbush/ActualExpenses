@@ -101,30 +101,25 @@ fn preferences_are_budget_scoped_and_changes_do_not_replace_unrelated_fields() {
     assert_eq!(response.status(), 200);
     let defaults: Value = response.json().unwrap();
     assert_eq!(defaults["data"]["number_format"], "comma-dot");
-    assert_eq!(defaults["data"]["experimental"]["currency"], false);
+    assert!(defaults["data"].get("experimental").is_none());
     let response = server.patch(
         &path,
         "format",
         json!({"number_format":"dot-comma","first_day_of_week":1}),
     );
     assert_eq!(response.status(), 200);
-    let response = server.patch(
-        &path,
-        "currency",
-        json!({"currency_code":"EUR","experimental":{"currency":true}}),
-    );
+    let response = server.patch(&path, "fraction", json!({"hide_fraction":true}));
     assert_eq!(response.status(), 200);
     let values: Value = response.json().unwrap();
     assert_eq!(values["data"]["number_format"], "dot-comma");
-    assert_eq!(values["data"]["currency_code"], "EUR");
-    assert_eq!(values["data"]["experimental"]["currency"], true);
+    assert_eq!(values["data"]["hide_fraction"], true);
     let other = "00000000-0000-4000-8000-000000000044";
     server.budget(other);
     let isolated: Value = server
         .get(&format!("/api/v1/budgets/{other}/preferences"))
         .json()
         .unwrap();
-    assert_eq!(isolated["data"]["currency_code"], "");
+    assert_eq!(isolated["data"]["hide_fraction"], false);
 }
 
 #[test]
@@ -132,7 +127,7 @@ fn preference_writes_are_idempotent_validated_and_resettable() {
     let server = Server::start();
     server.budget(BUDGET);
     let path = format!("/api/v1/budgets/{BUDGET}/preferences");
-    let changes = json!({"date_format":"dd.MM.yyyy","experimental":{"currency":true}});
+    let changes = json!({"date_format":"dd.MM.yyyy"});
     let first: Value = server.patch(&path, "same", changes.clone()).json().unwrap();
     let again: Value = server.patch(&path, "same", changes).json().unwrap();
     assert_eq!(first, again);
@@ -163,15 +158,11 @@ fn preference_writes_are_idempotent_validated_and_resettable() {
         );
     }
     let reset: Value = server
-        .patch(
-            &path,
-            "reset",
-            json!({"date_format":null,"experimental":null}),
-        )
+        .patch(&path, "reset", json!({"date_format":null}))
         .json()
         .unwrap();
     assert_eq!(reset["data"]["date_format"], "MM/dd/yyyy");
-    assert_eq!(reset["data"]["experimental"]["currency"], false);
+    assert!(reset["data"].get("experimental").is_none());
     assert_eq!(reset["data"]["revision"], 2);
     assert_eq!(
         server
@@ -195,11 +186,6 @@ fn released_preference_keys_convert_without_silently_dropping_unknown_data() {
     assert_eq!(data["shared"]["date_format"], "dd/MM/yyyy");
     assert_eq!(data["shared"]["first_day_of_week"], 1);
     assert_eq!(data["shared"]["hide_fraction"], true);
-    assert_eq!(data["shared"]["currency_code"], "JPY");
-    assert_eq!(data["shared"]["currency_symbol_position"], "after");
-    assert_eq!(data["shared"]["currency_space"], true);
-    assert_eq!(data["shared"]["experimental"]["currency"], true);
-    assert_eq!(data["shared"]["experimental"]["sankeyReport"], false);
     assert_eq!(
         data["device"],
         json!({"theme":"system","preferred_dark_theme":"midnight","language":"fr"})
@@ -215,7 +201,7 @@ fn preferences_and_idempotency_survive_server_replacement() {
     let mut server = Server::start();
     server.budget(BUDGET);
     let path = format!("/api/v1/budgets/{BUDGET}/preferences");
-    let changes = json!({"number_format":"comma-dot-in","experimental":{"sankeyReport":true}});
+    let changes = json!({"number_format":"comma-dot-in"});
     let acknowledged: Value = server
         .patch(&path, "durable", changes.clone())
         .json()
@@ -228,53 +214,28 @@ fn preferences_and_idempotency_survive_server_replacement() {
 }
 
 #[test]
-fn currency_requires_explicit_opt_in_and_disabling_clears_the_code() {
+fn experimental_preferences_are_retired_and_cannot_be_enabled() {
     let server = Server::start();
     server.budget(BUDGET);
     let path = format!("/api/v1/budgets/{BUDGET}/preferences");
-    let disabled: Value = server
-        .patch(&path, "disabled-code", json!({"currency_code":"JPY"}))
-        .json()
-        .unwrap();
-    assert_eq!(disabled["data"]["currency_code"], "");
-    let enabled: Value = server
-        .patch(
-            &path,
-            "enabled",
-            json!({"currency_code":"JPY","experimental":{"currency":true},"hide_fraction":true}),
-        )
-        .json()
-        .unwrap();
-    assert_eq!(enabled["data"]["currency_code"], "JPY");
-    let disabled: Value = server
-        .patch(&path, "disable", json!({"experimental":{"currency":false}}))
-        .json()
-        .unwrap();
-    assert_eq!(disabled["data"]["currency_code"], "");
-    assert_eq!(disabled["data"]["hide_fraction"], true);
-    let enabled: Value = server
-        .patch(&path, "reenable", json!({"experimental":{"currency":true}}))
-        .json()
-        .unwrap();
-    assert_eq!(enabled["data"]["currency_code"], "");
-    for flag in [None, Some(false), Some(true)] {
-        let mut input = json!({"synced":{"defaultCurrencyCode":"JPY"}});
-        if let Some(flag) = flag {
-            input["synced"]["flags.currency"] = json!(flag);
-        }
-        let converted: Value = server
-            .client
-            .post(format!("{}/api/v1/preferences/convert-actual", server.url))
-            .json(&input)
-            .send()
-            .unwrap()
-            .json()
-            .unwrap();
+    for (i, change) in [
+        json!({"experimental":{"formulaMode":true}}),
+        json!({"currency_code":"JPY"}),
+        json!({"experimental":null}),
+    ]
+    .into_iter()
+    .enumerate()
+    {
         assert_eq!(
-            converted["data"]["shared"]["currency_code"],
-            if flag == Some(true) { "JPY" } else { "" }
+            server
+                .patch(&path, &format!("retired-{i}"), change)
+                .status(),
+            400
         );
     }
+    let values: Value = server.get(&path).json().unwrap();
+    assert!(values["data"].get("experimental").is_none());
+    assert!(values["data"].get("currency_code").is_none());
 }
 
 #[test]

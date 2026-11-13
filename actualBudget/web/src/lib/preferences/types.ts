@@ -15,29 +15,12 @@ export const dateFormats = [
   "dd-MM-yyyy",
 ] as const;
 export type DateFormat = (typeof dateFormats)[number];
-export const featureNames = [
-  "newSidebarUI",
-  "actionTemplating",
-  "formulaMode",
-  "currency",
-  "balanceForecastReport",
-  "customThemes",
-  "budgetAnalysisReport",
-  "sankeyReport",
-  "mobileCalculator",
-  "monteCarloReport",
-] as const;
-export type FeatureName = (typeof featureNames)[number];
 export interface SharedPreferences {
   sync_transfer_date?: boolean;
   number_format: NumberFormat;
   date_format: DateFormat;
   hide_fraction: boolean;
   first_day_of_week: number;
-  currency_code: string;
-  currency_symbol_position: "before" | "after";
-  currency_space: boolean;
-  experimental: Record<FeatureName, boolean>;
   revision: number;
 }
 export interface DevicePreferences {
@@ -52,12 +35,6 @@ export const defaultShared = (): SharedPreferences => ({
   date_format: "MM/dd/yyyy",
   hide_fraction: false,
   first_day_of_week: 0,
-  currency_code: "",
-  currency_symbol_position: "before",
-  currency_space: false,
-  experimental: Object.fromEntries(
-    featureNames.map((name) => [name, false]),
-  ) as Record<FeatureName, boolean>,
   revision: 0,
 });
 export const defaultDevice = (): DevicePreferences => ({

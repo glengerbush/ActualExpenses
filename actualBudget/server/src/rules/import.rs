@@ -85,7 +85,12 @@ pub fn convert(
         let value = json!({"id":id,"stage":stage,"conditionsOp":row["conditions_op"],"conditions":conditions,"actions":actions});
         let rule: Rule = serde_json::from_value(value.clone())
             .map_err(|_| Error::invalid("Invalid saved rule shape"))?;
-        let dead = row["tombstone"] == 1 || row["tombstone"] == true;
+        let retired = rule.actions.iter().any(|a| {
+            !a["options"]["formula"].is_null()
+                || !a["options"]["template"].is_null()
+                || a["options"]["method"] == "formula"
+        });
+        let dead = row["tombstone"] == 1 || row["tombstone"] == true || retired;
         if !dead && let Err(error) = engine::validate(&rule) {
             requirements.push(json!({"feature":"rules","count":1,"blocking":true,"rule_id":id,"reason":error.message,"raw":row}));
         }

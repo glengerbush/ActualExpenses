@@ -20,22 +20,21 @@
   } from "./reports";
   import { preferences } from "./preferences.svelte";
   import CrossoverFields from "./CrossoverFields.svelte";
-  import MonteCarloFields from "./MonteCarloFields.svelte";
-  import FormulaFields from "./FormulaFields.svelte";
-  import SankeyFields from "./SankeyFields.svelte";
-  import BudgetAnalysisFields from "./BudgetAnalysisFields.svelte";
-  import ForecastFields from "./ForecastFields.svelte";
-  import { addMonths } from "./forecasts";
+  import { addMonths } from "./report-dates";
   import CustomReports from "./CustomReports.svelte";
   import ReportWidget from "./ReportWidget.svelte";
   import ReportConditions from "./ReportConditions.svelte";
   let {
     budgetId,
+    initialTab = null,
+    ontabchange,
     accounts = [],
     disconnected = false,
     onclose,
   }: {
     budgetId: string;
+    initialTab?: string | null;
+    ontabchange?: (value: string, replace?: boolean) => void;
     accounts?: Account[];
     disconnected?: boolean;
     onclose: () => void;
@@ -61,6 +60,7 @@
   async function switchTab(value: string, id = "") {
     tab = value;
     customId = id;
+    ontabchange?.(value);
     await writeValue(`view:reporting-tab:${budgetId}`, value);
     if (value !== "custom") await load();
   }
@@ -89,45 +89,10 @@
   );
   let page = $derived(pages.find((d) => d.id === selected));
   let meta = $derived(object(editor?.config.meta));
-  let forecastEnabled = $derived(
-    preferences.budgetId === budgetId &&
-      preferences.hasUsableShared &&
-      preferences.shared.experimental.balanceForecastReport,
-  );
-  let analysisEnabled = $derived(
-    preferences.budgetId === budgetId &&
-      preferences.hasUsableShared &&
-      preferences.shared.experimental.budgetAnalysisReport,
-  );
-  let sankeyEnabled = $derived(
-    preferences.budgetId === budgetId &&
-      preferences.hasUsableShared &&
-      preferences.shared.experimental.sankeyReport,
-  );
-  let formulaEnabled = $derived(
-    preferences.budgetId === budgetId &&
-      preferences.hasUsableShared &&
-      preferences.shared.experimental.formulaMode,
-  );
-  let monteCarloEnabled = $derived(
-    preferences.budgetId === budgetId &&
-      preferences.hasUsableShared &&
-      preferences.shared.experimental.monteCarloReport,
-  );
   let displayedWidgets = $derived(
-    tab === "monte-carlo"
-      ? widgets.filter((w) => w.config.type === "monte-carlo-card")
-      : tab === "formula"
-        ? widgets.filter((w) => w.config.type === "formula-card")
-        : tab === "forecast"
-          ? widgets.filter((w) => w.config.type === "balance-forecast-card")
-          : tab === "analysis"
-            ? widgets.filter((w) => w.config.type === "budget-analysis-card")
-            : tab === "crossover"
-              ? widgets.filter((w) => w.config.type === "crossover-card")
-              : tab === "sankey"
-                ? widgets.filter((w) => w.config.type === "sankey-card")
-                : widgets,
+    tab === "crossover"
+      ? widgets.filter((w) => w.config.type === "crossover-card")
+      : widgets,
   );
   let types = $derived([
     ["cash-flow-card", "Cash flow"],
@@ -138,11 +103,6 @@
     ["calendar-card", "Transaction calendar"],
     ["custom-report", "Saved custom report"],
     ["crossover-card", "Crossover Point"],
-    ...(monteCarloEnabled ? [["monte-carlo-card", "Monte Carlo"]] : []),
-    ...(formulaEnabled ? [["formula-card", "Formula"]] : []),
-    ...(sankeyEnabled ? [["sankey-card", "Sankey"]] : []),
-    ...(analysisEnabled ? [["budget-analysis-card", "Budget Analysis"]] : []),
-    ...(forecastEnabled ? [["balance-forecast-card", "Balance forecast"]] : []),
   ]);
   const dateModes = [
     ["sliding-window", "Live sliding window"],
@@ -189,13 +149,6 @@
   }
   function timeframe(key: string, value: string) {
     metadata("timeFrame", {
-      ...(editor?.config.type === "balance-forecast-card"
-        ? {
-            mode: "static",
-            start: meta.startDate || localDay().slice(0, 7),
-            end: meta.endDate || addMonths(localDay().slice(0, 7), 11),
-          }
-        : {}),
       ...object(meta.timeFrame),
       [key]: value,
     });
@@ -257,6 +210,8 @@
           tab =
             (await readValue<string>(`view:reporting-tab:${budgetId}`)) ||
             "dashboards";
+        if (initialTab) tab = initialTab;
+        ontabchange?.(tab, true);
       }
       const prior = await readValue<string>(
         `view:reporting-selection:${budgetId}`,
@@ -347,37 +302,21 @@
         type,
         ...position,
         width: 6,
-        height: ["sankey-card", "crossover-card", "monte-carlo-card"].includes(
-          type,
-        )
-          ? 6
-          : 3,
-        meta:
-          type === "monte-carlo-card"
-            ? { name: "" }
-            : {
-                name: "",
-                timeFrame: {
-                  start:
-                    type === "crossover-card"
-                      ? addMonths(today.slice(0, 7), -120)
-                      : type === "budget-analysis-card"
-                        ? addMonths(today.slice(0, 7), -5)
-                        : today.slice(0, 7),
-                  end:
-                    type === "crossover-card"
-                      ? addMonths(today.slice(0, 7), -1)
-                      : type === "balance-forecast-card"
-                        ? addMonths(today.slice(0, 7), 11)
-                        : today.slice(0, 7),
-                  mode:
-                    type === "crossover-card"
-                      ? "full"
-                      : type === "balance-forecast-card"
-                        ? "static"
-                        : "sliding-window",
-                },
-              },
+        height: type === "crossover-card" ? 6 : 3,
+        meta: {
+          name: "",
+          timeFrame: {
+            start:
+              type === "crossover-card"
+                ? addMonths(today.slice(0, 7), -120)
+                : today.slice(0, 7),
+            end:
+              type === "crossover-card"
+                ? addMonths(today.slice(0, 7), -1)
+                : today.slice(0, 7),
+            mode: type === "crossover-card" ? "full" : "sliding-window",
+          },
+        },
       },
       tombstone: false,
     });
@@ -493,7 +432,6 @@
         {t("Recorded history, saved views and transaction details.")}
       </p>
     </div>
-    <button onclick={onclose}>{t("Close reports")}</button>
   </header>
   <nav class="actions" aria-label={t("Reporting views")}>
     <button
@@ -505,36 +443,12 @@
       disabled={!!editor || busy}
       onclick={() => switchTab("custom")}>{t("Custom reports")}</button
     >
-    {#if monteCarloEnabled || tab === "monte-carlo"}<button
-        aria-pressed={tab === "monte-carlo"}
-        disabled={!!editor || busy}
-        onclick={() => switchTab("monte-carlo")}>{t("Monte Carlo")}</button
-      >{/if}
-    {#if formulaEnabled || tab === "formula"}<button
-        aria-pressed={tab === "formula"}
-        disabled={!!editor || busy}
-        onclick={() => switchTab("formula")}>{t("Formula")}</button
-      >{/if}
-    {#if forecastEnabled || tab === "forecast"}<button
-        aria-pressed={tab === "forecast"}
-        disabled={!!editor || busy}
-        onclick={() => switchTab("forecast")}>{t("Balance forecast")}</button
-      >{/if}
-    {#if analysisEnabled || tab === "analysis"}<button
-        aria-pressed={tab === "analysis"}
-        disabled={!!editor || busy}
-        onclick={() => switchTab("analysis")}>{t("Budget Analysis")}</button
-      >{/if}
+
     <button
       aria-pressed={tab === "crossover"}
       disabled={!!editor || busy}
       onclick={() => switchTab("crossover")}>{t("Crossover Point")}</button
     >
-    {#if sankeyEnabled || tab === "sankey"}<button
-        aria-pressed={tab === "sankey"}
-        disabled={!!editor || busy}
-        onclick={() => switchTab("sankey")}>{t("Sankey")}</button
-      >{/if}
   </nav>
   {#if tab === "custom"}{#key customId}<CustomReports
         {budgetId}
@@ -544,50 +458,12 @@
         onchanged={reportsChanged}
       />{/key}
   {:else}
-    {#if tab === "monte-carlo"}<p>
-        {t(
-          "Monte Carlo plans compare possible outcomes from saved assumptions. Choose a dashboard, then create or edit a plan. Calculations run only when requested.",
-        )}
-      </p>
-      {#if !monteCarloEnabled}<p role="status">
-          {t("Enable Monte Carlo report in Settings to run this plan.")}
-        </p>{/if}
-    {/if}
-    {#if tab === "forecast"}<p>
-        {t(
-          "Forecasts are saved dashboard widgets. Choose a dashboard, then create or edit a forecast. Estimates never change recorded balances.",
-        )}
-      </p>
-      {#if !forecastEnabled}<p role="status">
-          {t(
-            "Enable Balance forecast in Settings → Experimental features. Saved settings are preserved.",
-          )}
-        </p>{/if}{/if}
     {#if tab === "crossover"}<p>
         {t(
           "Explore financial independence with recorded history and explicit projection assumptions. Choose a dashboard, then create or edit a crossover report.",
         )}
       </p>{/if}
-    {#if tab === "sankey"}<p>
-        {t(
-          "Saved Sankey reports show grouped money flows. Choose a dashboard, then create or edit a flow report.",
-        )}
-      </p>
-      {#if !sankeyEnabled}<p role="status">
-          {t(
-            "Enable Sankey report in Settings → Experimental features. Saved settings are preserved.",
-          )}
-        </p>{/if}{/if}
-    {#if tab === "analysis"}<p>
-        {t(
-          "Saved monthly analyses compare planned allocations and recorded spending. Choose a dashboard, then create or edit an analysis.",
-        )}
-      </p>
-      {#if !analysisEnabled}<p role="status">
-          {t(
-            "Enable Budget Analysis in Settings → Experimental features. Saved settings are preserved.",
-          )}
-        </p>{/if}{/if}
+
     {#if error}<p role="alert">{t(error)}</p>{/if}{#if notice}<p role="status">
         {t(notice)}
       </p>{/if}{#if cached}<p role="status">
@@ -663,45 +539,10 @@
           ><button
             onclick={() =>
               newWidget(
-                tab === "monte-carlo"
-                  ? "monte-carlo-card"
-                  : tab === "formula"
-                    ? "formula-card"
-                    : tab === "forecast"
-                      ? "balance-forecast-card"
-                      : tab === "analysis"
-                        ? "budget-analysis-card"
-                        : tab === "crossover"
-                          ? "crossover-card"
-                          : tab === "sankey"
-                            ? "sankey-card"
-                            : "cash-flow-card",
+                tab === "crossover" ? "crossover-card" : "cash-flow-card",
               )}
-            disabled={busy ||
-              !!editor ||
-              !!pending ||
-              cached ||
-              disconnected ||
-              (tab === "monte-carlo" && !monteCarloEnabled) ||
-              (tab === "formula" && !formulaEnabled) ||
-              (tab === "forecast" && !forecastEnabled) ||
-              (tab === "analysis" && !analysisEnabled) ||
-              (tab === "sankey" && !sankeyEnabled)}
-            >{t(
-              tab === "monte-carlo"
-                ? "New Monte Carlo plan"
-                : tab === "formula"
-                  ? "New formula"
-                  : tab === "forecast"
-                    ? "New forecast"
-                    : tab === "analysis"
-                      ? "New analysis"
-                      : tab === "crossover"
-                        ? "New crossover"
-                        : tab === "sankey"
-                          ? "New flow"
-                          : "Add widget",
-            )}</button
+            disabled={busy || !!editor || !!pending || cached || disconnected}
+            >{t(tab === "crossover" ? "New crossover" : "Add widget")}</button
           >{/if}
       </div>
     </div>
@@ -778,26 +619,6 @@
                   ><option value="right">{t("right")}</option></select
                 ></label
               >
-            {:else if editor.config.type === "monte-carlo-card"}<MonteCarloFields
-                {meta}
-                {accounts}
-                onchange={(patch) => {
-                  void change(() => {
-                    if (editor) editor.config.meta = { ...meta, ...patch };
-                  });
-                }}
-              />
-            {:else if editor.config.type === "formula-card"}<FormulaFields
-                {budgetId}
-                {accounts}
-                document={editor}
-                epoch={editorEpoch}
-                onchange={(patch) => {
-                  void change(() => {
-                    if (editor) editor.config.meta = { ...meta, ...patch };
-                  });
-                }}
-              />
             {:else if editor.config.type === "custom-report"}<label
                 >{t("Saved custom report")}<select
                   value={String(meta.id || "")}
@@ -826,9 +647,7 @@
                       object(meta.timeFrame).mode ||
                         (editor.config.type === "crossover-card"
                           ? "full"
-                          : editor.config.type === "balance-forecast-card"
-                            ? "static"
-                            : "sliding-window"),
+                          : "sliding-window"),
                     )}
                     onchange={(e) => timeframe("mode", e.currentTarget.value)}
                     >{#each dateModes as mode (mode[0])}<option value={mode[0]}
@@ -840,11 +659,7 @@
                     type="month"
                     required
                     value={String(
-                      object(meta.timeFrame).start ||
-                        (editor.config.type === "balance-forecast-card"
-                          ? meta.startDate
-                          : null) ||
-                        localDay(),
+                      object(meta.timeFrame).start || localDay(),
                     ).slice(0, 7)}
                     oninput={(e) => timeframe("start", e.currentTarget.value)}
                   /></label
@@ -853,11 +668,7 @@
                     type="month"
                     required
                     value={String(
-                      object(meta.timeFrame).end ||
-                        (editor.config.type === "balance-forecast-card"
-                          ? meta.endDate
-                          : null) ||
-                        localDay(),
+                      object(meta.timeFrame).end || localDay(),
                     ).slice(0, 7)}
                     oninput={(e) => timeframe("end", e.currentTarget.value)}
                   /></label
@@ -872,23 +683,7 @@
                     });
                   }}
                 />{/if}
-              {#if editor.config.type === "sankey-card"}<SankeyFields
-                  {meta}
-                  onchange={(patch) => {
-                    void change(() => {
-                      if (editor) editor.config.meta = { ...meta, ...patch };
-                    });
-                  }}
-                />{/if}
-              {#if editor.config.type === "budget-analysis-card"}<BudgetAnalysisFields
-                  {meta}
-                  onchange={metadata}
-                />{/if}
-              {#if editor.config.type === "balance-forecast-card"}<ForecastFields
-                  {meta}
-                  {accounts}
-                  onchange={metadata}
-                />{/if}
+
               {#if editor.config.type === "net-worth-card"}<label
                   >{t("Interval")}<select
                     value={String(meta.interval || "Monthly")}
@@ -986,15 +781,10 @@
                     ></label
                   >
                 </div>{/if}{/if}
-            {#if !["markdown-card", "crossover-card", "formula-card", "monte-carlo-card"].includes(String(editor.config.type))}<ReportConditions
+            {#if !["markdown-card", "crossover-card"].includes(String(editor.config.type))}<ReportConditions
                 {budgetId}
                 {accounts}
-                sourceCategoryFilters={editor.config.type ===
-                  "budget-analysis-card" ||
-                  (editor.config.type === "sankey-card" &&
-                    meta.mode === "budgeted")}
-                sourceSyntax={editor.config.type === "sankey-card"}
-                namedConditionsIgnored={editor.config.type !== "sankey-card"}
+                namedConditionsIgnored={true}
                 conditions={meta.conditions}
                 conditionsOp={meta.conditionsOp}
                 onchange={(conditions, conditionsOp) => {
@@ -1042,34 +832,18 @@
     {#if !pages.length && !busy && !editor}<p>
         {t("No dashboards yet. Create one, then add a report or text widget.")}
       </p>{/if}
-    {#if tab === "forecast" && !displayedWidgets.length && pages.length}<p>
-        {t(
-          "No saved forecasts on this dashboard. Choose New forecast to begin.",
-        )}
-      </p>{/if}
-    {#if tab === "analysis" && !displayedWidgets.length && pages.length}<p>
-        {t(
-          "No saved analyses on this dashboard. Choose New analysis to begin.",
-        )}
-      </p>{/if}
+
     {#if tab === "crossover" && !displayedWidgets.length && pages.length}<p>
         {t(
           "No saved crossover reports on this dashboard. Choose New crossover to begin.",
         )}
       </p>{/if}
-    {#if tab === "sankey" && !displayedWidgets.length && pages.length}<p>
-        {t("No saved flows on this dashboard. Choose New flow to begin.")}
-      </p>{/if}
+
     <div
       class={[
         "dashboard",
         {
-          forecasts:
-            tab === "forecast" ||
-            tab === "analysis" ||
-            tab === "sankey" ||
-            tab === "monte-carlo" ||
-            tab === "crossover",
+          expanded: tab === "crossover",
         },
       ]}
     >
@@ -1172,11 +946,11 @@
     grid-auto-rows: minmax(2rem, auto);
     align-items: stretch;
   }
-  .dashboard.forecasts {
+  .dashboard.expanded {
     display: flex;
     flex-direction: column;
   }
-  .dashboard.forecasts .widget {
+  .dashboard.expanded .widget {
     width: 100%;
   }
   .widget {

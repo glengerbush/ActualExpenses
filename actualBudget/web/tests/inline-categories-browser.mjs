@@ -50,8 +50,9 @@ try {
   await expect(page.locator(".budget-month")).toHaveCount(1);
   const editCategory = async (name) => {
     const row = page.locator(".budget-category").filter({ hasText: name });
-    await expect(row).toHaveAttribute("tabindex", "0");
-    await row.click();
+    await row
+      .getByRole("button", { name: new RegExp(`^Edit ${name} for `) })
+      .click();
     await page
       .getByRole("button", { name: "Category settings", exact: true })
       .click();
@@ -64,7 +65,7 @@ try {
     page.getByRole("button", { name: "Add category to Everyday", exact: true }),
   ).toBeEnabled();
   await expect(
-    page.locator(".budget-group").filter({ hasText: "Everyday" }),
+    page.getByRole("textbox", { name: "Group name Everyday", exact: true }),
   ).toBeVisible();
   const group = (await call(root + "/category-groups")).find(
     (g) => g.name === "Everyday",

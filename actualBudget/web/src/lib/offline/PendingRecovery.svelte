@@ -75,7 +75,6 @@
     <h1 id="pending-recovery-heading">
       {t("Saved changes on this device")}
     </h1>
-    <button onclick={onclose} disabled={busy}>{t("Done")}</button>
   </div>
   <p class="muted">
     {t(

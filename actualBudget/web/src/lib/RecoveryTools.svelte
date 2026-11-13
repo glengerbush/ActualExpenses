@@ -176,7 +176,6 @@
         discarding saved purchases.
       </p>
     </div>
-    <button onclick={onclose} disabled={busy}>Done</button>
   </div>
   {#if error}<p class="error" role="alert">{error}</p>{/if}
   {#if notice}<p role="status">{notice}</p>{/if}

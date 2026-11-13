@@ -1664,9 +1664,7 @@ fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native
         .filter(|r| r["entity"] == "preferences")
         .collect();
     assert_eq!(preferences.len(), 1);
-    let flags = preferences[0]["data"]["experimental"].as_object().unwrap();
-    assert!(!flags.contains_key("enableBanking"));
-    assert!(!flags.contains_key("akahuBankSync"));
+    assert!(preferences[0]["data"].get("experimental").is_none());
     current.as_object_mut().unwrap().remove("snapshot");
     original.as_object_mut().unwrap().remove("snapshot");
     assert_eq!(

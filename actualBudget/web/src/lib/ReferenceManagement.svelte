@@ -52,9 +52,7 @@
   let visible = $derived(
     rows.filter(
       (r) =>
-        r.name
-          .toLocaleLowerCase()
-          .includes(search.toLocaleLowerCase()) &&
+        r.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()) &&
         (visibility !== "unused" || r.transaction_count === 0),
     ),
   );
@@ -297,9 +295,6 @@
 <section aria-labelledby="reference-title" class="reference-management">
   <header>
     <h1 id="reference-title">{t("Payees")}</h1>
-    <button onclick={done} disabled={busy || !!draft?.pending}
-      >{t("Done")}</button
-    >
   </header>
   <p class="hint">Manage payee names.</p>
   {#if error}<p class="error" role="alert">{error}</p>

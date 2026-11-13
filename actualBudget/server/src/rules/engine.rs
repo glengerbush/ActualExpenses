@@ -1,12 +1,6 @@
 //! Rule evaluation is pure: referenced names are read, never created by previews.
 use super::*;
 pub fn validate(rule: &Rule) -> Result<(), Error> {
-    validate_with_budget(rule, &mut super::expressions::Budget::default())
-}
-pub(super) fn validate_with_budget(
-    rule: &Rule,
-    budget: &mut super::expressions::Budget,
-) -> Result<(), Error> {
     crate::models::validate_id(&rule.id)?;
     if rule
         .stage
@@ -24,7 +18,6 @@ pub(super) fn validate_with_budget(
     for a in &rule.actions {
         super::actions::validate(a)?;
     }
-    super::expressions::validate_with_budget(rule, budget)?;
     Ok(())
 }
 fn score(rule: &Rule) -> i32 {
@@ -64,7 +57,6 @@ pub fn rank(rules: &mut [Rule]) {
     });
 }
 pub struct Work {
-    pub expressions: super::expressions::Budget,
     pub remaining: usize,
     pub regex: crate::register_regex::Budget,
     pub compiled: std::collections::BTreeMap<
@@ -75,7 +67,6 @@ pub struct Work {
 impl Default for Work {
     fn default() -> Self {
         Self {
-            expressions: Default::default(),
             remaining: 2_000_000,
             regex: crate::register_regex::replacement_budget(),
             compiled: std::collections::BTreeMap::new(),
@@ -169,11 +160,10 @@ impl Runner {
             }
         }
         if let Some(id) = input["payee_id"].as_str()
-            && let Some(name) = super::expressions::payee_name(db, b, id)?
+            && let Some(name) = payee_name(db, b, id)?
         {
             row["payee_name"] = json!(name);
         }
-        let mut expressions = None;
         let mut matched = vec![];
         let account_off = if let Some(id) = input["account_id"].as_str() {
             db.query_row(
@@ -204,7 +194,7 @@ impl Runner {
             .query_map([b], |r| Ok((r.get::<_, String>(0)?, r.get::<_, bool>(1)?)))?
             .collect::<Result<std::collections::BTreeMap<_, _>, _>>()?;
         for rule in &self.rules {
-            if self.indexed && !super::expressions::candidate(rule, input) {
+            if self.indexed && !candidate(rule, input) {
                 continue;
             }
             let forced = attached.as_deref() == Some(rule.id.as_str());
@@ -228,38 +218,11 @@ impl Runner {
             }
             if matches || forced {
                 matched.push(rule.id.clone());
-                if expressions.is_none() && rule.actions.iter().any(super::expressions::calculated)
-                {
-                    expressions = Some(self.work.expressions.read(db, || {
-                        let mut context = super::expressions::Context::new(
-                            db,
-                            b,
-                            input,
-                            stored,
-                            account_override,
-                        )?;
-                        context.prefetch(
-                            db,
-                            b,
-                            self.rules.iter().filter(|rule| {
-                                !self.indexed || super::expressions::candidate(rule, input)
-                            }),
-                        )?;
-                        Ok(context)
-                    })?);
-                }
-                if let Some(context) = expressions.as_mut() {
-                    self.work
-                        .expressions
-                        .read(db, || context.begin_rule(db, b, &row, rule))?;
-                }
                 row = super::actions::apply(
                     db,
                     b,
                     &row,
                     rule,
-                    expressions.as_mut(),
-                    &mut self.work.expressions,
                     stored
                         && row["children"]
                             .as_array()
@@ -278,4 +241,68 @@ impl Runner {
         }
         Ok((row, matched))
     }
+}
+
+pub(super) fn payee_name(db: &Connection, b: &str, id: &str) -> Result<Option<String>, Error> {
+    Ok(db.query_row(
+        "SELECT CASE WHEN transfer_account_id IS NULL THEN name ELSE '' END FROM payees WHERE budget_id=?1 AND id=?2",
+        params![b,id], |r|r.get(0),
+    ).optional()?)
+}
+
+pub(super) fn candidate(rule: &Rule, original: &Value) -> bool {
+    fn key(value: &Value, first: bool) -> Option<Vec<u16>> {
+        let value = value.as_str().filter(|s| !s.is_empty())?;
+        if first {
+            let unit = value.encode_utf16().next().unwrap();
+            Some(
+                char::from_u32(u32::from(unit))
+                    .map(|c| {
+                        c.to_lowercase()
+                            .collect::<String>()
+                            .encode_utf16()
+                            .collect()
+                    })
+                    .unwrap_or(vec![unit]),
+            )
+        } else {
+            Some(value.to_lowercase().encode_utf16().collect())
+        }
+    }
+    [
+        ("imported_payee", "imported_payee", true),
+        ("payee", "payee_id", false),
+    ]
+    .iter()
+    .any(|(field, native, first)| {
+        let Some(condition) = rule.conditions.iter().find(|c| c["field"] == *field) else {
+            return true;
+        };
+        if !matches!(
+            condition["op"].as_str(),
+            Some("is" | "isNot" | "oneOf" | "notOneOf")
+        ) {
+            return true;
+        }
+        let matches = |value: &Value| {
+            // String conditions are parsed to lowercase before indexing; the
+            // original transaction is indexed directly. This matters for
+            // Unicode case mappings that expand into multiple code units.
+            let normalized = if *first {
+                value.as_str().map(|s| json!(s.to_lowercase()))
+            } else {
+                None
+            };
+            key(normalized.as_ref().unwrap_or(value), *first).is_none_or(|expected| {
+                expected == [u16::from(b'*')] || Some(expected) == key(&original[*native], *first)
+            })
+        };
+        match condition["value"].as_array() {
+            Some(values) => values
+                .iter()
+                .filter(|value| !first || value.as_str().is_some_and(|s| !s.is_empty()))
+                .any(matches),
+            None => matches(&condition["value"]),
+        }
+    })
 }

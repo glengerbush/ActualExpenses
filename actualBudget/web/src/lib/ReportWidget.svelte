@@ -14,11 +14,6 @@
     type Projection,
   } from "./reports";
   import CrossoverWidget from "./CrossoverWidget.svelte";
-  import MonteCarloWidget from "./MonteCarloWidget.svelte";
-  import FormulaWidget from "./FormulaWidget.svelte";
-  import SankeyWidget from "./SankeyWidget.svelte";
-  import BudgetAnalysisWidget from "./BudgetAnalysisWidget.svelte";
-  import ForecastWidget from "./ForecastWidget.svelte";
   import MarkdownNotes from "./MarkdownNotes.svelte";
   import ReportResult from "./ReportResult.svelte";
   let {
@@ -52,12 +47,9 @@
               "spending-card": t("Spending analysis"),
               "summary-card": t("Summary"),
               "calendar-card": t("Transaction calendar"),
-              "balance-forecast-card": t("Balance forecast"),
-              "budget-analysis-card": t("Budget Analysis"),
-              "sankey-card": t("Sankey"),
+
               "crossover-card": t("Crossover Point"),
-              "monte-carlo-card": t("Monte Carlo"),
-              "formula-card": t("Formula"),
+
               "markdown-card": t("Text"),
               "custom-report": String(
                 report?.config.name || t("Saved custom report"),
@@ -192,11 +184,7 @@
 
 <article data-testid="report-widget" aria-label={name}>
   <header>
-    <h3
-      class={type === "formula-card" && meta.showTitle === false
-        ? "sr-only"
-        : undefined}
-    >
+    <h3>
       {name}
     </h3>
     <div class="actions">
@@ -220,37 +208,7 @@
     >
       <MarkdownNotes text={String(meta.content || "")} />
     </div>
-  {:else if type === "balance-forecast-card"}<ForecastWidget
-      {budgetId}
-      {document}
-      {epoch}
-      {disconnected}
-    />
-  {:else if type === "budget-analysis-card"}<BudgetAnalysisWidget
-      {budgetId}
-      {document}
-      {epoch}
-      {disconnected}
-    />
-  {:else if type === "sankey-card"}<SankeyWidget
-      {budgetId}
-      {document}
-      {epoch}
-      {disconnected}
-    />
   {:else if type === "crossover-card"}<CrossoverWidget
-      {budgetId}
-      {document}
-      {epoch}
-      {disconnected}
-    />
-  {:else if type === "monte-carlo-card"}{#key epoch}<MonteCarloWidget
-        {budgetId}
-        {document}
-        {epoch}
-        {disconnected}
-      />{/key}
-  {:else if type === "formula-card"}<FormulaWidget
       {budgetId}
       {document}
       {epoch}

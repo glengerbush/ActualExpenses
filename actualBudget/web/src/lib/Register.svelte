@@ -20,7 +20,7 @@
     deliverPending,
   } from "./offline/delivery";
   import { setReachable } from "./offline/events";
-  import { onMount, tick } from "svelte";
+  import { onMount, tick, untrack } from "svelte";
   import {
     nextEditClock,
     observeVersions,
@@ -58,6 +58,7 @@
   import RegisterTools from "./RegisterTools.svelte";
   import {
     defaultQuery,
+    categoryMonthQuery,
     defaultColumns,
     transactionColumns,
     columnLabels,
@@ -82,10 +83,12 @@
   let {
     budgetId,
     accountId = null,
+    categoryFilter = null,
     onchanged = async () => {},
   }: {
     budgetId: string;
     accountId?: string | null;
+    categoryFilter?: { category: string; month: string } | null;
     onchanged?: () => Promise<void>;
   } = $props();
   let disconnected = $state(!offlineStatus.reachable);
@@ -181,7 +184,13 @@
       error = errorMessage(e);
     }
   }
-  let registerQuery = $state<RegisterQuery>(defaultQuery());
+  // App keys the register by its route; user edits then own this query.
+  const initialQuery = untrack(() =>
+    categoryFilter
+      ? categoryMonthQuery(categoryFilter.category, categoryFilter.month)
+      : undefined,
+  );
+  let registerQuery = $state<RegisterQuery>(initialQuery ?? defaultQuery());
   let confirmedQuery = $state<RegisterQuery>(defaultQuery());
   let extraBalances = $state(true);
   let visibleColumns = $state<string[]>([...defaultColumns]);
@@ -816,6 +825,17 @@
       ? splitRowId
       : null,
   );
+  let inlineCreating = $derived(
+    showForm &&
+      !editing &&
+      !transferMode &&
+      !queued &&
+      !futureContext &&
+      !recoveryError &&
+      accounts.length > 0 &&
+      preferences.hasUsableShared &&
+      viewMatchesEpoch,
+  );
   let inlineEditing = $derived(
     showForm &&
       preferences.hasUsableShared &&
@@ -865,7 +885,8 @@
       }}
     />
   {:else}<TransactionForm
-      inline={inlineEditing}
+      inline={inlineEditing || inlineCreating}
+      columns={appliedColumns}
       {budgetId}
       {accounts}
       {payees}
@@ -990,6 +1011,7 @@
     />
 
     <RegisterTools
+      {initialQuery}
       bind:this={registerTools}
       locked={loading ||
         busy ||
@@ -1151,11 +1173,11 @@
       }}
     />
   {:else if showForm && (accounts.length || recoveredPending) && !recoveryError}
-    {#if !inlineEditing}{@render transactionEditor()}{/if}
+    {#if !inlineEditing && !inlineCreating}{@render transactionEditor()}{/if}
   {/if}
   {#if !inlineSplitRow}{@render splitForm()}{/if}
   {#if loading}<p role="status">{t("Loading transactions…")}</p>{/if}
-  {#if register && visibleTransactions.length && preferences.hasUsableShared && viewMatchesEpoch}
+  {#if register && (visibleTransactions.length || inlineCreating) && preferences.hasUsableShared && viewMatchesEpoch}
     {#if selectedRows.length === 1}
       {@const row = selectedRows[0]}
       <details class="transaction-options">
@@ -1272,6 +1294,7 @@
                 /></label
               >
             </th>{#each appliedColumns as column (column)}<th
+                data-column={column}
                 class:number={[
                   "amount",
                   "payment",
@@ -1320,6 +1343,14 @@
           ></thead
         >
         <tbody>
+          {#if inlineCreating}<tr
+              class="inline-transaction-row new-transaction-row"
+              aria-label="New transaction"
+            >
+              <td class="inline-editor" colspan={appliedColumns.length + 2}
+                >{@render transactionEditor()}</td
+              >
+            </tr>{/if}
           {#each selectionRows as row (row.id)}
             <tr
               style:--category-color={row.category_color ?? "transparent"}
@@ -1554,6 +1585,13 @@
     border-bottom: 1px solid var(--line);
     vertical-align: middle;
   }
+  .register-table th:first-child {
+    width: 3.25rem;
+    padding-inline: 0.25rem;
+  }
+  .register-table td:first-child:not(.inline-editor) {
+    padding-inline: 0.25rem;
+  }
   .register-table th {
     font-weight: 600;
     color: var(--muted);
@@ -1621,6 +1659,9 @@
     padding: 1rem;
     background: var(--hover);
     grid-column: 1 / -1;
+  }
+  .register-table .inline-editor:has(:global(.transaction-form)) {
+    padding: 0;
   }
   .inline-editor::before {
     display: none !important;

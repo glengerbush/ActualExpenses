@@ -12,8 +12,6 @@ use axum::{
     http::{HeaderMap, StatusCode},
     routing::{get, post},
 };
-pub(crate) use query::revision_cache::Cache as ReportCache;
-pub(crate) use query::{formula_range, formula_work, predicate as formula_predicate};
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -37,12 +35,7 @@ pub fn router() -> Router<Store> {
         .route("/api/v1/budgets/{budget}/reporting", get(read))
         .route("/api/v1/budgets/{budget}/reporting/commands", post(command))
         .route("/api/v1/budgets/{budget}/reports/query", post(query::read))
-        .merge(crate::formulas::router())
-        .merge(query::forecast_router())
-        .merge(query::analysis_router())
-        .merge(query::sankey_router())
         .merge(query::crossover_router())
-        .merge(crate::monte_carlo::router())
         .route(
             "/api/v1/budgets/{budget}/reports/drilldown",
             post(query::drilldown),
@@ -77,6 +70,18 @@ async fn read(State(store): State<Store>, Path(b): Path<String>) -> Result<Json<
         json!({"data":store.run(move|db|{let tx=db.transaction()?;documents(&tx,&b)}).await?}),
     ))
 }
+pub(super) fn retired_widget(config: &Value) -> bool {
+    matches!(
+        config["type"].as_str(),
+        Some(
+            "formula-card"
+                | "monte-carlo-card"
+                | "sankey-card"
+                | "budget-analysis-card"
+                | "balance-forecast-card"
+        )
+    )
+}
 fn validate(d: &Document) -> Result<(), Error> {
     crate::models::validate_id(&d.id)?;
     if !["page", "widget", "custom_report"].contains(&d.kind.as_str())
@@ -90,6 +95,9 @@ fn validate(d: &Document) -> Result<(), Error> {
         crate::models::validate_name(d.config["name"].as_str().unwrap_or(""))?;
     }
     if d.kind == "widget" {
+        if !d.tombstone && retired_widget(&d.config) {
+            return Err(Error::invalid("This experimental report has been removed"));
+        }
         crate::models::validate_id(d.config["dashboard_page_id"].as_str().unwrap_or(""))?;
         if d.config["type"]
             .as_str()

@@ -2,7 +2,7 @@
   import { t } from "./i18n.svelte";
   import { references, type Reference } from "./register-api";
   import RegisterCondition from "./RegisterCondition.svelte";
-  import { onMount, type Snippet } from "svelte";
+  import { onMount, untrack, type Snippet } from "svelte";
   import { request, uuid, errorMessage, RequestError } from "./api";
   import {
     defaultQuery,
@@ -17,6 +17,7 @@
   } from "./register-query";
   let {
     budgetId,
+    initialQuery,
     accountId,
     disconnected,
     locked = false,
@@ -28,6 +29,7 @@
     dateFilter,
   }: {
     dateFilter?: Snippet;
+    initialQuery?: RegisterQuery;
     budgetId: string;
     accountId: string | null;
     disconnected: boolean;
@@ -71,7 +73,12 @@
       error = errorMessage(e);
     }
   }
-  let query = $state<RegisterQuery>(defaultQuery());
+  let query = $state<RegisterQuery>(
+    untrack(() =>
+      initialQuery ? structuredClone(initialQuery) : defaultQuery(),
+    ),
+  );
+  let applyInitialQuery = untrack(() => !!initialQuery);
   let columns = $state<string[]>([...defaultColumns]);
   let extraBalances = $state(true);
   let settings = $state.raw<SettingsResponse | null>(null);
@@ -125,11 +132,12 @@
       settings = result.data;
       const view = result.data.settings.views[scope()];
       if (view && !preserveDraft) {
-        query = manualQuery(structuredClone(view.query));
+        if (!applyInitialQuery)
+          query = manualQuery(structuredClone(view.query));
         columns = transactionColumns(view.columns);
         extraBalances = view.show_extra_balances ?? true;
       }
-      if (apply && view && !preserveDraft)
+      if (apply && (view || applyInitialQuery) && !preserveDraft)
         await onapply(
           $state.snapshot(query),
           [...columns],
@@ -139,6 +147,7 @@
     } catch (e) {
       error = errorMessage(e);
     } finally {
+      applyInitialQuery = false;
       if (alive) busy = false;
     }
   }

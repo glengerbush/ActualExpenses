@@ -552,7 +552,6 @@
         affect account balances.
       </p>
     </div>
-    <button onclick={onclose}>{t("Close")}</button>
   </header>
   {#if error}<p role="alert" class="error">{error}</p>{/if}{#if notice}<p
       role="status"

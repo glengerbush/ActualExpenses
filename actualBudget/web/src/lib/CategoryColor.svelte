@@ -12,6 +12,7 @@
     name,
     color,
     automatic = false,
+    compact = false,
     disabled = false,
     onchanged,
   }: {
@@ -21,6 +22,7 @@
     name: string;
     color: string;
     automatic?: boolean;
+    compact?: boolean;
     disabled?: boolean;
     onchanged: () => Promise<void>;
   } = $props();
@@ -86,7 +88,7 @@
   }
 </script>
 
-<span class="color-control">
+<span class="color-control" class:compact>
   <input
     type="color"
     value={color}
@@ -135,6 +137,16 @@
     border: 0;
     background: transparent;
     cursor: pointer;
+  }
+  .compact input[type="color"] {
+    width: 32px;
+    padding: 13px 7px;
+  }
+  @media (pointer: coarse) {
+    .compact input[type="color"] {
+      width: 44px;
+      padding: 13px;
+    }
   }
   input::-webkit-color-swatch-wrapper {
     padding: 0;

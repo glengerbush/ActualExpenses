@@ -917,57 +917,7 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
         "INSERT INTO budgets(id,name,budget_type) VALUES(?1,?2,?3)",
         params![budget, data["name"].as_str(), data["budget_type"].as_str()],
     )?;
-    for row in array(data, "account_groups") {
-        db.execute("INSERT INTO account_groups(budget_id,id,name,sort_order,tombstone) VALUES(?1,?2,?3,?4,?5)",params![budget,row["id"].as_str(),row["name"].as_str(),row["sort_order"].as_i64(),row["tombstone"].as_bool()])?;
-    }
-    for row in array(data, "accounts") {
-        db.execute("INSERT INTO accounts(budget_id,id,name,notes,off_budget,closed,group_id,sort_order,tombstone,last_reconciled) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",params![budget,row["id"].as_str(),row["name"].as_str(),row["notes"].as_str(),row["off_budget"].as_bool(),row["closed"].as_bool(),row["group_id"].as_str(),row["sort_order"].as_i64().unwrap_or(0),row["tombstone"].as_bool().unwrap_or(false),row["last_reconciled"].as_str()])?;
-    }
-    for row in array(data, "payees") {
-        db.execute(
-            "INSERT INTO payees(budget_id,id,name,favorite,tombstone,transfer_account_id,category_id,merged_into) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",
-            params![budget, row["id"].as_str(), row["name"].as_str(),row["favorite"].as_bool().unwrap_or(false),row["tombstone"].as_bool().unwrap_or(false),row["transfer_account_id"].as_str(),row["category_id"].as_str(),row["merged_into"].as_str()],
-        )?;
-    }
-    crate::payee_locations::install_source(db, budget, data)?;
-    for row in array(data, "category_groups") {
-        db.execute("INSERT INTO category_groups(budget_id,id,name,is_income,hidden,notes,sort_order,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",params![budget,row["id"].as_str(),row["name"].as_str(),row["is_income"].as_bool(),row["hidden"].as_bool().unwrap_or(false),row["notes"].as_str().unwrap_or(""),row["sort_order"].as_f64(),row["tombstone"].as_bool().unwrap_or(false)])?;
-    }
-    if let Some(rows) = data["tags"].as_array() {
-        for row in rows {
-            db.execute("INSERT INTO tags(budget_id,id,tag,color,description,hidden,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7)",params![budget,row["id"].as_str(),row["tag"].as_str(),row["color"].as_str(),row["description"].as_str(),row["hidden"].as_bool().unwrap_or(false),row["tombstone"].as_bool().unwrap_or(false)])?;
-        }
-    }
-    for row in array(data, "categories") {
-        db.execute("INSERT INTO categories(budget_id,id,name,is_income,group_id,hidden,notes,sort_order,tombstone,replacement_id) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",params![budget,row["id"].as_str(),row["name"].as_str(),row["is_income"].as_bool(),row["group_id"].as_str(),row["hidden"].as_bool().unwrap_or(false),row["notes"].as_str().unwrap_or(""),row["sort_order"].as_f64(),row["tombstone"].as_bool().unwrap_or(false),row["replacement_id"].as_str()])?;
-    }
-    for row in array(data, "transactions") {
-        let category =
-            crate::categories::resolve(db, budget, row["category_id"].as_str().map(str::to_owned))?;
-        db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,reconciled,starting_balance,payee_id,category_id,notes,tombstone,sort_order,is_parent,parent_id,imported_payee,transfer_id) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17)",params![budget,row["id"].as_str(),row["account_id"].as_str(),row["amount"].as_i64(),row["date"].as_str(),row["cleared"].as_bool(),row["reconciled"].as_bool(),row["starting_balance"].as_bool(),row["payee_id"].as_str(),category,row["notes"].as_str(),row["tombstone"].as_bool(),row["sort_order"].as_i64(),row["is_parent"].as_bool().unwrap_or(false),row["parent_id"].as_str(),row["imported_payee"].as_str(),row["transfer_id"].as_str()])?;
-    }
-    for row in array(data, "transactions") {
-        crate::android_upgrade::order::seed(
-            db,
-            budget,
-            row["id"].as_str().unwrap(),
-            row["source_sort_order"].as_f64(),
-        )?;
-    }
-    for row in array(data, "accounts") {
-        ledger::refresh_account(db, budget, row["id"].as_str().unwrap())?;
-    }
-    ledger::validate_budget_total(db, budget)?;
-    crate::categories::validate_archive(db, budget)?;
-    crate::splits::validate(db, budget)?;
-    for expected in array(data, "balances") {
-        let actual = ledger::cached_balances(db, budget, expected["account_id"].as_str().unwrap())?;
-        if serde_json::to_value(actual).map_err(Error::internal)?
-            != json!({"total":expected["total"],"cleared":expected["total"],"uncleared":0})
-        {
-            return Err(invalid("Converted financial totals differ from source"));
-        }
-    }
+    install_ledger(db, budget, data)?;
     let mut preferences = data["preferences"].clone();
     crate::preferences::remove_retired_features(&mut preferences);
     db.execute(
@@ -1073,5 +1023,70 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
         db.execute("INSERT INTO imported_field_clocks(budget_id,dataset,row_id,column_name,edit_order,serialized_value) VALUES(?1,?2,?3,?4,?5,?6)",params![budget,row["dataset"].as_str(),row["row"].as_str(),row["column"].as_str(),row["timestamp"].as_str(),row["value"].as_str()])?;
     }
     crate::budgeting::normalize(db, Some(budget))?;
+    Ok(())
+}
+
+/// Install only financial records; callers may preserve destination plans/settings.
+pub(super) fn install_ledger(db: &Connection, budget: &str, data: &Value) -> Result<(), Error> {
+    for row in array(data, "account_groups") {
+        db.execute("INSERT INTO account_groups(budget_id,id,name,sort_order,tombstone) VALUES(?1,?2,?3,?4,?5)",params![budget,row["id"].as_str(),row["name"].as_str(),row["sort_order"].as_i64(),row["tombstone"].as_bool()])?;
+    }
+    for row in array(data, "accounts") {
+        db.execute("INSERT INTO accounts(budget_id,id,name,notes,off_budget,closed,group_id,sort_order,tombstone,last_reconciled) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",params![budget,row["id"].as_str(),row["name"].as_str(),row["notes"].as_str(),row["off_budget"].as_bool(),row["closed"].as_bool(),row["group_id"].as_str(),row["sort_order"].as_i64().unwrap_or(0),row["tombstone"].as_bool().unwrap_or(false),row["last_reconciled"].as_str()])?;
+    }
+    for row in array(data, "payees") {
+        db.execute(
+            "INSERT INTO payees(budget_id,id,name,favorite,tombstone,transfer_account_id,category_id,merged_into) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",
+            params![budget, row["id"].as_str(), row["name"].as_str(),row["favorite"].as_bool().unwrap_or(false),row["tombstone"].as_bool().unwrap_or(false),row["transfer_account_id"].as_str(),row["category_id"].as_str(),row["merged_into"].as_str()],
+        )?;
+    }
+    crate::payee_locations::install_source(db, budget, data)?;
+    for row in array(data, "category_groups") {
+        db.execute("INSERT INTO category_groups(budget_id,id,name,is_income,hidden,notes,sort_order,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",params![budget,row["id"].as_str(),row["name"].as_str(),row["is_income"].as_bool(),row["hidden"].as_bool().unwrap_or(false),row["notes"].as_str().unwrap_or(""),row["sort_order"].as_f64(),row["tombstone"].as_bool().unwrap_or(false)])?;
+    }
+    if let Some(rows) = data["tags"].as_array() {
+        for row in rows {
+            db.execute("INSERT INTO tags(budget_id,id,tag,color,description,hidden,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7)",params![budget,row["id"].as_str(),row["tag"].as_str(),row["color"].as_str(),row["description"].as_str(),row["hidden"].as_bool().unwrap_or(false),row["tombstone"].as_bool().unwrap_or(false)])?;
+        }
+    }
+    for row in array(data, "categories") {
+        db.execute("INSERT INTO categories(budget_id,id,name,is_income,group_id,hidden,notes,sort_order,tombstone,replacement_id) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",params![budget,row["id"].as_str(),row["name"].as_str(),row["is_income"].as_bool(),row["group_id"].as_str(),row["hidden"].as_bool().unwrap_or(false),row["notes"].as_str().unwrap_or(""),row["sort_order"].as_f64(),row["tombstone"].as_bool().unwrap_or(false),row["replacement_id"].as_str()])?;
+    }
+    for row in array(data, "transactions") {
+        let category =
+            crate::categories::resolve(db, budget, row["category_id"].as_str().map(str::to_owned))?;
+        db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,reconciled,starting_balance,payee_id,category_id,notes,tombstone,sort_order,is_parent,parent_id,imported_payee,transfer_id) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17)",params![budget,row["id"].as_str(),row["account_id"].as_str(),row["amount"].as_i64(),row["date"].as_str(),row["cleared"].as_bool(),row["reconciled"].as_bool(),row["starting_balance"].as_bool(),row["payee_id"].as_str(),category,row["notes"].as_str(),row["tombstone"].as_bool(),row["sort_order"].as_i64(),row["is_parent"].as_bool().unwrap_or(false),row["parent_id"].as_str(),row["imported_payee"].as_str(),row["transfer_id"].as_str()])?;
+    }
+    for row in array(data, "transactions") {
+        crate::android_upgrade::order::seed(
+            db,
+            budget,
+            row["id"].as_str().unwrap(),
+            row["source_sort_order"].as_f64(),
+        )?;
+    }
+    let account_ids: BTreeSet<&str> = array(data, "accounts")
+        .iter()
+        .map(|r| r["id"].as_str().unwrap())
+        .chain(
+            array(data, "transactions")
+                .iter()
+                .map(|r| r["account_id"].as_str().unwrap()),
+        )
+        .collect();
+    for id in account_ids {
+        ledger::refresh_account(db, budget, id)?;
+    }
+    ledger::validate_budget_total(db, budget)?;
+    crate::categories::validate_archive(db, budget)?;
+    crate::splits::validate(db, budget)?;
+    for expected in array(data, "balances") {
+        let actual = ledger::cached_balances(db, budget, expected["account_id"].as_str().unwrap())?;
+        if serde_json::to_value(actual).map_err(Error::internal)?
+            != json!({"total":expected["total"],"cleared":expected["total"],"uncleared":0})
+        {
+            return Err(invalid("Converted financial totals differ from source"));
+        }
+    }
     Ok(())
 }

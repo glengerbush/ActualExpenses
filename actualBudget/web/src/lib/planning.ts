@@ -15,6 +15,7 @@ export interface PlanCategory {
   actual: number;
   balance: number;
   carryover: boolean;
+  carryover_from_previous: boolean;
   goal?: string | null;
   long_goal?: string | null;
 }

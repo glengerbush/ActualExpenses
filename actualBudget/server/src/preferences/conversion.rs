@@ -1,4 +1,4 @@
-use super::{FEATURES, LANGUAGES, defaults, validate_change};
+use super::{LANGUAGES, defaults, validate_change};
 use crate::error::Error;
 use serde_json::{Map, Value, json};
 
@@ -39,17 +39,14 @@ pub fn convert_actual(input: &Value) -> Result<Value, Error> {
             "dateFormat" => Some("date_format"),
             "hideFraction" => Some("hide_fraction"),
             "firstDayOfWeekIdx" => Some("first_day_of_week"),
-            "defaultCurrencyCode" => Some("currency_code"),
-            "currencySymbolPosition" => Some("currency_symbol_position"),
-            "currencySpaceBetweenAmountAndSymbol" => Some("currency_space"),
             _ => None,
         };
         if let Some(mapped) = mapped {
-            if value.is_null() && ["number_format", "currency_symbol_position"].contains(&mapped) {
+            if value.is_null() && mapped == "number_format" {
                 continue;
             }
             let converted = match mapped {
-                "sync_transfer_date" | "hide_fraction" | "currency_space" => match value {
+                "sync_transfer_date" | "hide_fraction" => match value {
                     Value::Bool(_) => Some(value.clone()),
                     Value::String(v) if v == "true" || v == "false" => Some(json!(v == "true")),
                     _ => None,
@@ -71,19 +68,15 @@ pub fn convert_actual(input: &Value) -> Result<Value, Error> {
                     json!({"key":key,"reason":"Unsupported preference value; default retained"}),
                 );
             }
-        } else if let Some(flag) = key.strip_prefix("flags.") {
-            if matches!(flag, "enableBanking" | "akahuBankSync") {
-                warnings.push(json!({"key":key,"reason":"External bank connection feature removed; original source retained"}));
-                continue;
-            }
-            if FEATURES.contains(&flag)
-                && (value.is_boolean() || matches!(value.as_str(), Some("true" | "false")))
-            {
-                shared["experimental"][flag] = json!(value.as_bool().unwrap_or(value == "true"));
-            } else {
-                unmapped_synced.insert(key.clone(), value.clone());
-                warnings.push(json!({"key":key,"reason":"Unsupported experimental preference retained for review"}));
-            }
+        } else if key.starts_with("flags.")
+            || [
+                "defaultCurrencyCode",
+                "currencySymbolPosition",
+                "currencySpaceBetweenAmountAndSymbol",
+            ]
+            .contains(&key.as_str())
+        {
+            continue;
         } else {
             unmapped_synced.insert(key.clone(), value.clone());
             warnings.push(json!({"key":key,"reason":"Preference belongs to another feature; retained for its importer"}));
@@ -174,7 +167,7 @@ pub fn convert_actual(input: &Value) -> Result<Value, Error> {
             }
         }
     }
-    super::normalize_currency(&mut shared);
+    super::remove_retired_features(&mut shared);
     Ok(
         json!({"shared":shared,"device":device,"warnings":warnings,"unmapped":{"synced":unmapped_synced,"global":unmapped_global}}),
     )

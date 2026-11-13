@@ -39,8 +39,6 @@ def shards(commands, count, timings):
         # Conservative estimates for source checks without hosted timing yet.
         if 'generate-v5-receipts' in name: return 35.0
         if 'complete-migration' in name: return 30.0
-        if 'monte-carlo' in name: return 15.0
-        if 'rule-context' in name: return 15.0
         return 5.0
     for command in sorted(commands, key=lambda item: (-weight(item), label(item))):
         index = min(range(count), key=lambda i: (totals[i], i))

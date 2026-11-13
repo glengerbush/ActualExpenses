@@ -15,20 +15,7 @@ use axum::{
 use rusqlite::{Connection, OptionalExtension, params};
 use serde_json::{Map, Value, json};
 mod conversion;
-mod currency_codes;
 pub use conversion::convert_actual;
-pub const FEATURES: &[&str] = &[
-    "newSidebarUI",
-    "actionTemplating",
-    "formulaMode",
-    "currency",
-    "balanceForecastReport",
-    "customThemes",
-    "budgetAnalysisReport",
-    "sankeyReport",
-    "mobileCalculator",
-    "monteCarloReport",
-];
 pub const NUMBER_FORMATS: &[&str] = &[
     "comma-dot",
     "dot-comma",
@@ -57,12 +44,9 @@ pub fn router() -> Router<Store> {
         .route("/api/v1/preferences/convert-actual", post(convert))
 }
 pub fn defaults() -> Value {
-    let flags: Map<String, Value> = FEATURES
-        .iter()
-        .map(|name| (name.to_string(), json!(false)))
-        .collect();
-    json!({"number_format":"comma-dot","date_format":"MM/dd/yyyy","hide_fraction":false,"first_day_of_week":0,"currency_code":"","currency_symbol_position":"before","currency_space":false,"experimental":flags})
+    json!({"number_format":"comma-dot","date_format":"MM/dd/yyyy","hide_fraction":false,"first_day_of_week":0})
 }
+
 pub fn validate_change(key: &str, value: &Value) -> Result<(), Error> {
     if key != "sync_transfer_date" && !defaults().as_object().unwrap().contains_key(key) {
         return Err(Error::invalid(format!("Unknown preference: {key}")));
@@ -73,19 +57,8 @@ pub fn validate_change(key: &str, value: &Value) -> Result<(), Error> {
     let valid = match key {
         "number_format" => value.as_str().is_some_and(|v| NUMBER_FORMATS.contains(&v)),
         "date_format" => value.as_str().is_some_and(|v| DATE_FORMATS.contains(&v)),
-        "sync_transfer_date" | "hide_fraction" | "currency_space" => value.is_boolean(),
+        "sync_transfer_date" | "hide_fraction" => value.is_boolean(),
         "first_day_of_week" => value.as_u64().is_some_and(|v| v <= 6),
-        "currency_code" => value
-            .as_str()
-            .is_some_and(|v| currency_codes::CURRENCY_CODES.contains(&v)),
-        "currency_symbol_position" => value
-            .as_str()
-            .is_some_and(|v| ["before", "after"].contains(&v)),
-        "experimental" => value.as_object().is_some_and(|flags| {
-            flags
-                .iter()
-                .all(|(name, v)| FEATURES.contains(&name.as_str()) && v.is_boolean())
-        }),
         _ => false,
     };
     if valid {
@@ -94,28 +67,20 @@ pub fn validate_change(key: &str, value: &Value) -> Result<(), Error> {
         Err(Error::invalid(format!("Invalid preference: {key}")))
     }
 }
-/// Actual clears the selected currency when its experimental feature is disabled.
-pub(crate) fn normalize_currency(values: &mut Value) {
-    if values["experimental"]["currency"] != true {
-        values["currency_code"] = json!("");
-    }
-}
+/// Retired settings are accepted only when decoding older archives, then discarded.
 pub(crate) fn remove_retired_features(values: &mut Value) {
     if let Some(values) = values.as_object_mut() {
-        values.remove("privacy_mode");
-    }
-    if let Some(flags) = values
-        .get_mut("experimental")
-        .and_then(Value::as_object_mut)
-    {
-        flags.remove("enableBanking");
-        flags.remove("akahuBankSync");
-        flags.remove("goalTemplatesEnabled");
-        flags.remove("goalTemplatesUIEnabled");
+        for key in [
+            "privacy_mode",
+            "experimental",
+            "currency_code",
+            "currency_symbol_position",
+            "currency_space",
+        ] {
+            values.remove(key);
+        }
     }
 }
-/// Storage preserves absence for source formula locale/currency fallbacks.
-/// Public settings continue to expose complete, usable interface defaults.
 pub(crate) fn stored_preferences(db: &Connection, budget: &str) -> Result<Value, Error> {
     store::require_budget(db, budget)?;
     let existing: Option<(String, i64)> = db
@@ -144,7 +109,6 @@ pub(crate) fn stored_preferences(db: &Connection, budget: &str) -> Result<Value,
         return Err(Error::invalid("Invalid stored preferences"));
     }
     remove_retired_features(&mut values);
-    normalize_currency(&mut values);
     values["revision"] = json!(revision);
     Ok(values)
 }
@@ -179,42 +143,9 @@ pub fn apply_changes(
             } else {
                 defaults()[key].clone()
             };
-        } else if key == "experimental" {
-            for (name, enabled) in value.as_object().unwrap() {
-                values[key][name] = enabled.clone();
-            }
         } else {
             values[key] = value.clone();
         }
-    }
-    normalize_currency(&mut values);
-    if changes.contains_key("currency_code")
-        || changes
-            .get("experimental")
-            .is_some_and(|flags| flags.is_null() || flags.get("currency").is_some())
-    {
-        let clock = crate::concurrency::clock(db, budget, None)?;
-        db.execute(
-            "UPDATE budget_settings SET template_currency=?2,template_currency_review=0 WHERE budget_id=?1",
-            params![budget, values["currency_code"].as_str().unwrap_or("")],
-        )?;
-        crate::concurrency::seed_field_version(
-            db,
-            budget,
-            "budget_settings",
-            "method",
-            "template_currency",
-            &clock,
-        )?;
-        crate::concurrency::seed_field_version(
-            db,
-            budget,
-            "budget_settings",
-            "method",
-            "template_currency_review",
-            &clock,
-        )?;
-        crate::concurrency::mark(db, budget, "budget_settings", "method")?;
     }
     let revision = revision
         .checked_add(1)

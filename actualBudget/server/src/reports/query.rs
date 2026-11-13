@@ -1,16 +1,10 @@
-mod analysis;
 mod crossover;
 pub(super) use crossover::router as crossover_router;
-mod sankey;
-pub(super) use sankey::router as sankey_router;
-mod forecast;
 pub(crate) mod revision_cache;
 mod sql_work;
 use super::*;
 mod custom;
-pub(super) use analysis::router as analysis_router;
 use chrono::{Datelike, Duration, NaiveDate};
-pub(super) use forecast::router as forecast_router;
 use rusqlite::{params_from_iter, types::Value as SqlValue};
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -1192,37 +1186,4 @@ fn widget_range(db: &Connection, b: &str, o: &Value, today: NaiveDate) -> Result
         _ => return Err(Error::invalid("Unsupported widget date mode")),
     };
     Ok(result)
-}
-
-/// Formula frames use the same source calendar modes, but have no optional
-/// latest-transaction argument and slide day-shaped saved bounds by whole months.
-pub(crate) fn formula_range(
-    db: &Connection,
-    b: &str,
-    frame: &Value,
-    today: NaiveDate,
-) -> Result<Value, Error> {
-    let mut frame = frame.clone();
-    if !frame.is_object() {
-        return Err(Error::invalid("Invalid formula timeframe"));
-    }
-    if frame["mode"] == "sliding-window" {
-        for key in ["start", "end"] {
-            if let Some(day) = frame[key].as_str().filter(|v| v.len() == 10) {
-                crate::models::validate_date(day)?;
-                frame[key] = json!(&day[..7]);
-            }
-        }
-    }
-    if frame["mode"] == "full" {
-        frame["mode"] = json!("static");
-        frame["end"] = json!(today.format("%Y-%m").to_string());
-    }
-    widget_range(db, b, &json!({"timeFrame":frame}), today)
-}
-pub(crate) fn formula_work<T>(
-    db: &Connection,
-    read: impl FnOnce() -> Result<T, Error>,
-) -> Result<T, Error> {
-    sql_work::run(db, read)
 }

@@ -32,7 +32,8 @@
   import { readAccountDraft, sortedAccounts } from "./lib/account-actions";
   import BudgetPlan from "./lib/BudgetPlan.svelte";
   import { readImport } from "./lib/transaction-import-storage";
-  import TransactionImport from "./lib/TransactionImport.svelte";
+  import ImportHub from "./lib/ImportHub.svelte";
+  import SettingsNavigation from "./lib/SettingsNavigation.svelte";
   import Rules from "./lib/Rules.svelte";
   import Schedules from "./lib/Schedules.svelte";
   import ScheduleUpcoming from "./lib/ScheduleUpcoming.svelte";
@@ -52,13 +53,14 @@
   import { readRepair } from "./lib/recovery";
   import NavigationTools from "./lib/NavigationTools.svelte";
   import {
+    readBrowserRoute,
+    writeBrowserRoute,
+    type BrowserRoute,
     readView,
     rememberView,
     type NavigationCommand,
   } from "./lib/navigation";
-  import ThemeRecovery from "./lib/themes/ThemeRecovery.svelte";
   import PendingRecovery from "./lib/offline/PendingRecovery.svelte";
-  import ImportBudget from "./lib/ImportBudget.svelte";
   import BudgetManagement from "./lib/BudgetManagement.svelte";
   import RestoreBudget from "./lib/RestoreBudget.svelte";
   import type { ManagedBudget, LifecycleKind } from "./lib/lifecycle";
@@ -96,6 +98,11 @@
     | "pending"
     | null
   >(null);
+  const settingsScreen = $derived(
+    ["settings", "import", "transaction-files", "recovery", "pending"].includes(
+      form ?? "",
+    ),
+  );
   let importSource = $state<"actual" | "ynab4">("actual");
   let rulesPayee = $state("");
   let managedBudget = $state.raw<ManagedBudget | null>(null);
@@ -171,51 +178,6 @@
         showForm("reports");
       },
     });
-    if (
-      preferences.budgetId === budget!.id &&
-      preferences.hasUsableShared &&
-      preferences.shared.experimental.balanceForecastReport
-    )
-      result.push({
-        id: "balance-forecast",
-        label: t("Balance forecast"),
-        disabled: locked || !compatible,
-        run: async () => {
-          await writeValue(`view:reporting-tab:${budget!.id}`, "forecast");
-          reportEntryKey++;
-          showForm("reports");
-        },
-      });
-    if (
-      preferences.budgetId === budget!.id &&
-      preferences.hasUsableShared &&
-      preferences.shared.experimental.budgetAnalysisReport
-    )
-      result.push({
-        id: "budget-analysis",
-        label: t("Budget Analysis"),
-        disabled: locked || !compatible,
-        run: async () => {
-          await writeValue(`view:reporting-tab:${budget!.id}`, "analysis");
-          reportEntryKey++;
-          showForm("reports");
-        },
-      });
-    if (
-      preferences.budgetId === budget!.id &&
-      preferences.hasUsableShared &&
-      preferences.shared.experimental.sankeyReport
-    )
-      result.push({
-        id: "sankey",
-        label: t("Sankey"),
-        disabled: locked || !compatible,
-        run: async () => {
-          await writeValue(`view:reporting-tab:${budget!.id}`, "sankey");
-          reportEntryKey++;
-          showForm("reports");
-        },
-      });
     result.push({
       id: "crossover",
       label: t("Crossover Point"),
@@ -226,40 +188,10 @@
         showForm("reports");
       },
     });
-    if (
-      preferences.budgetId === budget!.id &&
-      preferences.hasUsableShared &&
-      preferences.shared.experimental.formulaMode
-    )
-      result.push({
-        id: "formula",
-        label: t("Formula"),
-        disabled: locked || !compatible,
-        run: async () => {
-          await writeValue(`view:reporting-tab:${budget!.id}`, "formula");
-          reportEntryKey++;
-          showForm("reports");
-        },
-      });
-    if (
-      preferences.budgetId === budget!.id &&
-      preferences.hasUsableShared &&
-      preferences.shared.experimental.monteCarloReport
-    )
-      result.push({
-        id: "monte-carlo",
-        label: t("Monte Carlo"),
-        disabled: locked || !compatible,
-        run: async () => {
-          await writeValue(`view:reporting-tab:${budget!.id}`, "monte-carlo");
-          reportEntryKey++;
-          showForm("reports");
-        },
-      });
     const views = [
       ["planning", "Budget", false],
       ["references", "Payees", disconnected],
-      ["transaction-files", "Transaction files", false],
+      ["import", "Import", false],
       ["rules", "Rules", false],
       ["reports", "Dashboards and reports", false],
       ["settings", "Settings", false],
@@ -283,6 +215,58 @@
       });
     return result;
   });
+  let historyReady = false;
+  let restoringHistory = false;
+  let historyGeneration = 0;
+  let reportTab = $state<string | null>(null);
+  let transactionFilter = $state<BrowserRoute["transactions"]>(null);
+  const initialRoute = readBrowserRoute();
+  function recordNavigation(replace = false) {
+    if (!historyReady || restoringHistory) return;
+    writeBrowserRoute(
+      {
+        budgetId: budget?.id ?? "",
+        screen: form,
+        transactions: transactionFilter,
+        report: reportTab,
+        source: importSource,
+      },
+      replace,
+    );
+  }
+  function reportNavigated(value: string, replace = false) {
+    reportTab = value;
+    recordNavigation(replace);
+  }
+  async function restoreNavigation(route: BrowserRoute | null) {
+    if (!route) return;
+    const generation = ++historyGeneration;
+    restoringHistory = true;
+    try {
+      if (route.budgetId && budget?.id !== route.budgetId) {
+        const found = budgets.find((b) => b.id === route.budgetId);
+        if (!found) {
+          await showBudgets();
+          return;
+        }
+        await openBudget(found);
+      } else if (!route.budgetId) await showBudgets();
+      if (generation !== historyGeneration) return;
+      importSource = route.source;
+      if (route.screen === "reports") reportEntryKey++;
+      if (route.screen === "manage") managedBudget = budget;
+      reportTab = route.report;
+      transactionFilter = route.transactions ?? null;
+      form = route.screen;
+      if (budget) rememberView(budget.id, form);
+      await focusContent();
+    } finally {
+      if (generation === historyGeneration) {
+        restoringHistory = false;
+        recordNavigation(true);
+      }
+    }
+  }
   async function focusContent() {
     await tick();
     main?.focus();
@@ -308,7 +292,10 @@
         loading = false;
         return;
       }
-      const saved = loadSelection();
+      const saved =
+        !historyReady && initialRoute
+          ? { budgetId: initialRoute.budgetId, accountId: undefined }
+          : loadSelection();
       const found = budgets.find((item) => item.id === saved.budgetId);
       if (found) {
         await openBudget(found, saved.accountId);
@@ -347,6 +334,7 @@
     }
   }
   async function openBudget(value: Budget, accountId?: string) {
+    transactionFilter = null;
     const generation = ++navigation;
     recoveryError = "";
     scheduleError = "";
@@ -456,6 +444,7 @@
     } finally {
       if (generation === navigation) {
         loading = false;
+        recordNavigation();
         await focusContent();
       }
     }
@@ -496,6 +485,8 @@
     error = "";
     retry = initialize;
     saveSelection("");
+    loading = false;
+    recordNavigation();
     if (navigator.onLine) {
       setReachable(true);
       void refreshCatalog();
@@ -504,10 +495,12 @@
   }
   async function selectAccount(value: Account | null) {
     navigation++;
+    transactionFilter = null;
     form = null;
     if (budget) rememberView(budget.id, null);
     account = null;
     saveSelection(budget!.id);
+    recordNavigation();
     await focusContent();
   }
   async function showForm(
@@ -531,8 +524,11 @@
   ) {
     navigation++;
     recoveryError = "";
+    if (value !== "reports" || form !== "reports") reportTab = null;
+    transactionFilter = null;
     form = value;
     if (budget) rememberView(budget.id, value);
+    recordNavigation();
     await focusContent();
   }
   async function manage(value: ManagedBudget) {
@@ -569,6 +565,11 @@
     budgets = [...budgets.filter((b) => b.id !== value.id), value];
     await openBudget(value);
   }
+  async function startTransactionImport(value: Budget) {
+    budgets = [...budgets.filter((b) => b.id !== value.id), value];
+    await openBudget(value);
+    await showForm("transaction-files");
+  }
   async function accountCreated(value: Account) {
     accounts = [...accounts.filter((a) => a.id !== value.id), value];
     form = null;
@@ -594,7 +595,11 @@
       offlineError = offlineStatus.error;
       compatible = offlineStatus.compatible;
     });
-    void initialize();
+    void initialize().then(async () => {
+      if (initialRoute) await restoreNavigation(initialRoute);
+      historyReady = true;
+      recordNavigation(true);
+    });
     return () => {
       navigation++;
       stopStatus();
@@ -604,8 +609,9 @@
   });
 </script>
 
+<svelte:window onpopstate={() => void restoreNavigation(readBrowserRoute())} />
+
 <a class="skip-link" href="#main">{t("Skip to content")}</a>
-<ThemeRecovery />
 <div class="app-shell">
   <aside class="sidebar" aria-label={t("Budget navigation")}>
     <div class="brand">actualBudget</div>
@@ -638,12 +644,6 @@
           >{t("Payees")}</button
         >
         <button
-          class:current={form === "transaction-files"}
-          aria-current={form === "transaction-files" ? "page" : undefined}
-          onclick={() => showForm("transaction-files")}
-          disabled={loading || !compatible}>Transaction files</button
-        >
-        <button
           onclick={() => {
             rulesPayee = "";
             void showForm("rules");
@@ -658,8 +658,8 @@
           >{t("Dashboards and reports")}</button
         >
         <button
-          class={{ current: form === "settings" }}
-          aria-current={form === "settings" ? "page" : undefined}
+          class={{ current: settingsScreen }}
+          aria-current={settingsScreen ? "page" : undefined}
           onclick={() => showForm("settings")}
           disabled={loading}>{t("Settings")}</button
         >
@@ -672,11 +672,17 @@
     {:else}<p class="muted sidebar-description">
         {t("Your transactions, together.")}
       </p>{/if}
-    <nav aria-label={t("Recovery")}>
-      <button onclick={() => showForm("recovery")} disabled={loading}
-        >Recovery tools</button
-      >
-    </nav>
+    {#if !budget}<button
+        class:current={!form}
+        aria-current={!form ? "page" : undefined}
+        onclick={showBudgets}
+        disabled={loading}>Budgets</button
+      ><button
+        class:current={settingsScreen}
+        aria-current={settingsScreen ? "page" : undefined}
+        onclick={() => showForm("settings")}
+        disabled={loading}>Settings</button
+      >{/if}
   </aside>
   <main
     id="main"
@@ -735,6 +741,14 @@
           disabled={preferences.loading}>{t("Retry preferences")}</button
         >
       </div>{/if}
+    {#if settingsScreen}<SettingsNavigation
+        active={form === "settings"
+          ? "general"
+          : form === "import" || form === "transaction-files"
+            ? "import"
+            : "recovery"}
+        onchange={(value) => showForm(value)}
+      />{/if}
     {#if loading}<div class="loading" role="status">
         <h1>{t("Opening your budget…")}</h1>
         <div class="skeleton"></div>
@@ -749,11 +763,13 @@
         >Troubleshoot saved changes</button
       ><RecoveryTools
         {budget}
-        onclose={() => showForm(null)}
+        onclose={() => showForm("settings")}
         onreset={rebuildDownloadedViews}
         onchanged={refreshAccounts}
       />
-    {:else if form === "pending"}<PendingRecovery onclose={showBudgets} />
+    {:else if form === "pending"}<PendingRecovery
+        onclose={() => showForm("recovery")}
+      />
     {:else if form === "manage" && managedBudget}{#key managedBudget.id}<BudgetManagement
           budget={managedBudget}
           onchanged={lifecycleChanged}
@@ -785,17 +801,18 @@
             await refreshAccounts();
           }}
         />{/key}
-    {:else if form === "transaction-files" && budget}<TransactionImport
-        budgetId={budget.id}
-        {accounts}
-        onclose={() => showForm(null)}
-        onchanged={async () => {
-          accounts = sortedAccounts(
-            await list<Account>(`/budgets/${budget!.id}/accounts`),
-          );
-          account = accounts.find((a) => a.id === account?.id) ?? null;
-        }}
-      />
+    {:else if form === "import" || form === "transaction-files"}{#key (budget?.id ?? "") + form}<ImportHub
+          {budgets}
+          {budget}
+          {accounts}
+          initialSource={importSource}
+          {disconnected}
+          transactionsReady={form === "transaction-files"}
+          onstart={startTransactionImport}
+          oncreated={budgetCreated}
+          onclose={() => showForm("settings")}
+          onchanged={refreshAccounts}
+        />{/key}
     {:else if form === "rules" && budget}{#key budget.id}<Rules
           budgetId={budget.id}
           {disconnected}
@@ -805,6 +822,8 @@
           onchanged={refreshAccounts}
         />{/key}
     {:else if form === "reports" && budget}{#key budget.id + reportEntryKey}<Reports
+          initialTab={reportTab}
+          ontabchange={reportNavigated}
           budgetId={budget.id}
           {accounts}
           {disconnected}
@@ -824,27 +843,21 @@
     {:else if form === "planning" && budget}{#key budget.id}<BudgetPlan
           budgetId={budget.id}
           {disconnected}
-          onclose={() => showForm(null)}
           onchanged={async (method) => {
             if (budget) budget = { ...budget, budget_type: method };
             await refreshAccounts();
           }}
-          onaccount={(id) => {
-            const found = accounts.find((a) => a.id === id);
-            if (found) {
-              form = null;
-              void selectAccount(found);
-            }
+          ontransactions={(category, month) => {
+            transactionFilter = { category, month };
+            form = null;
+            if (budget) rememberView(budget.id, null);
+            recordNavigation();
+            void focusContent();
           }}
         />{/key}
-    {:else if form === "settings" && budget}<Settings
-        budgetId={budget.id}
+    {:else if form === "settings"}<Settings
+        budgetId={budget?.id}
         onclose={() => showForm(null)}
-      />
-    {:else if form === "import"}<ImportBudget
-        initialSource={importSource}
-        oncreated={budgetCreated}
-        oncancel={() => showForm(null)}
       />
     {:else if !budget}
       <div class="page-heading">
@@ -858,20 +871,8 @@
             disabled={disconnected || !compatible}>{t("Restore backup")}</button
           >
           <button
-            onclick={() => {
-              importSource = "actual";
-              showForm("import");
-            }}
-            disabled={disconnected || !compatible}
-            >{t("Import Actual budget")}</button
-          >
-          <button
-            onclick={() => {
-              importSource = "ynab4";
-              showForm("import");
-            }}
-            disabled={disconnected || !compatible}
-            >{t("Import YNAB budget")}</button
+            onclick={() => showForm("import")}
+            disabled={disconnected || !compatible}>Import</button
           >
           <button
             class="primary"
@@ -933,7 +934,8 @@
         />
       {/key}
     {:else}
-      {#key budget.id + ":all"}<Register
+      {#key budget.id + ":all:" + JSON.stringify(transactionFilter)}<Register
+          categoryFilter={transactionFilter}
           budgetId={budget.id}
           accountId={null}
           onchanged={refreshAccounts}

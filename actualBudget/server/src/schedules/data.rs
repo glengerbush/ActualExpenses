@@ -61,15 +61,6 @@ fn read(
         })
         .collect()
 }
-pub(super) fn forecast_rows(db: &Connection, b: &str) -> Result<Vec<Value>, Error> {
-    let sizes=db.prepare("SELECT coalesce(length(CAST(r.conditions AS BLOB)),0)+coalesce(length(CAST(r.actions AS BLOB)),0) FROM schedules s LEFT JOIN rules r ON r.budget_id=s.budget_id AND r.id=s.rule_id AND r.tombstone=0 WHERE s.budget_id=?1 AND s.tombstone=0 AND s.completed=0 LIMIT 5001")?.query_map([b],|r|r.get::<_,i64>(0))?.collect::<Result<Vec<_>,_>>()?;
-    if sizes.len() > 5000 || sizes.iter().sum::<i64>() > 8 * 1024 * 1024 {
-        return Err(Error::invalid(
-            "The active schedule set exceeds forecast limits. Review large or obsolete schedules before calculating.",
-        ));
-    }
-    read(db, b, None, 0, 5000, None, true)
-}
 pub fn get(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
     read(db, b, Some(id), 0, 1, None, false)?
         .pop()

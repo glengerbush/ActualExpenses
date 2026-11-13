@@ -107,7 +107,8 @@ fn target(
     b: &str,
     id: &str,
 ) -> Result<(&'static str, String, &'static str), Error> {
-    for table in ["accounts"] {
+    {
+        let table = "accounts";
         if db.query_row(
             &format!("SELECT EXISTS(SELECT 1 FROM {table} WHERE budget_id=?1 AND id=?2)"),
             params![b, id],
@@ -187,7 +188,8 @@ pub fn record(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
 pub const QUERY_FROM: &str = "FROM (SELECT n.budget_id,n.id,CASE WHEN a.id IS NOT NULL THEN a.notes ELSE n.note END AS note,n.tombstone FROM notes n LEFT JOIN accounts a ON a.budget_id=n.budget_id AND a.id=n.id WHERE n.id NOT GLOB 'budget-[0-9][0-9][0-9][0-9]-[0-9][0-9]' AND n.id<>n.budget_id AND NOT EXISTS(SELECT 1 FROM categories c WHERE c.budget_id=n.budget_id AND c.id=n.id) AND NOT EXISTS(SELECT 1 FROM category_groups g WHERE g.budget_id=n.budget_id AND g.id=n.id)) t";
 /// Once per migration or explicit portable restore, never a startup ledger scan.
 pub fn domain_identities(db: &Connection, only: Option<&str>) -> Result<(), Error> {
-    for table in ["accounts"] {
+    {
+        let table = "accounts";
         let id = "id";
         let live = "";
         let mut q=db.prepare(&format!("INSERT OR IGNORE INTO notes(budget_id,id,note) SELECT budget_id,{id},'' FROM {table} WHERE (?1 IS NULL OR budget_id=?1) AND notes<>''{live} RETURNING budget_id,id"))?;

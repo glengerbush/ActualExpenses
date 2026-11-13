@@ -36,6 +36,8 @@ const MIGRATIONS: &[&str] = &[
     include_str!("migrations/030_visible_categories.sql"),
     include_str!("migrations/031_tracking_only.sql"),
     include_str!("migrations/032_retire_notes.sql"),
+    include_str!("migrations/033_weekly_backups.sql"),
+    include_str!("migrations/034_retire_experiments.sql"),
 ];
 pub(crate) const CURRENT_VERSION: usize = MIGRATIONS.len();
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {

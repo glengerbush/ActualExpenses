@@ -1,4 +1,4 @@
-//! Ordered rule actions and exact split allocation, with source expression conversions.
+//! Ordered fixed rule actions and exact split allocation.
 use super::*;
 use sha2::{Digest, Sha256};
 pub fn validate(a: &Value) -> Result<(), Error> {
@@ -20,32 +20,12 @@ pub fn validate(a: &Value) -> Result<(), Error> {
     if !a["options"].is_null()
         && a["options"].as_object().is_none_or(|o| {
             o.keys()
-                .any(|k| !["splitIndex", "method", "formula", "template"].contains(&k.as_str()))
+                .any(|k| !["splitIndex", "method"].contains(&k.as_str()))
         })
     {
         return Err(Error::invalid("Unknown action option"));
     }
-    for field in ["template", "formula"] {
-        if let Some(value) = a["options"].get(field)
-            && !value.is_null()
-            && value.as_str().is_none_or(|s| s.len() > 8192)
-        {
-            return Err(Error::invalid(
-                "Rule formula/template requires at most8192 bytes of text",
-            ));
-        }
-    }
     match op {
-        "set" if super::expressions::calculated(a) => {
-            if !matches!(
-                field,
-                "account" | "payee" | "category" | "amount" | "date" | "cleared" | "payee_name"
-            ) {
-                return Err(Error::invalid("Unsupported rule action field"));
-            }
-            // The source Action constructor owns calculated-value validation.
-            // A formula's unused raw placeholder need not have the output type.
-        }
         "set" => {
             match field {
                 "account" | "payee" | "category" => {
@@ -108,7 +88,7 @@ pub fn validate(a: &Value) -> Result<(), Error> {
                 Some("fixed-percent") => {
                     percent(value)?;
                 }
-                Some("remainder" | "formula") => {}
+                Some("remainder") => {}
                 _ => return Err(Error::invalid("Unknown split allocation method")),
             }
         }
@@ -240,8 +220,6 @@ pub fn apply(
     b: &str,
     input: &Value,
     rule: &Rule,
-    mut expressions: Option<&mut super::expressions::Context>,
-    work: &mut super::expressions::Budget,
     retain_first: bool,
 ) -> Result<Value, Error> {
     let mut row = input.clone();
@@ -250,16 +228,7 @@ pub fn apply(
         .iter()
         .filter(|a| a["options"]["splitIndex"].as_u64().unwrap_or(0) == 0)
     {
-        if super::expressions::calculated(a)
-            && matches!(a["op"].as_str(), Some("set" | "set-split-amount"))
-        {
-            expressions
-                .as_deref_mut()
-                .ok_or_else(|| Error::internal("Missing rule expression context"))?
-                .apply(&mut row, a, None, work)?;
-        } else {
-            exec(a, &mut row)?;
-        }
+        exec(a, &mut row)?;
     }
     resolve_name(db, b, &mut row)?;
     let child_actions = rule
@@ -276,10 +245,8 @@ pub fn apply(
         .filter(|_| retain_first)
         .cloned();
     let mut children = row["children"].as_array().cloned().unwrap_or_else(|| {
-        let order = expressions
-            .as_deref()
-            .map(|context| context.original_order())
-            .unwrap_or_else(|| row["sort_order"].as_f64())
+        let order = row["sort_order"]
+            .as_f64()
             .filter(|value| *value != 0.0)
             .unwrap_or(-1.0);
         vec![child(
@@ -290,7 +257,6 @@ pub fn apply(
         )]
     });
     let original_payee = row["payee_id"].clone();
-    let parent_context = row.clone();
     if row["is_parent"] != true {
         row["payee_id"] = Value::Null;
     }
@@ -311,26 +277,12 @@ pub fn apply(
             ]);
             let order = children
                 .last()
-                .and_then(|c| {
-                    expressions
-                        .as_deref()
-                        .map(|context| context.child_order(c))
-                        .unwrap_or_else(|| c["sort_order"].as_f64())
-                })
+                .and_then(|c| c["sort_order"].as_f64())
                 .unwrap_or(0.0)
                 - 1.0;
             children.push(child(&row, payee, id, order));
         }
-        if super::expressions::calculated(a)
-            && matches!(a["op"].as_str(), Some("set" | "set-split-amount"))
-        {
-            expressions
-                .as_deref_mut()
-                .ok_or_else(|| Error::internal("Missing rule expression context"))?
-                .apply(&mut children[index], a, Some(&parent_context), work)?;
-        } else {
-            exec(a, &mut children[index])?;
-        }
+        exec(a, &mut children[index])?;
         resolve_name(db, b, &mut children[index])?;
     }
     let fractional =

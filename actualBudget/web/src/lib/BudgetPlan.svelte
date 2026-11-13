@@ -1,4 +1,7 @@
 <script lang="ts">
+  import Notifications from "./Notifications.svelte";
+  import ReorderHandle from "./ReorderHandle.svelte";
+  import type { PendingMutation } from "./register-api";
   import RefreshIcon from "./RefreshIcon.svelte";
   import { outsideClick } from "./outside-click";
   import Categories from "./Categories.svelte";
@@ -8,11 +11,7 @@
   import { onMount, onDestroy, tick } from "svelte";
   import { SvelteDate } from "svelte/reactivity";
   import { request, uuid, errorMessage } from "./api";
-  import {
-    mutate,
-    requestCancellation,
-    type Transaction,
-  } from "./register-api";
+  import { mutate, requestCancellation } from "./register-api";
   import { historyOwner } from "./history-owner";
   import {
     nextEditClock,
@@ -27,7 +26,6 @@
     captureAmountFormat,
     today,
   } from "./money";
-  import { calculateAmount } from "./calculator";
   import {
     planningKey,
     readPlanningDraft,
@@ -39,15 +37,13 @@
   let {
     budgetId,
     disconnected,
-    onclose,
     onchanged,
-    onaccount,
+    ontransactions,
   }: {
     budgetId: string;
     disconnected: boolean;
-    onclose: () => void;
     onchanged: (method: "tracking") => Promise<void>;
-    onaccount: (id: string) => void;
+    ontransactions: (category: string, month: string) => void;
   } = $props();
   let view = $state.raw<PlanView | null>(null),
     draft = $state<PlanningDraft | null>(null);
@@ -64,7 +60,10 @@
     resolved_color: string;
     is_income: boolean;
     sort_order: number | null;
+    group_id?: string | null;
+    field_versions: Record<string, string>;
   };
+  let categoryRows = $state.raw<Group[]>([]);
   let categoryGroups = $state.raw<Group[]>([]);
   let categoryEditor = $state<CategoryLaunch | null>(null);
   async function loadGroups() {
@@ -79,6 +78,17 @@
       offset = result.next_offset;
     } while (offset !== null);
     categoryGroups = groups;
+    const rows: Group[] = [];
+    offset = 0;
+    do {
+      const result: { data: Group[]; next_offset: number | null } =
+        await request(
+          `/budgets/${budgetId}/categories?limit=1000&offset=${offset}`,
+        );
+      rows.push(...result.data);
+      offset = result.next_offset;
+    } while (offset !== null);
+    categoryRows = rows;
   }
   let collapsedGroups = $state<string[]>([]);
   function grouped(categories: PlanCategory[]) {
@@ -120,11 +130,253 @@
       group.categories.push(category);
     }
     return result.sort(
-      (a, b) =>
-        Number(b.income) - Number(a.income) ||
-        a.order - b.order ||
-        a.name.localeCompare(b.name),
+      (a, b) => a.order - b.order || a.name.localeCompare(b.name),
     );
+  }
+  type ItemKind = "category-groups" | "categories";
+  type DragItem = { kind: ItemKind; id: string; month: string };
+  let dragging = $state<DragItem | null>(null);
+  let dropTarget = $state<{
+    kind: ItemKind;
+    id: string;
+    after: boolean;
+  } | null>(null);
+  let arrangement = $state.raw<PendingMutation[]>([]);
+  let arrangementError = $state("");
+  let arranging = $state(false);
+  const arrangementKey = $derived(`actualBudget.arrangement.v1.${budgetId}`);
+  const arrangementLocked = $derived(
+    busy ||
+      loading ||
+      disconnected ||
+      !!draft ||
+      !!categoryEditor ||
+      arranging ||
+      arrangement.length > 0 ||
+      !!arrangementError,
+  );
+  onMount(() => {
+    try {
+      const raw = localStorage.getItem(arrangementKey);
+      if (raw) arrangement = JSON.parse(raw);
+    } catch (e) {
+      arrangementError = errorMessage(e);
+    }
+  });
+  async function sendArrangement() {
+    if (arranging || disconnected || !arrangement.length) return;
+    arranging = true;
+    arrangementError = "";
+    try {
+      while (arrangement.length) {
+        if (
+          localStorage.getItem(arrangementKey) !== JSON.stringify(arrangement)
+        )
+          throw new Error(
+            "Another tab changed this saved edit. Reload before retrying.",
+          );
+        const result = await mutate(arrangement[0]);
+        const remaining = arrangement.slice(1);
+        if (remaining.length)
+          localStorage.setItem(arrangementKey, JSON.stringify(remaining));
+        else localStorage.removeItem(arrangementKey);
+        arrangement = remaining;
+        if (result.conflicts?.length) {
+          arrangementError =
+            "A newer edit was kept. Review the current order or name.";
+          break;
+        }
+      }
+      await refresh();
+    } catch (e) {
+      arrangementError = errorMessage(e);
+    } finally {
+      arranging = false;
+    }
+  }
+  async function saveArrangement(
+    kind: ItemKind,
+    edits: { row: Group; body: Record<string, unknown> }[],
+  ) {
+    if (arrangementLocked || !view || !edits.length) return;
+    const epoch = view.epoch;
+    arranging = true;
+    arrangementError = "";
+    try {
+      if (localStorage.getItem(arrangementKey))
+        throw new Error("Another tab has a saved edit. Reload to recover it.");
+      const owner = await historyOwner();
+      if (localStorage.getItem(arrangementKey))
+        throw new Error("Another tab has a saved edit. Reload to recover it.");
+      const operations: PendingMutation[] = edits.map(({ row, body }) => ({
+        path: `/budgets/${budgetId}/${kind}/${row.id}`,
+        method: "PATCH",
+        key: uuid(),
+        body,
+        budgetEpoch: epoch,
+        edit_clock: nextEditClock(row.field_versions),
+        historyOwner: owner,
+      }));
+      localStorage.setItem(arrangementKey, JSON.stringify(operations));
+      arrangement = operations;
+    } catch (e) {
+      arrangementError = errorMessage(e);
+    } finally {
+      arranging = false;
+    }
+    if (arrangement.length) await sendArrangement();
+  }
+  async function renameItem(
+    row: Group,
+    input: HTMLInputElement,
+    kind: ItemKind = "category-groups",
+  ) {
+    const name = input.value.trim();
+    if (!name) {
+      input.value = row.name;
+      return;
+    }
+    if (name === row.name) return;
+    await saveArrangement(kind, [{ row, body: { name } }]);
+  }
+  function cancelDrag() {
+    dragging = null;
+    dropTarget = null;
+  }
+  function moveDrag(x: number, y: number) {
+    if (!dragging) return;
+    const row = document
+      .elementFromPoint(x, y)
+      ?.closest<HTMLElement>("[data-budget-kind]");
+    const kind = row?.dataset.budgetKind as ItemKind | undefined;
+    if (
+      !row ||
+      !kind ||
+      row.dataset.month !== dragging.month ||
+      (dragging.kind === "category-groups" && kind !== "category-groups")
+    ) {
+      dropTarget = null;
+      return;
+    }
+    const rect = row.getBoundingClientRect();
+    dropTarget = {
+      kind,
+      id: row.dataset.id!,
+      after: y > rect.top + rect.height / 2,
+    };
+    const scroll = row.closest(".budget-table-scroll");
+    if (scroll && x > innerWidth - 35) scroll.scrollBy({ left: 20 });
+    if (y > innerHeight - 45) window.scrollBy(0, 15);
+    else if (y < 60) window.scrollBy(0, -15);
+  }
+  async function reorder(
+    source: DragItem,
+    target: { kind: ItemKind; id: string; after: boolean },
+  ) {
+    const rows =
+      source.kind === "category-groups" ? categoryGroups : categoryRows;
+    const row = rows.find((r) => r.id === source.id);
+    if (!row || (source.kind === target.kind && source.id === target.id))
+      return;
+    const destination =
+      target.kind === "categories"
+        ? categoryRows.find((r) => r.id === target.id)
+        : categoryGroups.find((r) => r.id === target.id);
+    const groupId =
+      target.kind === "categories"
+        ? (destination?.group_id ?? null)
+        : (destination?.id ?? null);
+    if (
+      source.kind === "categories" &&
+      destination &&
+      destination.is_income !== row.is_income
+    ) {
+      notice = "Keep income and expense categories in their matching groups.";
+      return;
+    }
+    // Preserve the displayed order when imported records share the same order number.
+    const displayed =
+      source.kind === "category-groups"
+        ? grouped([]).map((g) => g.id)
+        : (Object.values(view?.months ?? {})[0]?.categories.map((c) => c.id) ??
+          []);
+    const siblings = displayed
+      .map((id) => rows.find((r) => r.id === id))
+      .filter(
+        (r): r is Group =>
+          !!r &&
+          r.id !== row.id &&
+          (source.kind === "category-groups" ||
+            (r.group_id ?? null) === groupId),
+      );
+    let index =
+      source.kind === target.kind
+        ? siblings.findIndex((r) => r.id === target.id)
+        : siblings.length;
+    if (index < 0) return;
+    if (source.kind === target.kind && target.after) index++;
+    const before = siblings[index - 1]?.sort_order ?? (index === 0 ? null : 0);
+    const after =
+      siblings[index]?.sort_order ?? (index === siblings.length ? null : 0);
+    const order =
+      before === null
+        ? (after ?? 0) - 1024
+        : after === null
+          ? before + 1024
+          : before + (after - before) / 2;
+    const groupPatch =
+      source.kind === "categories" && (row.group_id ?? null) !== groupId
+        ? { group_id: groupId }
+        : {};
+    if (
+      Number.isFinite(order) &&
+      Math.abs(order) < Number.MAX_SAFE_INTEGER &&
+      (before === null || order > before) &&
+      (after === null || order < after)
+    ) {
+      await saveArrangement(source.kind, [
+        { row, body: { ...groupPatch, sort_order: order } },
+      ]);
+    } else {
+      siblings.splice(index, 0, row);
+      await saveArrangement(
+        source.kind,
+        siblings.map((r, i) => ({
+          row: r,
+          body: {
+            ...(r.id === row.id ? groupPatch : {}),
+            sort_order: i * 1024,
+          },
+        })),
+      );
+    }
+    if (!arrangementError && !arrangement.length) notice = "Order saved.";
+  }
+  function drop() {
+    const source = dragging,
+      target = dropTarget;
+    cancelDrag();
+    if (source && target) void reorder(source, target);
+  }
+  function stepItem(source: DragItem, direction: number) {
+    const groups = grouped(
+      Object.values(view?.months ?? {})[0]?.categories ?? [],
+    );
+    const ids =
+      source.kind === "category-groups"
+        ? groups
+            .filter((g) => categoryGroups.some((r) => r.id === g.id))
+            .map((g) => g.id)
+        : (groups
+            .find((g) => g.categories.some((c) => c.id === source.id))
+            ?.categories.map((c) => c.id) ?? []);
+    const target = ids[ids.indexOf(source.id) + direction];
+    if (target)
+      void reorder(source, {
+        kind: source.kind,
+        id: target,
+        after: direction > 0,
+      });
   }
   function groupTotal(
     categories: PlanCategory[],
@@ -140,17 +392,8 @@
     undo: { id: string; label: string } | null;
     redo: { id: string; label: string } | null;
   }>({ undo: null, redo: null });
-  let detail = $state<{
-    category: PlanCategory;
-    month: string;
-    offset: number;
-    data: Transaction[];
-    total_count: number;
-    actual_total: number;
-    snapshot: string;
-  } | null>(null);
+  let selectedCategory = $state<{ id: string; month: string } | null>(null);
   let checkpoint: string | null = null;
-  let openedRowDraft: string | null = null;
   let quickTimer: ReturnType<typeof setTimeout> | undefined;
   let lastInputAt = 0;
   let flushOnIdle = false;
@@ -197,12 +440,11 @@
     if (!draft.pending) await send();
   }
   const amounts = ["set"];
-  const categoryActions = ["set", "carryover", "copy_year"];
+  const categoryActions = ["set", "carryover"];
   const labels: Record<string, string> = {
     set: "Edit allocation",
     carryover: "Carryover setting",
     copy_previous: "Copy previous month",
-    copy_year: "Copy through year end",
     undo: "Undo",
     redo: "Redo",
   };
@@ -217,21 +459,6 @@
     else localStorage.setItem(planningKey(budgetId), raw);
     checkpoint = raw;
     draft = next;
-    if (!next) openedRowDraft = null;
-  }
-  function field<K extends keyof PlanningDraft>(
-    key: K,
-    value: PlanningDraft[K],
-  ) {
-    if (!draft || draft.pending || busy) return;
-    const next = { ...$state.snapshot(draft), [key]: value };
-    try {
-      save(next);
-      error = "";
-    } catch (e) {
-      draft = next;
-      error = errorMessage(e);
-    }
   }
   async function refresh() {
     if (disconnected) {
@@ -351,21 +578,6 @@
       error = errorMessage(e);
     }
   }
-  async function calculate() {
-    if (!draft) return;
-    busy = true;
-    try {
-      const n = await calculateAmount(draft.amount, draft.format);
-      save({
-        ...$state.snapshot(draft),
-        amount: formatAmountInput(n, draft.format),
-      });
-    } catch (e) {
-      error = errorMessage(e);
-    } finally {
-      busy = false;
-    }
-  }
   function discard() {
     if (!draft || draft.pending || busy) return;
     try {
@@ -450,7 +662,6 @@
       }
       const quick = draft.quick;
       if (!quick) save(null);
-      detail = null;
       notice = cancel
         ? "The original request was already saved."
         : "Budget change saved.";
@@ -479,28 +690,11 @@
       }
     }
   }
-  async function showDetails(m: PlanMonth, c: PlanCategory, offset = 0) {
-    if (!view || busy) return;
-    busy = true;
-    error = "";
-    try {
-      const r = await request<{
-        data: Transaction[];
-        total_count: number;
-        actual_total: number;
-        snapshot: string;
-      }>(
-        `/budgets/${budgetId}/budget/transactions?month=${m.month}&category=${c.id}&offset=${offset}&limit=100&snapshot=${encodeURIComponent(detail?.category.id === c.id && detail.month === m.month ? detail.snapshot : view.snapshot)}`,
-      );
-      detail = { ...r, category: c, month: m.month, offset };
-    } catch (e) {
-      error = errorMessage(e);
-    } finally {
-      busy = false;
-    }
-  }
   function historyAction(direction: "undo" | "redo") {
-    if (current) open(direction, current);
+    if (current) {
+      open(direction, current);
+      void send();
+    }
   }
   function title(m: string) {
     return new Intl.DateTimeFormat("en-US", {
@@ -509,164 +703,138 @@
       timeZone: "UTC",
     }).format(new Date(m + "-01T12:00:00Z"));
   }
-  function switchCategoryAction(action: string) {
-    if (!draft || draft.pending || busy || !view) return;
-    const m = view.months[draft.month];
-    const c = m?.categories.find((c) => c.id === draft?.category);
-    if (!m || !c) return;
-    save({
-      ...$state.snapshot(draft),
-      action,
-    });
-  }
   function editRow(m: PlanMonth, c: PlanCategory) {
     if (busy || disconnected || categoryEditor || draft) return;
-    open("set", m, c);
-    openedRowDraft = draft ? JSON.stringify($state.snapshot(draft)) : null;
-    void tick().then(() => document.getElementById("plan-amount")?.focus());
+    selectedCategory = { id: c.id, month: m.month };
+  }
+  async function categoryAction(
+    action: "carryover" | "copy_previous",
+    m: PlanMonth,
+    c: PlanCategory,
+    enabled?: boolean,
+  ) {
+    if (draft || busy || disconnected) return;
+    open(action, m, c);
+    const created = draft as PlanningDraft | null;
+    if (!created) return;
+    try {
+      if (action === "carryover") {
+        // Actual's stored carryover flag belongs to the outgoing month.
+        const previous = new SvelteDate(m.month + "-01T12:00:00Z");
+        previous.setUTCMonth(previous.getUTCMonth() - 1);
+        save({
+          ...$state.snapshot(created),
+          month: previous.toISOString().slice(0, 7),
+          enabled: !!enabled,
+        });
+      }
+      await send();
+    } catch (e) {
+      error = errorMessage(e);
+    }
   }
 </script>
 
-{#snippet planEditor()}{#if draft && view}
-    <section
-      class="plan-form"
-      aria-labelledby="plan-action-title"
-      {@attach outsideClick(() => {
-        if (
-          draft &&
-          !draft.pending &&
-          !busy &&
-          !storageBroken &&
-          openedRowDraft !== null &&
-          JSON.stringify($state.snapshot(draft)) === openedRowDraft
-        ) {
-          try {
-            save(null);
-            error = "";
-            notice = "";
-          } catch (e) {
-            error = errorMessage(e);
-          }
-        }
-      })}
+{#snippet categoryControls(m: PlanMonth, c: PlanCategory)}
+  <section
+    class="category-controls"
+    aria-label={`Budget options for ${c.name}`}
+    {@attach outsideClick(() => {
+      if (!busy && !draft) selectedCategory = null;
+    })}
+  >
+    <label class="carryover-toggle"
+      ><input
+        type="checkbox"
+        role="switch"
+        checked={c.carryover_from_previous ?? true}
+        disabled={busy || !!draft || disconnected || m.month === "0001-01"}
+        onchange={(e) =>
+          void categoryAction("carryover", m, c, e.currentTarget.checked)}
+      /><span class="carryover-track" aria-hidden="true"></span>Carryover excess
+      from previous month</label
     >
-      <h2 id="plan-action-title">
-        {labels[draft.action] ?? "Retired saved action"}
-      </h2>
-      <p>{title(draft.month)}</p>
-      {#if draft.category}<div class="editor-tools">
-          {#each [["set", "Allocation"], ["copy_year", "Copy year"], ["copy_previous", "Copy previous"], ["carryover", "Carryover"]] as [action, label] (action)}
-            <button
-              type="button"
-              disabled={busy || !!draft.pending || disconnected}
-              onclick={() => switchCategoryAction(action)}>{label}</button
-            >
-          {/each}
-          <button
-            type="button"
-            disabled={busy || !!draft.pending || disconnected}
-            onclick={() => {
-              if (!draft) return;
-              const selected = draft.category;
-              discard();
-              categoryEditor = { kind: "categories", id: selected };
-            }}>Category settings</button
-          >
-          <button
-            type="button"
-            disabled={busy || disconnected}
-            onclick={() => {
-              if (!draft) return;
-              const m = view?.months[draft.month];
-              const c = m?.categories.find((c) => c.id === draft?.category);
-              if (m && c) void showDetails(m, c);
-            }}>Transactions</button
-          >
-        </div>{/if}
-      <form
-        onsubmit={(e) => {
-          e.preventDefault();
-          void send();
-        }}
-        aria-busy={busy}
+    <div class="editor-tools">
+      <button
+        disabled={busy || !!draft || disconnected}
+        onclick={() => void categoryAction("copy_previous", m, c)}
+        >Copy previous</button
       >
-        <fieldset disabled={busy || !!draft.pending}>
-          {#if draft.category}<p>
-              {view.months[draft.month]?.categories.find(
-                (c) => c.id === draft!.category,
-              )?.name ?? "Saved category"}
-            </p>{/if}
-          {#if amounts.includes(draft.action)}<label for="plan-amount"
-              >{t("Amount")}</label
-            >
-            <div class="amount-entry">
-              <input
-                id="plan-amount"
-                inputmode="decimal"
-                maxlength="256"
-                value={draft.amount}
-                oninput={(e) => field("amount", e.currentTarget.value)}
-              /><button
-                type="button"
-                onclick={() => void calculate()}
-                disabled={disconnected}>Calculate</button
-              >
-            </div>
-            <p class="hint">
-              Amounts use the format captured when this draft opened. Positive
-              allocations add to the plan.
-            </p>{/if}
-          {#if draft.action === "carryover"}<label class="check"
-              ><input
-                type="checkbox"
-                checked={draft.enabled}
-                onchange={(e) => field("enabled", e.currentTarget.checked)}
-              />Carry this category’s remaining plan to the following month</label
-            >
-            <p class="hint">
-              Applies from this month through the current planning horizon.
-            </p>{/if}
-          {#if draft.action === "copy_year"}<p>
-              Copy this allocation to later available months of the same year.
-            </p>{/if}
-          {#if draft.action === "copy_previous"}<p>
-              Copy category allocations from the previous month. Carryover stays
-              separate.
-            </p>{/if}
-        </fieldset>
-        {#if draft.pending}<p role="status">
-            The outcome is unconfirmed. Retry the original saved request.
-          </p>
-          <button
-            type="button"
-            onclick={() => void send()}
-            disabled={busy || disconnected}>Retry saved budget request</button
-          ><button
-            type="button"
-            onclick={() => void send(true)}
-            disabled={busy || disconnected}
-            >Cancel saved budget request safely</button
-          >{:else}<div class="actions">
-            <button
-              class="primary"
-              type="submit"
-              disabled={busy || disconnected}>Save plan</button
-            ><button type="button" onclick={discard} disabled={busy}
-              >Discard budget draft</button
-            >
-          </div>{/if}
-      </form>
+      <button
+        disabled={busy || !!draft || disconnected}
+        onclick={() => ontransactions(c.id, m.month)}>Transactions</button
+      >
+    </div>
+  </section>
+{/snippet}
+
+{#snippet planEditor()}{#if draft && view}
+    <section class="plan-form" aria-label="Saved budget change">
+      <p>
+        {labels[draft.action] ?? "Retired saved action"} · {title(draft.month)}
+      </p>
+      {#if draft.pending}
+        <p role="status">
+          The outcome is unconfirmed. Retry the original saved request.
+        </p>
+        <button onclick={() => void send()} disabled={busy || disconnected}
+          >Retry saved budget request</button
+        >
+        <button onclick={() => void send(true)} disabled={busy || disconnected}
+          >Cancel saved budget request safely</button
+        >
+      {:else}
+        <p role="status">
+          A saved change needs attention before editing can continue.
+        </p>
+        <button onclick={() => void send()} disabled={busy || disconnected}
+          >Retry saved budget change</button
+        >
+        <button onclick={discard} disabled={busy}>Discard saved change</button>
+      {/if}
     </section>
   {/if}{/snippet}
 
+{#snippet reorderHandle(
+  kind: ItemKind,
+  id: string,
+  name: string,
+  month: string,
+)}
+  <ReorderHandle
+    label={`Move ${kind === "categories" ? "category" : "group"} ${name}`}
+    disabled={arrangementLocked}
+    onstart={() => {
+      dragging = { kind, id, month };
+    }}
+    onmove={moveDrag}
+    onend={drop}
+    oncancel={cancelDrag}
+    onstep={(direction) => stepItem({ kind, id, month }, direction)}
+  />
+{/snippet}
 <section aria-labelledby="planning-title">
   <div class="page-heading">
     <div>
       <h1 id="planning-title">{t("Budget")}</h1>
-      <p class="muted">Compare planned income and expenses with actuals.</p>
     </div>
-    <button onclick={onclose} disabled={busy}>Close budget view</button>
   </div>
+  {#if arrangement.length}<div role="status">
+      A group or category edit is saved for retry.
+      <button
+        onclick={() => void sendArrangement()}
+        disabled={arranging || disconnected}
+        >Retry saved group/category edit</button
+      >
+    </div>{/if}
+  {#if arrangementError}<p role="alert">{arrangementError}</p>
+    {#if !arrangement.length}<button
+        onclick={() => {
+          arrangementError = "";
+          void refresh();
+        }}>Dismiss and refresh</button
+      >{/if}
+  {/if}
   {#if categoryEditor}<section
       class="inline-category-editor"
       aria-label="Category and group editor"
@@ -824,11 +992,7 @@
       Budget changes need a connection. Displayed figures are the last confirmed
       view.
     </p>{/if}
-  {#if error}<p class="error" role="alert">{error}</p>{/if}{#if notice}<p
-      role="status"
-    >
-      {notice}
-    </p>{/if}
+  <Notifications bind:notice bind:error />
   {#if storageBroken}<p>
       Keep browser data for recovery; the unreadable draft has not been removed.
     </p>
@@ -849,7 +1013,7 @@
       {/if}
     </div>{/if}
   {#if view && current}
-    {#if draft && !draft.category}{@render planEditor()}{/if}
+    {#if draft && !busy && !draft.quick}{@render planEditor()}{/if}
     <div class="month-grid">
       {#each Object.values(view.months) as m (m.month)}
         <section class="budget-month" aria-labelledby={`month-${m.month}`}>
@@ -865,7 +1029,10 @@
           </dl>
           <div class="month-actions">
             <button
-              onclick={() => open("copy_previous", m)}
+              onclick={() => {
+                open("copy_previous", m);
+                void send();
+              }}
               disabled={!!draft || busy || disconnected}
               >Copy previous month</button
             >
@@ -920,10 +1087,34 @@
                 ></thead
               ><tbody
                 >{#each grouped(m.categories) as group (group.id)}
-                  <tr class="budget-group" style:--group-color={group.color}>
+                  {@const record = categoryGroups.find(
+                    (g) => g.id === group.id,
+                  )}
+                  <tr
+                    class="budget-group"
+                    style:--group-color={group.color}
+                    data-budget-kind="category-groups"
+                    data-id={group.id}
+                    data-month={m.month}
+                    class:drop-before={dragging?.month === m.month &&
+                      dropTarget?.id === group.id &&
+                      !dropTarget.after}
+                    class:drop-after={dragging?.month === m.month &&
+                      dropTarget?.id === group.id &&
+                      dropTarget.after}
+                  >
                     <th scope="row"
                       ><div class="group-label">
+                        {#if categoryGroups.find((g) => g.id === group.id)}
+                          {@render reorderHandle(
+                            "category-groups",
+                            group.id,
+                            group.name,
+                            m.month,
+                          )}
+                        {/if}
                         <button
+                          aria-label={`Toggle ${group.name}`}
                           class="group-toggle"
                           aria-expanded={!collapsedGroups.includes(group.id)}
                           onclick={() => {
@@ -945,8 +1136,25 @@
                                 ? "m9 5 7 7-7 7"
                                 : "m5 9 7 7 7-7"}
                             /></svg
-                          >{group.name}
+                          >
                         </button>
+                        {#if record}<input
+                            class="group-name"
+                            aria-label={`Group name ${group.name}`}
+                            maxlength="120"
+                            value={record.name}
+                            disabled={arrangementLocked}
+                            onblur={(e) =>
+                              void renameItem(record, e.currentTarget)}
+                            onkeydown={(e) => {
+                              if (e.key === "Enter") e.currentTarget.blur();
+                              if (e.key === "Escape") {
+                                e.currentTarget.value = record.name;
+                                e.currentTarget.blur();
+                              }
+                            }}
+                          />
+                        {:else}<span>{group.name}</span>{/if}
                         {#if categoryGroups.some((g) => g.id === group.id)}<CategoryColor
                             {budgetId}
                             id={group.id}
@@ -989,32 +1197,6 @@
                             ><path d="M12 5v14M5 12h14" /></svg
                           ></button
                         >
-                        {#if categoryGroups.some((g) => g.id === group.id)}<button
-                            class="add-icon"
-                            aria-label={`Edit group ${group.name}`}
-                            title={`Edit group ${group.name}`}
-                            disabled={busy ||
-                              disconnected ||
-                              !!draft ||
-                              !!categoryEditor}
-                            onclick={() =>
-                              (categoryEditor = {
-                                kind: "category-groups",
-                                id: group.id,
-                              })}
-                            ><svg
-                              aria-hidden="true"
-                              width="18"
-                              height="18"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="1.75"
-                              ><path
-                                d="m16 3 5 5-12 12-6 1 1-6Z M14 5l5 5"
-                              /></svg
-                            ></button
-                          >{/if}
                       </div></th
                     >
                     <td class="amount"
@@ -1027,8 +1209,20 @@
                   </tr>
                   {#if !collapsedGroups.includes(group.id)}
                     {#each group.categories as c (c.id)}
+                      {@const categoryRecord = categoryRows.find(
+                        (row) => row.id === c.id,
+                      )}
                       <tr
                         class="budget-category"
+                        data-budget-kind="categories"
+                        data-id={c.id}
+                        data-month={m.month}
+                        class:drop-before={dragging?.month === m.month &&
+                          dropTarget?.id === c.id &&
+                          !dropTarget.after}
+                        class:drop-after={dragging?.month === m.month &&
+                          dropTarget?.id === c.id &&
+                          dropTarget.after}
                         class:editing={draft?.category === c.id &&
                           draft.month === m.month}
                         style:--category-color={c.category_color ??
@@ -1036,11 +1230,48 @@
                       >
                         <th scope="row"
                           ><div class="category-label">
-                            <span
-                              class="category-swatch"
-                              style:background={c.category_color ?? group.color}
-                              aria-hidden="true"
-                            ></span><span class="category-name">{c.name}</span>
+                            {@render reorderHandle(
+                              "categories",
+                              c.id,
+                              c.name,
+                              m.month,
+                            )}
+                            <CategoryColor
+                              {budgetId}
+                              id={c.id}
+                              kind="categories"
+                              name={c.name}
+                              color={c.category_color ?? group.color}
+                              automatic={!c.color_override}
+                              compact
+                              disabled={busy ||
+                                disconnected ||
+                                !!draft?.pending}
+                              onchanged={refresh}
+                            />
+                            {#if categoryRecord}<input
+                                class="category-name group-name"
+                                aria-label={`Category name ${c.name}`}
+                                title={c.name}
+                                maxlength="120"
+                                value={categoryRecord.name}
+                                disabled={arrangementLocked}
+                                onblur={(e) =>
+                                  void renameItem(
+                                    categoryRecord,
+                                    e.currentTarget,
+                                    "categories",
+                                  )}
+                                onkeydown={(e) => {
+                                  if (e.key === "Enter") e.currentTarget.blur();
+                                  if (e.key === "Escape") {
+                                    e.currentTarget.value = categoryRecord.name;
+                                    e.currentTarget.blur();
+                                  }
+                                }}
+                              />{:else}<span class="category-name"
+                                >{c.name}</span
+                              >{/if}
                             <button
                               class="add-icon"
                               aria-label={`Edit ${c.name} for ${title(m.month)}`}
@@ -1093,9 +1324,10 @@
                         <td class="amount">{formatAmount(c.actual)}</td>
                         <td class="amount">{formatAmount(c.balance)}</td>
                       </tr>
-                      {#if draft?.category === c.id && draft.month === m.month && !draft.quick}<tr
+                      {#if selectedCategory?.id === c.id && selectedCategory.month === m.month}<tr
                           class="inline-plan-row"
-                          ><td colspan="4">{@render planEditor()}</td></tr
+                          ><td colspan="4">{@render categoryControls(m, c)}</td
+                          ></tr
                         >{/if}
                     {/each}{/if}{/each}</tbody
               >
@@ -1107,72 +1339,86 @@
         </section>{/each}
     </div>
   {/if}
-  {#if detail}<section
-      class="category-detail"
-      aria-labelledby="plan-detail-title"
-    >
-      <div class="page-heading">
-        <h2 id="plan-detail-title">
-          {detail.category.name} · {title(detail.month)}
-        </h2>
-        <button onclick={() => (detail = null)}>Close category detail</button>
-      </div>
-      <p>
-        {detail.total_count} contributing transactions · {formatAmount(
-          detail.actual_total,
-        )}
-      </p>
-      <div class="table-wrap">
-        <table>
-          <thead
-            ><tr
-              ><th>{t("Date")}</th><th>{t("Account")}</th><th>{t("Notes")}</th
-              ><th class="amount">{t("Amount")}</th></tr
-            ></thead
-          ><tbody
-            >{#each detail.data as row (row.id)}<tr
-                ><td>{row.date}</td><td
-                  ><button onclick={() => onaccount(row.account_id)}
-                    >{row.account_name}</button
-                  ></td
-                ><td
-                  >{row.payee_name ?? ""}{row.parent_id
-                    ? " (split allocation)"
-                    : ""}</td
-                ><td class="amount">{formatAmount(row.amount)}</td></tr
-              >{/each}</tbody
-          >
-        </table>
-      </div>
-      {#if !detail.data.length}<p>
-          No contributing transactions this month.
-        </p>{/if}
-      <div class="actions">
-        <button
-          disabled={busy || detail.offset === 0}
-          onclick={() =>
-            view?.months[detail!.month] &&
-            void showDetails(
-              view.months[detail!.month],
-              detail!.category,
-              Math.max(0, detail!.offset - 100),
-            )}>Previous transactions</button
-        ><button
-          disabled={busy ||
-            detail.offset + detail.data.length >= detail.total_count}
-          onclick={() =>
-            view?.months[detail!.month] &&
-            void showDetails(
-              view.months[detail!.month],
-              detail!.category,
-              detail!.offset + 100,
-            )}>Next transactions</button
-        >
-      </div>
-    </section>{/if}
 </section>
 
 <style>
+  .category-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    padding-block: 0.5rem;
+  }
+  .carryover-toggle {
+    position: relative;
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    min-height: 44px;
+    margin: 0;
+    cursor: pointer;
+  }
+  .carryover-toggle input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    margin: 0;
+    cursor: inherit;
+  }
+  .carryover-track {
+    flex: 0 0 40px;
+    height: 24px;
+    border-radius: 16px;
+    background: var(--muted);
+    padding: 3px;
+    box-sizing: border-box;
+  }
+  .carryover-track::after {
+    content: "";
+    display: block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--surface);
+  }
+  .carryover-toggle input:checked + .carryover-track {
+    background: var(--accent);
+  }
+  .carryover-toggle input:checked + .carryover-track::after {
+    transform: translateX(16px);
+  }
+  .carryover-toggle input:focus-visible + .carryover-track {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .carryover-toggle input:disabled + .carryover-track {
+    opacity: 0.5;
+  }
+  .group-name {
+    min-width: 4rem;
+    width: 100%;
+    max-width: 16rem;
+    border: 1px solid transparent;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    padding: 0.25rem;
+  }
+  .group-name:hover,
+  .group-name:focus {
+    border-color: var(--line);
+    background: var(--surface);
+  }
+  .drop-before > th,
+  .drop-before > td {
+    box-shadow: inset 0 2px var(--accent, #397c8c);
+  }
+  .drop-after > th,
+  .drop-after > td {
+    box-shadow: inset 0 -2px var(--accent, #397c8c);
+  }
+
   .month-picker,
   .month-input {
     display: flex;
@@ -1199,11 +1445,9 @@
     border: 0;
     background: transparent;
   }
-  .month-controls {
-    align-items: center;
-  }
   .category-name {
     flex: 1;
+    text-overflow: ellipsis;
   }
   .planned-input {
     width: 7rem;
@@ -1233,13 +1477,6 @@
     }
   }
 
-  .category-swatch {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    flex: 0 0 12px;
-    margin-right: 0.6rem;
-  }
   .budget-category:hover,
   .budget-category.editing {
     background: color-mix(
@@ -1254,11 +1491,6 @@
   }
   .inline-plan-row td {
     padding: 1rem;
-  }
-  .inline-plan-row .plan-form {
-    border: 0;
-    padding: 0;
-    margin: 0;
   }
   .budget-month {
     scroll-snap-align: start;
@@ -1306,6 +1538,8 @@
     padding-left: 1.25rem;
   }
   .group-toggle {
+    flex: 0 0 24px;
+    justify-content: center;
     display: inline-flex;
     gap: 0.35rem;
     align-items: center;
@@ -1315,6 +1549,9 @@
     padding: 0.25rem 0;
     min-height: 44px;
     text-align: left;
+  }
+  .group-toggle svg {
+    flex-shrink: 0;
   }
   .budget-category {
     background: color-mix(
@@ -1333,9 +1570,19 @@
     gap: 0.5rem;
     flex-wrap: wrap;
   }
+  .month-controls {
+    align-items: center;
+  }
   .month-controls label {
-    display: grid;
-    gap: 0.25rem;
+    display: flex;
+    margin: 0;
+  }
+  .months-count select {
+    margin: 0;
+  }
+  .page-heading,
+  .page-heading h1 {
+    margin-bottom: 0;
   }
   .plan-tools {
     flex-wrap: nowrap;
@@ -1390,33 +1637,13 @@
   .budget-table-scroll table {
     min-width: 30rem;
   }
-  .budget-table-scroll th .hint {
-    display: block;
-    font-weight: 400;
-  }
   .editor-tools {
     gap: 0.4rem;
   }
-  .plan-form,
-  .category-detail {
+  .plan-form {
     border-top: 1px solid var(--border);
     padding: 1.5rem 0;
     margin-top: 1rem;
-  }
-  .plan-form form {
-    max-width: 36rem;
-  }
-  .category-detail .table-wrap {
-    max-width: 100%;
-    overflow-x: auto;
-  }
-  .amount-entry {
-    display: flex;
-    gap: 0.5rem;
-  }
-  .amount-entry input {
-    min-width: 0;
-    flex: 1;
   }
   @media (max-width: 700px) {
     .month-controls {

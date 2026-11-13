@@ -35,3 +35,82 @@ export function rememberView(budget: string, view: string | null): void {
     /* Navigation remains usable when browser storage is unavailable. */
   }
 }
+
+const screens = [
+  "references",
+  "organize",
+  "budget",
+  "account",
+  "planning",
+  "transaction-files",
+  "rules",
+  "schedules",
+  "reports",
+  "settings",
+  "import",
+  "manage",
+  "restore",
+  "recovery",
+  "pending",
+] as const;
+export type Screen = (typeof screens)[number] | null;
+export const reportTabs = ["dashboards", "custom", "crossover"];
+export interface BrowserRoute {
+  budgetId: string;
+  screen: Screen;
+  report: string | null;
+  source: "actual" | "ynab4";
+  transactions?: { category: string; month: string } | null;
+}
+export function readBrowserRoute(): BrowserRoute | null {
+  const query = new URL(location.href).searchParams;
+  if (!query.has("view")) return null;
+  const view = query.get("view");
+  if (
+    view !== "transactions" &&
+    view !== "budgets" &&
+    !screens.includes(view as Exclude<Screen, null>)
+  )
+    return null;
+  const budgetId = query.get("budget") ?? "";
+  if (budgetId && !/^[0-9a-f-]{36}$/i.test(budgetId)) return null;
+  const report = query.get("report");
+  return {
+    budgetId,
+    transactions:
+      view === "transactions" &&
+      /^[0-9a-f-]{36}$/i.test(query.get("category") ?? "") &&
+      /^\d{4}-(0[1-9]|1[0-2])$/.test(query.get("month") ?? "")
+        ? { category: query.get("category")!, month: query.get("month")! }
+        : null,
+    screen: screens.includes(view as Exclude<Screen, null>)
+      ? (view as Screen)
+      : null,
+    report: report && reportTabs.includes(report) ? report : null,
+    source: query.get("source") === "ynab4" ? "ynab4" : "actual",
+  };
+}
+export function writeBrowserRoute(route: BrowserRoute, replace = false) {
+  const url = new URL(location.href);
+  url.hash = "";
+  url.searchParams.set(
+    "view",
+    route.screen ?? (route.budgetId ? "transactions" : "budgets"),
+  );
+  if (route.budgetId) url.searchParams.set("budget", route.budgetId);
+  else url.searchParams.delete("budget");
+  if (route.screen === "reports" && route.report)
+    url.searchParams.set("report", route.report);
+  else url.searchParams.delete("report");
+  if (route.screen === "import") url.searchParams.set("source", route.source);
+  else url.searchParams.delete("source");
+  if (!route.screen && route.budgetId && route.transactions) {
+    url.searchParams.set("category", route.transactions.category);
+    url.searchParams.set("month", route.transactions.month);
+  } else {
+    url.searchParams.delete("category");
+    url.searchParams.delete("month");
+  }
+  if (!replace && url.href === location.href) return;
+  history[replace ? "replaceState" : "pushState"](null, "", url);
+}

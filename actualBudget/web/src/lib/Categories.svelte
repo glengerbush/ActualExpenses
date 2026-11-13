@@ -461,7 +461,6 @@
         {t("Organize spending and income. History stays connected.")}
       </p>
     </div>
-    <button onclick={onclose}>{t("Done")}</button>
   </div>{/if}
 {#if offline}<p role="status">
     {t("Reconnect before changing categories or groups.")}
@@ -588,15 +587,6 @@
               if (draft) draft.color = null;
             }}>Use automatic shade</button
           >{/if}
-        <label for="category-order">{t("Order")}</label><input
-          id="category-order"
-          type="number"
-          step="any"
-          min="-9007199254740991"
-          max="9007199254740991"
-          bind:value={draft.sort_order}
-        />
-        <p class="hint">{t("Lower numbers appear first within the group.")}</p>
       {/if}
       <div class="category-actions">
         <button type="submit" class="primary" disabled={offline}

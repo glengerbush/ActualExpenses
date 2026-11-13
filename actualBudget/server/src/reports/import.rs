@@ -33,8 +33,9 @@ pub fn convert(source: &Value) -> Result<Value, Error> {
                 id,
                 kind: kind.into(),
                 revision: 1,
-                config: Value::Object(config),
-                tombstone,
+                config: Value::Object(config.clone()),
+                tombstone: tombstone
+                    || (kind == "widget" && retired_widget(&Value::Object(config.clone()))),
             };
             validate(&d)?;
             documents.push(d);

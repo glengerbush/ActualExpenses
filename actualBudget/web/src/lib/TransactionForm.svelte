@@ -64,6 +64,7 @@
   } from "./register-storage";
   let {
     inline = false,
+    columns = ["date", "payee", "category", "amount", "balance"],
     budgetId,
     accounts,
     payees,
@@ -78,6 +79,7 @@
     onschedule,
   }: {
     inline?: boolean;
+    columns?: string[];
     budgetId: string;
     accounts: Account[];
     payees: Reference[];
@@ -91,6 +93,21 @@
     oncancel: (restoreFocus?: boolean) => void;
     onschedule?: (context: ConversionContext) => void;
   } = $props();
+  const editorTracks = $derived(
+    [
+      ...columns.map(
+        (column) =>
+          ({
+            date: "10.5rem",
+            payee: "minmax(0, 1.2fr)",
+            category: "minmax(0, 1fr)",
+            amount: "13rem",
+            balance: "8rem",
+          })[column] ?? "minmax(0, 0.6fr)",
+      ),
+      columns.includes("balance") ? "6rem" : "14rem",
+    ].join(" "),
+  );
   let draft = $state<Draft | null>(null);
   let openedFields: string | null = null;
   let payeeSearching = $state(false);
@@ -1121,6 +1138,187 @@
   }
 </script>
 
+{#snippet recurrence(part: "toggle" | "options")}
+  {#if draft}<RecurrenceFields
+      compact
+      disabled={busy ||
+        !!draft.pending ||
+        !!draft.payeeCreation ||
+        externalChanged}
+      {part}
+      value={draft.fields.recurrence ??
+        transactionRecurrence(
+          draft.original?.recurrence,
+          parseDateInput(draft.fields.date, draft.dateFormat),
+        )}
+      onchange={(value) => update("recurrence", value)}
+    />{/if}
+{/snippet}
+
+{#snippet dateField()}
+  {#if draft}
+    <DateInput
+      id="transaction-date"
+      label={t("Date")}
+      format={draft.dateFormat}
+      required
+      disabled={busy || !!draft.pending}
+      bind:value={() => draft!.fields.date, (v) => update("date", v)}
+    />
+  {/if}
+{/snippet}
+
+{#snippet directionField()}
+  {#if draft}
+    <span id="transaction-direction-label" class="direction-label"
+      >{t("Transaction type")}</span
+    >
+    <div
+      class="direction-toggle"
+      class:income={draft.fields.direction === "income"}
+      role="radiogroup"
+      aria-labelledby="transaction-direction-label"
+    >
+      <span class="direction-thumb" aria-hidden="true"></span>
+      <label class:chosen={draft.fields.direction === "expense"}>
+        <input
+          type="radio"
+          name="transaction-direction"
+          value="expense"
+          aria-label={t("Expense")}
+          checked={draft.fields.direction === "expense"}
+          onchange={() => update("direction", "expense")}
+        />
+        <span class="expense-sign" aria-hidden="true">−</span>
+      </label>
+      <label class:chosen={draft.fields.direction === "income"}>
+        <input
+          type="radio"
+          name="transaction-direction"
+          value="income"
+          aria-label={t("Income")}
+          checked={draft.fields.direction === "income"}
+          onchange={() => update("direction", "income")}
+          disabled={disconnected &&
+            (!draft.original || !!draft.replaces || !!queued?.offlineCreated)}
+        />
+        <span class="income-sign" aria-hidden="true">+</span>
+      </label>
+    </div>
+  {/if}
+{/snippet}
+
+{#snippet amountField()}
+  {#if draft}
+    <label for="transaction-amount">{t("Amount")}</label>
+    <div class="amount-entry">
+      <input
+        id="transaction-amount"
+        inputmode="decimal"
+        required
+        maxlength="256"
+        aria-describedby="calculator-hint"
+        bind:value={() => draft!.fields.amount, (v) => update("amount", v)}
+      /><button
+        type="button"
+        onclick={calculate}
+        disabled={disconnected}
+        aria-label={t("Calculate")}
+        title={t("Calculate")}
+        >{#if inline}<svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            ><path d="M5 3h14v18H5zM8 7h8M8 12h2m4 0h2M8 16h2m4 0h2" /></svg
+          >{:else}{t("Calculate")}{/if}</button
+      >
+    </div>
+    <p id="calculator-hint" class="hint">
+      {t(
+        disconnected
+          ? "Offline: enter a plain amount. Calculator expressions require a connection."
+          : "Use +, −, *, /, ^ and parentheses. Expenses subtract; income adds.",
+      )}
+    </p>
+  {/if}
+{/snippet}
+
+{#snippet payeeField()}
+  {#if draft}
+    <label for="transaction-payee">{t("Payee")}</label>
+    <PayeePicker
+      id="transaction-payee"
+      payees={availablePayees}
+      value={draft.fields.payee}
+      newName={draft.fields.newPayee}
+      disabled={busy ||
+        !!draft.pending ||
+        !!draft.payeeCreation ||
+        externalChanged}
+      canCreate={!disconnected}
+      onselect={(value) => update("payee", value)}
+      oncreate={createPayee}
+      onsearch={(searching) => (payeeSearching = searching)}
+    />
+    {#if !inline}<PayeeLocations
+        {budgetId}
+        payeeId={draft.fields.payee}
+        newPayee={{
+          id: draft.referenceIds.payee,
+          name: draft.fields.newPayee,
+        }}
+        disabled={busy || !!draft.pending || externalChanged || disconnected}
+        onselect={selectNearby}
+        oncreated={locationPayeeCreated}
+        onpendingpayee={(id) => (pendingLocationPayee = id)}
+      />{/if}
+    {#if initial?.imported_payee}<p class="hint">
+        {t("Imported payee")}: {initial.imported_payee}
+      </p>{/if}
+  {/if}
+{/snippet}
+
+{#snippet categoryField()}
+  {#if draft}
+    <label for="transaction-category">{t("Category")}</label><select
+      id="transaction-category"
+      disabled={selectedAccount?.off_budget}
+      bind:value={() => draft!.fields.category, (v) => update("category", v)}
+      ><option value="">{t("Uncategorized")}</option
+      >{#each categories.filter((c) => !c.deleted || c.id === draft?.fields.category) as category (category.id)}<option
+          value={category.id}>{category.name}</option
+        >{/each}<option value="new" disabled={disconnected}
+        >{t("Create category…")}</option
+      ></select
+    >
+    {#if draft.fields.category === "new" && !selectedAccount?.off_budget}<label
+        for="new-category-name">{t("New category name")}</label
+      ><input
+        id="new-category-name"
+        required
+        maxlength="120"
+        bind:value={
+          () => draft!.fields.newCategory, (v) => update("newCategory", v)
+        }
+      /><label class="check"
+        ><input
+          type="checkbox"
+          bind:checked={
+            () => draft!.fields.categoryIncome,
+            (v) => update("categoryIncome", v)
+          }
+        />{t("Income category")}</label
+      >{/if}
+    {#if selectedAccount?.off_budget}<p class="hint">
+        {t("Off-budget entries have no category.")}
+      </p>{/if}
+  {/if}
+{/snippet}
+
 <section
   {@attach outsideClick(() => {
     if (
@@ -1166,189 +1364,75 @@
             </li>{/each}
         </ul>
       </section>{/if}
-    <form onsubmit={submit} aria-busy={busy}>
+    <form
+      onsubmit={submit}
+      aria-busy={busy}
+      style:--column-tracks={editorTracks}
+    >
       <fieldset
         disabled={busy ||
           !!draft.pending ||
           !!draft.payeeCreation ||
           externalChanged}
       >
-        <div class="entry-pair">
-          <div>
-            <DateInput
-              id="transaction-date"
-              label={t("Date")}
-              format={draft.dateFormat}
-              required
-              disabled={busy || !!draft.pending}
-              bind:value={() => draft!.fields.date, (v) => update("date", v)}
-            />
-          </div>
-        </div>
-        <div class="entry-pair">
-          <div>
-            <span id="transaction-direction-label" class="direction-label"
-              >{t("Transaction type")}</span
-            >
-            <div
-              class="direction-toggle"
-              class:income={draft.fields.direction === "income"}
-              role="radiogroup"
-              aria-labelledby="transaction-direction-label"
-            >
-              <span class="direction-thumb" aria-hidden="true"></span>
-              <label class:chosen={draft.fields.direction === "expense"}>
-                <input
-                  type="radio"
-                  name="transaction-direction"
-                  value="expense"
-                  aria-label={t("Expense")}
-                  checked={draft.fields.direction === "expense"}
-                  onchange={() => update("direction", "expense")}
-                />
-                <span class="expense-sign" aria-hidden="true">−</span>
-              </label>
-              <label class:chosen={draft.fields.direction === "income"}>
-                <input
-                  type="radio"
-                  name="transaction-direction"
-                  value="income"
-                  aria-label={t("Income")}
-                  checked={draft.fields.direction === "income"}
-                  onchange={() => update("direction", "income")}
-                  disabled={disconnected &&
-                    (!draft.original ||
-                      !!draft.replaces ||
-                      !!queued?.offlineCreated)}
-                />
-                <span class="income-sign" aria-hidden="true">+</span>
-              </label>
-            </div>
-          </div>
-          <div>
-            <label for="transaction-amount">{t("Amount")}</label>
-            <div class="amount-entry">
-              <input
-                id="transaction-amount"
-                inputmode="decimal"
-                required
-                maxlength="256"
-                aria-describedby="calculator-hint"
-                bind:value={
-                  () => draft!.fields.amount, (v) => update("amount", v)
-                }
-              /><button
-                type="button"
-                onclick={calculate}
-                disabled={disconnected}
-                aria-label={t("Calculate")}
-                title={t("Calculate")}
-                >{#if inline}<svg
-                    aria-hidden="true"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.75"
-                    ><path
-                      d="M5 3h14v18H5zM8 7h8M8 12h2m4 0h2M8 16h2m4 0h2"
-                    /></svg
-                  >{:else}{t("Calculate")}{/if}</button
+        {#if inline}
+          <div class="aligned-fields">
+            {#each columns as column, index (column)}
+              <div
+                class="aligned-field"
+                data-editor-column={column}
+                style:grid-column={index + 1}
               >
+                {#if column === "date"}{@render dateField()}
+                {:else if column === "payee"}{@render payeeField()}
+                {:else if column === "category"}{@render categoryField()}
+                {:else if column === "amount"}<div class="signed-amount">
+                    <div class="inline-direction">
+                      {@render directionField()}
+                    </div>
+                    <div class="amount-field">{@render amountField()}</div>
+                  </div>
+                {:else if column === "balance"}{@render recurrence("toggle")}
+                {/if}
+              </div>
+            {/each}
+          </div>
+          {#if ["date", "payee", "category", "amount"].some((column) => !columns.includes(column))}
+            <div class="additional-fields">
+              {#each ["date", "payee", "category", "amount"].filter((column) => !columns.includes(column)) as column (column)}
+                <div>
+                  {#if column === "date"}{@render dateField()}
+                  {:else if column === "payee"}{@render payeeField()}
+                  {:else if column === "category"}{@render categoryField()}
+                  {:else if column === "amount"}{@render amountField()}{/if}
+                </div>
+              {/each}
             </div>
-            <p id="calculator-hint" class="hint">
-              {t(
-                disconnected
-                  ? "Offline: enter a plain amount. Calculator expressions require a connection."
-                  : "Use +, −, *, /, ^ and parentheses. Expenses subtract; income adds.",
+          {/if}
+        {:else}
+          <div class="entry-pair"><div>{@render dateField()}</div></div>
+          <div class="entry-pair">
+            <div>{@render directionField()}</div>
+            <div>{@render amountField()}</div>
+          </div>
+          <div class="entry-pair">
+            <div>{@render payeeField()}</div>
+            <div>{@render categoryField()}</div>
+          </div>
+        {/if}
+        {#if !inline}<RecurrenceFields
+            value={draft.fields.recurrence ??
+              transactionRecurrence(
+                draft.original?.recurrence,
+                parseDateInput(draft.fields.date, draft.dateFormat),
               )}
-            </p>
-          </div>
-        </div>
-        <div class="entry-pair">
-          <div>
-            <label for="transaction-payee">{t("Payee")}</label>
-            <PayeePicker
-              id="transaction-payee"
-              payees={availablePayees}
-              value={draft.fields.payee}
-              newName={draft.fields.newPayee}
-              disabled={busy ||
-                !!draft.pending ||
-                !!draft.payeeCreation ||
-                externalChanged}
-              canCreate={!disconnected}
-              onselect={(value) => update("payee", value)}
-              oncreate={createPayee}
-              onsearch={(searching) => (payeeSearching = searching)}
-            />
-            {#if !inline}<PayeeLocations
-                {budgetId}
-                payeeId={draft.fields.payee}
-                newPayee={{
-                  id: draft.referenceIds.payee,
-                  name: draft.fields.newPayee,
-                }}
-                disabled={busy ||
-                  !!draft.pending ||
-                  externalChanged ||
-                  disconnected}
-                onselect={selectNearby}
-                oncreated={locationPayeeCreated}
-                onpendingpayee={(id) => (pendingLocationPayee = id)}
-              />{/if}
-            {#if initial?.imported_payee}<p class="hint">
-                {t("Imported payee")}: {initial.imported_payee}
-              </p>{/if}
-          </div>
-          <div>
-            <label for="transaction-category">{t("Category")}</label><select
-              id="transaction-category"
-              disabled={selectedAccount?.off_budget}
-              bind:value={
-                () => draft!.fields.category, (v) => update("category", v)
-              }
-              ><option value="">{t("Uncategorized")}</option
-              >{#each categories.filter((c) => !c.deleted || c.id === draft?.fields.category) as category (category.id)}<option
-                  value={category.id}>{category.name}</option
-                >{/each}<option value="new" disabled={disconnected}
-                >{t("Create category…")}</option
-              ></select
-            >
-            {#if draft.fields.category === "new" && !selectedAccount?.off_budget}<label
-                for="new-category-name">{t("New category name")}</label
-              ><input
-                id="new-category-name"
-                required
-                maxlength="120"
-                bind:value={
-                  () => draft!.fields.newCategory,
-                  (v) => update("newCategory", v)
-                }
-              /><label class="check"
-                ><input
-                  type="checkbox"
-                  bind:checked={
-                    () => draft!.fields.categoryIncome,
-                    (v) => update("categoryIncome", v)
-                  }
-                />{t("Income category")}</label
-              >{/if}
-            {#if selectedAccount?.off_budget}<p class="hint">
-                {t("Off-budget entries have no category.")}
-              </p>{/if}
-          </div>
-        </div>
-        <RecurrenceFields
-          compact={inline}
-          value={draft.fields.recurrence ??
-            transactionRecurrence(
-              draft.original?.recurrence,
-              parseDateInput(draft.fields.date, draft.dateFormat),
-            )}
-          onchange={(value) => update("recurrence", value)}
-        />
+            onchange={(value) => update("recurrence", value)}
+          />
+        {:else if draft.fields.recurrence?.enabled}<div
+            class="inline-recurrence-options"
+          >
+            {@render recurrence("options")}
+          </div>{/if}
       </fieldset>
       {#if error}<p class="error" role="alert">{error}</p>{/if}
       {#if draft.payeeCreation && !busy}<div class="payee-recovery">
@@ -1401,6 +1485,9 @@
             disconnected}>Schedule future transaction</button
         >{/if}
       <div class="actions">
+        {#if inline && !columns.includes("balance")}{@render recurrence(
+            "toggle",
+          )}{/if}
         <button
           class="primary"
           class:compact-action={inline}
@@ -1475,36 +1562,62 @@
   }
   .inline form {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.5rem;
-    align-items: start;
-  }
-  .inline form > p {
-    grid-column: 1 / -1;
-  }
-  .inline .actions {
-    margin: 0;
-  }
-  @container (max-width: 60rem) {
-    .inline form {
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
-  .inline fieldset {
-    display: grid;
-    grid-template-columns:
-      9rem 5.5rem 10rem minmax(8rem, 1fr) minmax(8rem, 1fr)
-      auto;
-    column-gap: 0.5rem;
+    grid-template-columns: var(--column-tracks);
     align-items: center;
   }
-  .inline .entry-pair {
+  .inline fieldset {
     display: contents;
   }
-  .inline :global(label[for="transaction-date"]),
-  .inline label[for="transaction-amount"],
-  .inline label[for="transaction-payee"],
-  .inline label[for="transaction-category"],
+  .aligned-fields {
+    display: contents;
+  }
+  .aligned-field {
+    min-width: 0;
+    padding: 0.5rem;
+    grid-row: 1;
+  }
+  .signed-amount {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+  .amount-field {
+    min-width: 0;
+    flex: 1;
+  }
+  .inline-recurrence-options {
+    grid-column: 1 / -1;
+    padding: 0.5rem;
+  }
+  .additional-fields {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+  .additional-fields > div {
+    flex: 1 1 10rem;
+    min-width: 0;
+  }
+  .inline-direction {
+    flex: 0 0 4.5rem;
+  }
+  .inline form > p,
+  .inline .payee-recovery {
+    grid-column: 1 / -1;
+    padding-inline: 0.5rem;
+  }
+  .inline .actions {
+    grid-row: 1;
+    grid-column: -2 / -1;
+    padding: 0.5rem;
+    flex-wrap: nowrap;
+  }
+  .aligned-fields :global(label[for="transaction-date"]),
+  .aligned-fields label[for="transaction-amount"],
+  .aligned-fields label[for="transaction-payee"],
+  .aligned-fields label[for="transaction-category"],
   .inline .direction-label,
   .inline #calculator-hint,
   .inline h2 {
@@ -1530,18 +1643,16 @@
     min-width: 32px;
   }
   .inline .amount-entry input {
-    width: 6rem;
+    width: 100%;
+    text-align: right;
   }
-  @container (max-width: 65rem) {
-    .inline fieldset {
-      grid-template-columns: 9rem 5.5rem minmax(8rem, 1fr);
-    }
+  .inline .amount-entry {
+    flex-wrap: nowrap;
   }
-
-  @container (max-width: 45rem) {
-    .inline fieldset {
-      grid-template-columns: 1fr;
-    }
+  .aligned-fields :global(input),
+  .aligned-fields select {
+    min-width: 0;
+    max-width: 100%;
   }
   .inline h2 {
     font-size: 1rem;
@@ -1657,6 +1768,38 @@
     }
     .amount-entry {
       flex-wrap: wrap;
+    }
+  }
+  @container (max-width: 45rem) {
+    .inline form {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .aligned-field {
+      grid-column: auto !important;
+      grid-row: auto;
+    }
+    .aligned-field[data-editor-column="amount"] {
+      grid-column: 1 / -1 !important;
+    }
+    .inline .actions {
+      grid-row: auto;
+      grid-column: 2;
+    }
+
+    .aligned-field:empty {
+      display: none;
+    }
+    .aligned-fields :global(label[for="transaction-date"]),
+    .aligned-fields label[for="transaction-amount"],
+    .aligned-fields label[for="transaction-payee"],
+    .aligned-fields label[for="transaction-category"] {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0 0 0.3rem;
+      overflow: visible;
+      clip-path: none;
+      white-space: normal;
     }
   }
 </style>

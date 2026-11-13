@@ -9,8 +9,6 @@ export type RuleAction = {
   options?: {
     splitIndex?: number;
     method?: string;
-    template?: string;
-    formula?: string;
   };
 };
 export type Rule = {

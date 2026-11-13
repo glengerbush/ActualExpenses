@@ -61,7 +61,9 @@ export function manualQuery(query: RegisterQuery): RegisterQuery {
     ...query,
     hide_cleared: false,
     hide_reconciled: false,
-    sort: ["cleared", "reconciled", "notes"].includes(query.sort) ? "date" : query.sort,
+    sort: ["cleared", "reconciled", "notes"].includes(query.sort)
+      ? "date"
+      : query.sort,
     filter: {
       ...query.filter,
       conditions: query.filter.conditions.filter(
@@ -109,3 +111,22 @@ export type SettingsResponse = {
   revision: number;
   epoch: string;
 };
+
+export function categoryMonthQuery(
+  category: string,
+  month: string,
+): RegisterQuery {
+  const [year, number] = month.split("-").map(Number);
+  const lastDay = new Date(Date.UTC(year, number, 0)).getUTCDate();
+  return {
+    ...defaultQuery(),
+    filter: {
+      op: "and",
+      conditions: [
+        { field: "category", op: "eq", value: category },
+        { field: "date", op: "gte", value: month + "-01" },
+        { field: "date", op: "lte", value: month + "-" + lastDay },
+      ],
+    },
+  };
+}

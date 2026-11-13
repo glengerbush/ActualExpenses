@@ -247,7 +247,7 @@ fn budget_restore_rotates_epoch_preserves_post_backup_receipts_and_can_recover_d
             &format!("{root}/transactions/{T}"),
             "reviewed-new-intent",
             &next,
-            json!({"notes":"Reviewed current state"})
+            json!({"amount":-345})
         )
         .status(),
         200
@@ -294,8 +294,8 @@ fn budget_restore_rotates_epoch_preserves_post_backup_receipts_and_can_recover_d
     );
     assert_eq!(restore.status(), 200);
     assert_eq!(
-        s.get(&format!("{root}/transactions/{T}"))["data"]["notes"],
-        "Reviewed current state"
+        s.get(&format!("{root}/transactions/{T}"))["data"]["amount"],
+        -345
     );
 }
 

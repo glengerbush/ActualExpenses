@@ -136,7 +136,7 @@ pub(super) fn resolve(
                 if !valid {
                     continue;
                 }
-                crate::preferences::normalize_currency(&mut candidate);
+                crate::preferences::remove_retired_features(&mut candidate);
                 candidate["revision"] = json!(n);
                 if candidate == receipt.response {
                     let touched = changes.contains_key("currency_code")

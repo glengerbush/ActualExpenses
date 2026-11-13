@@ -19,8 +19,6 @@ FROM debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d
 COPY --from=server /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=server /out/actualbudget-server /usr/local/bin/actualbudget-server
 COPY --from=web /build/web/dist /app/web
-COPY server/src/formulas/vendor/*LICENSE* /usr/share/licenses/actualbudget-formulas/
-COPY server/src/rules/vendor/*LICENSE* /usr/share/licenses/actualbudget-rules/
 RUN mkdir /data && chown 10001:10001 /data
 ENV ACTUALBUDGET_DATA_DIR=/data \
     ACTUALBUDGET_WEB_DIR=/app/web \

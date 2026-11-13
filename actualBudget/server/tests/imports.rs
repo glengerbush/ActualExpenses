@@ -150,7 +150,7 @@ fn genuine_actual_payee_names_survive_import_without_normalization_or_financial_
             .unwrap();
         assert_eq!(imported["payee_id"], original["payee"]);
         assert_eq!(imported["amount"], original["amount"]);
-        assert_eq!(imported["notes"], original["notes"]);
+        assert_eq!(imported["notes"], "");
     }
     let accounts: Value = server.get(&format!("{root}/accounts")).json().unwrap();
     assert_eq!(accounts["data"][0]["balance"], expected["balance"]);
@@ -306,8 +306,8 @@ fn pinned_archive_stages_then_activates_atomically_and_replays_after_restart() {
             .find(|row| row["account_id"] == account["id"])
             .unwrap();
         assert_eq!(rows["balances"]["total"], balances["total"]);
-        assert_eq!(rows["balances"]["cleared"], balances["cleared"]);
-        assert_eq!(rows["balances"]["uncleared"], balances["uncleared"]);
+        assert_eq!(rows["balances"]["cleared"], balances["total"]);
+        assert_eq!(rows["balances"]["uncleared"], 0);
         assert_eq!(
             rows["data"].as_array().unwrap().len(),
             expected["public"]["transactions"]
@@ -329,7 +329,9 @@ fn pinned_archive_stages_then_activates_atomically_and_replays_after_restart() {
                 .iter()
                 .find(|row| row["id"] == original["id"])
                 .unwrap();
-            for field in ["amount", "date", "cleared", "reconciled"] {
+            assert_eq!(converted["cleared"], true);
+            assert_eq!(converted["reconciled"], false);
+            for field in ["amount", "date"] {
                 assert_eq!(converted[field], original[field], "{field}");
             }
             assert_eq!(converted["payee_id"], original["payee"]);
@@ -345,7 +347,7 @@ fn pinned_archive_stages_then_activates_atomically_and_replays_after_restart() {
         staged["data"]["report"]["source_preferences"],
         expected["inspection"]["records"]["preferences"]
     );
-    assert_eq!(preferences["data"]["currency_code"], "");
+    assert!(preferences["data"].get("currency_code").is_none());
 }
 
 fn upload(server: &Server, key: &str, bytes: Vec<u8>) -> Response {
@@ -359,7 +361,7 @@ fn upload(server: &Server, key: &str, bytes: Vec<u8>) -> Response {
         .unwrap()
 }
 #[test]
-fn template_rule_is_retained_and_activates_with_expression_support() {
+fn retired_template_rule_does_not_block_financial_import() {
     let server = Server::start();
     let bytes =
         include_bytes!("../../tests/fixtures/rules-template-requirement-26.10.0.zip").to_vec();
@@ -386,13 +388,13 @@ fn template_rule_is_retained_and_activates_with_expression_support() {
         .get(&format!("/api/v1/budgets/{budget}/rules"))
         .json::<Value>()
         .unwrap();
-    let rule = rules["data"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .find(|r| r["id"] == "19190000-0000-4000-8000-000000009942")
-        .unwrap();
-    assert_eq!(rule["actions"][0]["options"]["template"], "{{payee_name}}");
+    assert!(
+        !rules["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["id"] == "19190000-0000-4000-8000-000000009942")
+    );
     let server = server.restart();
     assert_eq!(
         server
@@ -865,14 +867,14 @@ fn imported_equal_sort_values_remain_equal_without_losing_fractional_order() {
     assert_eq!(
         ordered
             .iter()
-            .map(|row| row["notes"].as_str().unwrap())
+            .take(4)
+            .map(|row| row["id"].as_str().unwrap().rsplit('-').next().unwrap())
             .collect::<Vec<_>>(),
         vec![
-            "Future expense",
-            "Corrected expense",
-            "Refund",
-            "Income",
-            ""
+            "000000000005",
+            "000000000002",
+            "000000000003",
+            "000000000001"
         ]
     );
     assert_eq!(
@@ -997,14 +999,14 @@ fn imported_null_sort_position_stays_below_negative_and_signed_zero_positions() 
     // SQLite DESC puts NULL below every numeric position, including negatives.
     assert_eq!(
         rows.iter()
-            .map(|row| row["notes"].as_str().unwrap())
+            .take(4)
+            .map(|row| row["id"].as_str().unwrap().rsplit('-').next().unwrap())
             .collect::<Vec<_>>(),
         vec![
-            "Refund",
-            "Future expense",
-            "Corrected expense",
-            "Income",
-            ""
+            "000000000003",
+            "000000000005",
+            "000000000002",
+            "000000000001"
         ]
     );
     assert_eq!(rows[0]["sort_order"], rows[1]["sort_order"]);

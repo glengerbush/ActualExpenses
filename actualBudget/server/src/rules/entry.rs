@@ -125,9 +125,7 @@ pub(super) fn peer_rules(
             "UPDATE transactions SET cleared=?3 WHERE budget_id=?1 AND id=?2",
             params![b, id, cleared],
         )?;
-        for field in ["cleared"] {
-            sync::seed_field_version(db, b, "transactions", id, field, clock)?;
-        }
+        sync::seed_field_version(db, b, "transactions", id, "cleared", clock)?;
         sync::mark(db, b, "transactions", id)?;
         crate::ledger::refresh_account(db, b, before["account_id"].as_str().unwrap())?;
     }

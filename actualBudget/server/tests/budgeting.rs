@@ -124,6 +124,24 @@ fn monthly_actuals_match_executed_tracking_engine() {
             "/api/v1/budgets/{}",
             imported["data"]["budget_id"].as_str().unwrap()
         );
+        // This source oracle assumes carryover is disabled unless explicitly enabled.
+        // The app now defaults to on; select the oracle's setting before comparing
+        // the unchanged financial operations and their exact results.
+        let categories = s
+            .get(&format!("{root}/categories"))
+            .json::<Value>()
+            .unwrap();
+        for (index, category) in categories["data"].as_array().unwrap().iter().enumerate() {
+            let current = s
+                .get(&format!("{root}/budget?month=2026-10&count=1"))
+                .json::<Value>()
+                .unwrap();
+            let result = s.post(&format!("{root}/budget"), &format!("oracle-carryover-{index}"), json!({
+                "snapshot": current["data"]["snapshot"], "action": "carryover", "month": "2026-10",
+                "category": category["id"], "enabled": false
+            }));
+            assert_eq!(result.status(), 200, "{}", result.text().unwrap());
+        }
         for (index, step) in case["steps"]
             .as_array()
             .unwrap()
@@ -131,7 +149,7 @@ fn monthly_actuals_match_executed_tracking_engine() {
             .take_while(|s| {
                 !matches!(
                     s["action"]["action"].as_str(),
-                    Some("hide_category" | "hide_group" | "method")
+                    Some("hide_category" | "hide_group" | "method" | "copy_year")
                 )
             })
             .enumerate()
@@ -294,11 +312,11 @@ fn stale_field_clock_refuses_entire_composite_action_with_fresh_snapshot() {
     .into_iter()
     .enumerate()
     {
-        // Copy-year targets different months; it is valid despite a newer source.
+        // Retired copy-year never mutates a later month.
         let r = write_plan(&s, &root, &format!("stale-{i}"), body, Some(&a));
         assert_eq!(
             r.status(),
-            if i == 1 { 200 } else { 409 },
+            if i == 1 { 400 } else { 409 },
             "{}",
             r.text().unwrap()
         );
@@ -416,7 +434,7 @@ fn genuine_schema15_upgrade_retains_history_and_replay_while_archive_rotates_own
         .unwrap()
         .json::<Value>()
         .unwrap();
-    assert_eq!(upload["data"]["report"]["schema_version"], 32, "{upload}");
+    assert_eq!(upload["data"]["report"]["schema_version"], 34, "{upload}");
     let activate = target.post(
         &format!(
             "{root}/restores/{}/activate",
@@ -455,7 +473,7 @@ fn retired_budget_actions_refuse_without_mutation_and_allocation_undo_remains() 
         .json(&json!({"experimental":{"currency":true},"currency_code":"JPY"}))
         .send()
         .unwrap();
-    assert_eq!(prefs.status(), 200);
+    assert_eq!(prefs.status(), 400);
     assert_eq!(
         write_plan(
             &s,
@@ -599,7 +617,7 @@ fn allocated_actual_exports_convert_to_tracking_and_native_archives_preserve_pla
             .unwrap()
             .json::<Value>()
             .unwrap();
-        assert_eq!(stage["data"]["report"]["schema_version"], 32, "{stage}");
+        assert_eq!(stage["data"]["report"]["schema_version"], 34, "{stage}");
         let metadata = s.get(&root).json::<Value>().unwrap();
         let r = t.post(
             &format!(

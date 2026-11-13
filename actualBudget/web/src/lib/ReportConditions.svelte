@@ -11,8 +11,6 @@
     accounts,
     conditions = [],
     conditionsOp = "and",
-    sourceCategoryFilters = false,
-    sourceSyntax = false,
     namedConditionsIgnored = true,
     onchange,
   }: {
@@ -20,8 +18,6 @@
     accounts: Account[];
     conditions?: unknown;
     conditionsOp?: unknown;
-    sourceCategoryFilters?: boolean;
-    sourceSyntax?: boolean;
     namedConditionsIgnored?: boolean;
     onchange: (conditions: unknown[], op: string) => void;
   } = $props();
@@ -31,25 +27,20 @@
     error = $state(""),
     busy = $state(true);
   let rows = $derived(array(conditions));
-  let fields = $derived(
-    sourceCategoryFilters
-      ? ["category", "category_group", "category_name", "category_group_name"]
-      : [
-          "amount",
-          "date",
-          "cleared",
-          "reconciled",
-          "payee",
-          "category",
-          "category_group",
-          "payee_name",
-          ...(sourceSyntax ? ["imported_payee"] : []),
-          "category_name",
-          "category_group_name",
-          "transfer",
-          "parent",
-        ],
-  );
+  let fields = $derived([
+    "amount",
+    "date",
+    "cleared",
+    "reconciled",
+    "payee",
+    "category",
+    "category_group",
+    "payee_name",
+    "category_name",
+    "category_group_name",
+    "transfer",
+    "parent",
+  ]);
   const operators = [
     ["eq", "is"],
     ["ne", "is not"],
@@ -86,10 +77,6 @@
     void load();
   });
   function allowed(field: string) {
-    if (sourceCategoryFilters && field.endsWith("_name"))
-      return operators.filter((op) =>
-        ["contains", "not_contains", "matches"].includes(op[0]),
-      );
     const names =
       field === "amount"
         ? ["eq", "ne", "gt", "gte", "lt", "lte", "isapprox", "isbetween"]
@@ -140,20 +127,6 @@
     };
   }
   function update(index: number, value: Condition) {
-    if (sourceCategoryFilters || sourceSyntax) {
-      const map: Record<string, string> = {
-        eq: "is",
-        ne: "isNot",
-        in: "oneOf",
-        not_in: "notOneOf",
-        not_contains: "doesNotContain",
-      };
-      value = {
-        ...value,
-        field: value.field.replace(/_name$/, ""),
-        op: map[value.op] || value.op,
-      };
-    }
     onchange(
       rows.map((row, i) => (i === index ? value : row)),
       String(conditionsOp || "and"),
@@ -213,11 +186,6 @@
     ></label
   >
   {#each rows as raw, index (raw)}{@const condition = canonical(raw)}
-    {#if sourceCategoryFilters && raw.customName && namedConditionsIgnored}<p>
-        {t(
-          "Named saved conditions are retained and ignored by budget analysis.",
-        )}
-      </p>{/if}
     <div class="condition">
       <label
         >{t("Report field")}
@@ -268,12 +236,7 @@
     disabled={busy || rows.length >= 20}
     onclick={() =>
       onchange(
-        [
-          ...rows,
-          sourceCategoryFilters
-            ? { field: "category", op: "is", value: null }
-            : { field: "payee", op: "is", value: null },
-        ],
+        [...rows, { field: "payee", op: "is", value: null }],
         String(conditionsOp || "and"),
       )}>{t("Add report condition")}</button
   >

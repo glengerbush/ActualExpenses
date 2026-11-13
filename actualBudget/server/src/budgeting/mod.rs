@@ -83,12 +83,22 @@ struct Category {
     group_income: bool,
     group_name: String,
 }
-#[derive(Clone, Default)]
+#[derive(Clone)]
 struct Cell {
     amount: i64,
     carry: bool,
     goal: Option<String>,
     long_goal: Option<String>,
+}
+impl Default for Cell {
+    fn default() -> Self {
+        Self {
+            amount: 0,
+            carry: true,
+            goal: None,
+            long_goal: None,
+        }
+    }
 }
 #[derive(Default)]
 struct Previous {
@@ -108,52 +118,6 @@ async fn read(
 pub fn view(db: &Connection, b: &str, start: &str, count: usize) -> Result<Value, Error> {
     scoped_view(db, b, start, count, None, false)
 }
-/// Financial category cells only: a scoped report must not treat its partial
-/// budget summary as the complete budget page.
-#[derive(Deserialize)]
-pub(crate) struct ReportCell {
-    pub id: String,
-    pub budgeted: i64,
-    pub actual: i64,
-    pub balance: i64,
-    pub carryover: bool,
-}
-pub(crate) fn report_cells(
-    db: &Connection,
-    b: &str,
-    start: &str,
-    count: usize,
-    categories: &std::collections::BTreeSet<String>,
-) -> Result<BTreeMap<String, Vec<ReportCell>>, Error> {
-    if count.saturating_mul(categories.len()) > 20000 {
-        return Err(Error::invalid(
-            "Analysis contains more than20000 category/month cells; select fewer categories or a shorter range",
-        ));
-    }
-    let view = scoped_view(db, b, start, count, Some(categories), false)?;
-    view["months"]
-        .as_object()
-        .ok_or_else(|| Error::internal("Missing scoped month cells"))?
-        .iter()
-        .map(|(month, data)| {
-            Ok((
-                month.clone(),
-                serde_json::from_value(data["categories"].clone()).map_err(Error::internal)?,
-            ))
-        })
-        .collect()
-}
-/// Source api/budget-month context for Sankey. Summary grouping and category
-/// income flags are deliberately distinct in supported imported source data.
-/// This read mode never changes ordinary budget-page behavior.
-pub(crate) fn sankey_months(
-    db: &Connection,
-    b: &str,
-    start: &str,
-    count: usize,
-) -> Result<Value, Error> {
-    scoped_view(db, b, start, count, None, true)
-}
 fn scoped_view(
     db: &Connection,
     b: &str,
@@ -172,32 +136,6 @@ fn scoped_view(
             summary_report,
             include_goals: false,
             work: None,
-        },
-    )
-}
-pub(crate) fn formula_cells(
-    db: &Connection,
-    b: &str,
-    start: &str,
-    count: usize,
-    categories: &std::collections::BTreeSet<String>,
-    work: &mut usize,
-) -> Result<Value, Error> {
-    if count.saturating_mul(categories.len().max(1)) > 20000 {
-        return Err(Error::invalid(
-            "Formula budget queries exceed20000 category/month cells",
-        ));
-    }
-    scoped_view_inner(
-        db,
-        b,
-        start,
-        count,
-        Some(categories),
-        ViewOptions {
-            summary_report: false,
-            include_goals: true,
-            work: Some(work),
         },
     )
 }
@@ -235,7 +173,7 @@ fn scoped_view_inner(
         r.get(0)
     })?;
 
-    let mut q=db.prepare(&format!("SELECT c.id,c.name,c.is_income,0,c.group_id,0,'',COALESCE(g.name,'Ungrouped'),COALESCE(g.is_income,0) FROM categories c LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE c.budget_id=?1 AND c.tombstone=0 ORDER BY COALESCE(g.sort_order,0),COALESCE(c.sort_order,0),c.id"))?;
+    let mut q=db.prepare("SELECT c.id,c.name,c.is_income,0,c.group_id,0,'',COALESCE(g.name,'Ungrouped'),COALESCE(g.is_income,0) FROM categories c LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE c.budget_id=?1 AND c.tombstone=0 ORDER BY COALESCE(g.sort_order,0),COALESCE(c.sort_order,0),c.id")?;
     let categories = q
         .query_map([b], |r| {
             Ok(Category {
@@ -442,7 +380,7 @@ fn scoped_view_inner(
                 },
             );
             if m >= start {
-                rows.push(json!({"id":cat.id,"name":cat.name,"is_income":cat.income,"group_id":cat.group,"group_name":cat.group_name,"budgeted":if actual_only{0}else{cell.amount},"actual":money(actual)?,"balance":money(left)?,"carryover":!actual_only && cell.carry,"goal":cell.goal,"long_goal":cell.long_goal}));
+                rows.push(json!({"id":cat.id,"name":cat.name,"is_income":cat.income,"group_id":cat.group,"group_name":cat.group_name,"budgeted":if actual_only{0}else{cell.amount},"actual":money(actual)?,"balance":money(left)?,"carryover":!actual_only && cell.carry,"carryover_from_previous":!actual_only && prev.is_none_or(|p|p.carry),"goal":cell.goal,"long_goal":cell.long_goal}));
             }
         }
         if m >= start && scope.is_none() && !summary_report {

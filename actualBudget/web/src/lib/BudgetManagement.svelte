@@ -231,7 +231,6 @@
       <h1 id="manage-budget-title">{t("Manage budget")}</h1>
       <p class="muted">{current?.name ?? budget.name}</p>
     </div>
-    <button onclick={onclose} disabled={busy}>{t("Back to budgets")}</button>
   </header>
   {#if offline}<p role="status">
       {t(

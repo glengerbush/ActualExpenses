@@ -208,7 +208,6 @@
         )}
       </p>
     </div>
-    <button onclick={onclose} disabled={busy}>{t("Back to budgets")}</button>
   </div>
   {#if offline}<p role="status">
       {t(

@@ -9,6 +9,7 @@ export interface ImportSession {
   activationKey: string;
   pendingUpload: boolean;
   pendingActivation: boolean;
+  destination?: { budgetId: string; epoch: string };
 }
 async function database(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -38,6 +39,9 @@ export async function readImportSession(): Promise<ImportSession | null> {
             (value.sourceKind !== undefined &&
               !["actual", "ynab4", "nynab"].includes(value.sourceKind)) ||
             typeof value.activationKey !== "string" ||
+            (value.destination !== undefined &&
+              (!/^[0-9a-f-]{36}$/i.test(value.destination?.budgetId ?? "") ||
+                !/^[0-9a-f]{32}$/.test(value.destination?.epoch ?? ""))) ||
             (value.file !== null &&
               !(value.version === 1
                 ? value.file instanceof Blob
@@ -93,7 +97,11 @@ export async function saveImportSession(session: ImportSession): Promise<void> {
             (previous.result.sourceKind ?? "actual") !==
               (session.sourceKind ?? "actual") ||
             previous.result.filename !== session.filename ||
-            (previous.result.pendingActivation && !session.pendingActivation))
+            (previous.result.pendingActivation &&
+              (!session.pendingActivation ||
+                previous.result.activationKey !== session.activationKey ||
+                JSON.stringify(previous.result.destination) !==
+                  JSON.stringify(session.destination))))
         ) {
           conflict = true;
           transaction.abort();

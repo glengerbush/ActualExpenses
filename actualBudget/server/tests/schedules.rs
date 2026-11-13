@@ -367,9 +367,7 @@ fn genuine_schema18_upgrade_keeps_ledger_history_receipts_and_refreshes_blocked_
         "Only manual-only preference invalidation: {changes}"
     );
     assert_eq!(events[0]["entity"], "preferences");
-    let flags = events[0]["data"]["experimental"].as_object().unwrap();
-    assert!(!flags.contains_key("enableBanking"));
-    assert!(!flags.contains_key("akahuBankSync"));
+    assert!(events[0]["data"].get("experimental").is_none());
     current.as_object_mut().unwrap().remove("snapshot");
     original.as_object_mut().unwrap().remove("snapshot");
     assert_eq!(

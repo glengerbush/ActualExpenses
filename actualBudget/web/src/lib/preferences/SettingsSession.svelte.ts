@@ -18,15 +18,12 @@ const equal = (a: unknown, b: unknown) =>
   JSON.stringify(a) === JSON.stringify(b);
 function withoutRetiredFeatures(draft: PreferenceDraft): PreferenceDraft {
   const clean = (values: SharedPreferences): SharedPreferences => {
-    const experimental = { ...values.experimental } as Record<string, boolean>;
-    delete experimental.enableBanking;
-    delete experimental.akahuBankSync;
-    delete experimental.goalTemplatesEnabled;
-    delete experimental.goalTemplatesUIEnabled;
-    return {
-      ...values,
-      experimental: experimental as SharedPreferences["experimental"],
-    };
+    return Object.fromEntries(
+      Object.keys(defaultShared()).map((key) => [
+        key,
+        values[key as keyof SharedPreferences],
+      ]),
+    ) as unknown as SharedPreferences;
   };
   return { ...draft, base: clean(draft.base), values: clean(draft.values) };
 }
@@ -39,16 +36,7 @@ function changesBetween(
     defaultShared(),
   ) as (keyof SharedPreferences)[]) {
     if (name === "revision") continue;
-    if (name === "experimental") {
-      const changed = Object.fromEntries(
-        Object.entries(values.experimental).filter(
-          ([flag, enabled]) =>
-            base.experimental[flag as keyof typeof base.experimental] !==
-            enabled,
-        ),
-      );
-      if (Object.keys(changed).length) changes.experimental = changed;
-    } else if (base[name] !== values[name]) changes[name] = values[name];
+    if (base[name] !== values[name]) changes[name] = values[name];
   }
   return changes;
 }
@@ -325,10 +313,6 @@ export class SettingsSession {
         const values = {
           ...base,
           ...changes,
-          experimental: {
-            ...base.experimental,
-            ...((changes.experimental as Record<string, boolean>) ?? {}),
-          },
         };
         this.draft = {
           ...original,

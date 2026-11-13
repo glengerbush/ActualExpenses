@@ -363,9 +363,6 @@
 <section class="form-section" aria-labelledby="organize-title" aria-busy={busy}>
   <div class="page-heading">
     <h1 id="organize-title">{t("Organize accounts")}</h1>
-    <button onclick={done} disabled={busy || !!draft?.pending}
-      >{t("Done")}</button
-    >
   </div>
   {#if error}<p class="error" role="alert">{t(error)}</p>{/if}
   {#if status}<p role="status">{status}</p>{/if}

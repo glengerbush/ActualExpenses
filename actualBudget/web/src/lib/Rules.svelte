@@ -625,7 +625,6 @@
         later within each stage.
       </p>
     </div>
-    <button onclick={onclose} disabled={busy}>{t("Close")}</button>
   </header>
   {#if error}<p role="alert" class="error">{error}</p>{/if}{#if notice}<p
       role="status"

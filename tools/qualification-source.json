@@ -114,100 +114,6 @@
     "test:public-api-upgrade"
   ],
   [
-    "npm",
-    "--prefix",
-    "actualBudget/web",
-    "run",
-    "test:rule-context-source"
-  ],
-  [
-    "npm",
-    "--prefix",
-    "actualBudget/web",
-    "run",
-    "test:rule-context-limits"
-  ],
-  [
-    "npm",
-    "--prefix",
-    "actualBudget/web",
-    "run",
-    "test:rule-template-limits"
-  ],
-  [
-    "node",
-    "actualBudget/tools/generate-rule-expressions-source.mjs",
-    "--execution",
-    "--check"
-  ],
-  [
-    "node",
-    "actualBudget/tools/check-rule-expressions-http.mjs",
-    "--execution"
-  ],
-  [
-    "node",
-    "actualBudget/tools/generate-rule-expressions-source.mjs",
-    "--nonfinite",
-    "--check"
-  ],
-  [
-    "node",
-    "actualBudget/tools/generate-rule-expression-commits-source.mjs",
-    "--nonfinite",
-    "--check"
-  ],
-  [
-    "node",
-    "actualBudget/tools/check-rule-expressions-http.mjs",
-    "--nonfinite"
-  ],
-  [
-    "node",
-    "actualBudget/tools/check-rule-expression-commits-http.mjs",
-    "--nonfinite"
-  ],
-  [
-    "node",
-    "actualBudget/tools/check-rule-nonfinite-workflows-http.mjs"
-  ],
-  [
-    "npm",
-    "--prefix",
-    "actualBudget/web",
-    "run",
-    "test:monte-carlo-source"
-  ],
-  [
-    "node",
-    "actualBudget/tools/check-monte-carlo-http.mjs",
-    "--all"
-  ],
-  [
-    "node",
-    "actualBudget/tools/check-monte-carlo-http.mjs",
-    "--strategies"
-  ],
-  [
-    "node",
-    "actualBudget/tools/check-monte-carlo-workflows-http.mjs",
-    "--limits"
-  ],
-  [
-    "node",
-    "actualBudget/tools/check-monte-carlo-plans-http.mjs"
-  ],
-  [
-    "node",
-    "actualBudget/tools/check-monte-carlo-plans-http.mjs",
-    "--strategies"
-  ],
-  [
-    "node",
-    "actualBudget/tools/check-formula-http.mjs",
-    "--limits"
-  ],
-  [
     "python3",
     "actualBudget/tools/generate-v5-receipts.py",
     "--check"
@@ -215,9 +121,5 @@
   [
     "python3",
     "actualBudget/tools/contract-smoke.py"
-  ],
-  [
-    "python3",
-    "actualBudget/tools/check-monte-carlo-contract.py"
   ]
 ]

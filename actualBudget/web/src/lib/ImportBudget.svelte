@@ -20,14 +20,17 @@
     type ImportSession,
   } from "./import-storage";
   import { formatSavedAmount } from "./money";
-  import { getCurrency } from "./preferences/currencies";
   import { t } from "./i18n.svelte";
   let {
     oncreated,
     oncancel,
     initialSource = "actual",
+    budgets = [],
+    embedded = false,
   }: {
     initialSource?: ImportSource;
+    budgets?: Budget[];
+    embedded?: boolean;
     oncreated: (budget: Budget) => void | Promise<void>;
     oncancel: () => void;
   } = $props();
@@ -46,6 +49,8 @@
   const title = $derived(
     activeSource === "actual" ? "Import Actual budget" : "Import YNAB budget",
   );
+  let destination = $state("new");
+  let destinationId = $state("");
   let imports = $state.raw<ImportStage[]>([]);
   let files = $state<FileList>();
   let busy = $state(true);
@@ -64,6 +69,8 @@
     try {
       session = await readImportSession();
       sourceKind = initialSource;
+      destination = session?.destination ? "existing" : "new";
+      destinationId = session?.destination?.budgetId ?? budgets[0]?.id ?? "";
       imports = await list<ImportStage>("/imports");
       if (session?.stage && !session.pendingActivation) {
         const response = await request<{ data: ImportStage }>(
@@ -162,12 +169,28 @@
     busy = true;
     error = "";
     try {
-      const pending = { ...session, pendingActivation: true };
+      let pending = session;
+      if (!pending.pendingActivation) {
+        let target: ImportSession["destination"];
+        if (destination === "existing") {
+          if (!destinationId) throw new Error("Choose a destination budget.");
+          const checkpoint = await request<{ data: { epoch: string } }>(
+            `/budgets/${destinationId}/checkpoint`,
+          );
+          target = { budgetId: destinationId, epoch: checkpoint.data.epoch };
+        }
+        pending = { ...pending, destination: target, pendingActivation: true };
+      }
       await saveImportSession(pending);
       session = pending;
       const response = await request<{ data: Budget }>(
-        `/imports/${pending.stage!.id}/activate`,
-        {},
+        `/imports/${pending.stage!.id}/${pending.destination ? "merge" : "activate"}`,
+        pending.destination
+          ? {
+              budget_id: pending.destination.budgetId,
+              epoch: pending.destination.epoch,
+            }
+          : {},
         pending.activationKey,
       );
       await clearImportSession(pending.key, true);
@@ -217,9 +240,7 @@
     const settings = stage!.report.preferences.shared;
     return formatSavedAmount(value, {
       number_format: settings.number_format,
-      decimal_places: getCurrency(
-        settings.experimental.currency ? settings.currency_code : "",
-      ).decimalPlaces as 0 | 2,
+      decimal_places: 2,
     });
   }
 </script>
@@ -229,7 +250,9 @@
   aria-busy={busy}
   class="import-budget"
 >
-  <h1 id="import-heading">{t(title)}</h1>
+  <svelte:element this={embedded ? "h2" : "h1"} id="import-heading"
+    >{t(title)}</svelte:element
+  >
   <p class="muted">
     {t(
       activeSource === "actual"
@@ -323,16 +346,51 @@
         >{t("Download original archive")}</a
       >
     </p>
+    <fieldset
+      class="import-destination"
+      disabled={busy || !!session?.pendingActivation}
+    >
+      <legend>Import into</legend>
+      <label
+        ><input type="radio" bind:group={destination} value="new" /> A new budget</label
+      >
+      <label
+        ><input
+          type="radio"
+          bind:group={destination}
+          value="existing"
+          disabled={!budgets.length}
+        /> An existing budget</label
+      >
+      {#if destination === "existing"}<label for="archive-destination"
+          >Budget</label
+        >
+        <select id="archive-destination" bind:value={destinationId}>
+          {#each budgets as budget (budget.id)}<option value={budget.id}
+              >{budget.name}</option
+            >{/each}
+        </select>
+        <p>
+          Merge transactions, payees and categories. Existing transactions,
+          plans and settings stay intact. Previously imported transaction IDs
+          are skipped.
+        </p>
+      {/if}
+    </fieldset>
     <div class="form-actions">
       <button
         class="primary"
         onclick={activate}
-        disabled={busy || stage.status === "blocked"}
+        disabled={busy ||
+          stage.status === "blocked" ||
+          (destination === "existing" && !destinationId)}
         >{session?.pendingActivation
-          ? t("Retry saved activation")
-          : stage.status === "activated"
-            ? t("Open imported budget")
-            : t("Activate imported budget")}</button
+          ? t("Retry saved import")
+          : destination === "existing"
+            ? "Merge into selected budget"
+            : stage.status === "activated"
+              ? t("Open imported budget")
+              : t("Activate imported budget")}</button
       >
       <button onclick={another} disabled={busy || session?.pendingActivation}
         >{t("Review another file")}</button
@@ -402,12 +460,26 @@
           </li>{/each}
       </ul>{/if}
   {/if}
-  <button class="quiet close-import" onclick={oncancel} disabled={busy}
-    >{t("Back to budgets")}</button
-  >
 </section>
 
 <style>
+  .import-destination {
+    display: grid;
+    gap: 0.6rem;
+    border: 0;
+    padding: 0;
+    margin: 1.5rem 0;
+  }
+  .import-destination label:has(input) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+  }
+  .import-destination input {
+    width: auto;
+  }
+
   .import-budget {
     max-width: 48rem;
   }
@@ -488,8 +560,5 @@
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 0.5rem;
-  }
-  .close-import {
-    margin-top: 1.5rem;
   }
 </style>

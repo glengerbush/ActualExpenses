@@ -20,6 +20,7 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 mod capabilities;
+mod merge;
 pub(crate) use capabilities::refresh_rules as refresh_rule_capabilities;
 pub(crate) mod conversion;
 mod ynab;
@@ -44,6 +45,7 @@ pub fn router() -> Router<Store> {
         .route("/api/v1/imports/{id}", get(read))
         .route("/api/v1/imports/{id}/original.zip", get(original))
         .route("/api/v1/imports/{id}/activate", post(activate))
+        .route("/api/v1/imports/{id}/merge", post(merge::merge))
 }
 fn data(value: Value) -> Json<Value> {
     Json(json!({"data":value}))

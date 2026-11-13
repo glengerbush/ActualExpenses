@@ -2,7 +2,7 @@ import { list, request, type Account } from "./api";
 import { queryReport, localDay, object, type ReportDocument } from "./reports";
 import { references } from "./register-api";
 import { validDate } from "./dates";
-import { addMonths } from "./forecasts";
+import { addMonths } from "./report-dates";
 export interface CrossoverQuery {
   version: 1;
   as_of: string;

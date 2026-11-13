@@ -192,8 +192,7 @@
     try {
       if (!draft) {
         const file = files?.[0];
-        if (!file || !accountId)
-          throw new Error("Choose an account and a file.");
+        if (!file || !accountId) throw new Error("Choose a transaction file.");
         if (file.size > 16777216)
           throw new Error("Choose a file no larger than 16 MiB.");
         if (!preferences.budgetEpoch)
@@ -547,10 +546,10 @@
 <section class="file-import" aria-labelledby="file-import-heading">
   <header>
     <div>
-      <h1 id="file-import-heading">Import and export transactions</h1>
+      <h2 id="file-import-heading">Transactions</h2>
       <p>
-        Choose a bank file, review its mapping and match existing purchases
-        before saving.
+        Choose a transaction file, review its mapping and match existing
+        purchases before saving.
       </p>
     </div>
     <button onclick={onclose} disabled={busy || saving > 0}>{t("Close")}</button
@@ -710,7 +709,7 @@
               type="checkbox"
               bind:checked={remember}
               onchange={changed}
-            />Remember account options and mapping after import</label
+            />Remember file options and mapping after import</label
           >
         </div>
         <button

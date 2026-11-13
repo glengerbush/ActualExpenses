@@ -8,6 +8,8 @@ All 459 Rust tests, 65 source/financial commands and 106 browser/API commands pa
 
 Downloaded release metadata passed its checksum. Independent Cosign verification confirmed the exact workflow identity, GitHub OIDC issuer and commit/version annotations. Both `0.2.4` and `latest` resolve to `sha256:5979ee8ef588cc27dbd84fc7912b472a201619b7704af98f8faa507e8535a620`.
 
+Subsequent [0.2.5 source/version rebuild](https://github.com/glengerbush/ActualExpenses/actions/runs/43373167508) succeeded in **6m18s**, with all checks enabled and one added import regression. This confirms that the sub-five-minute result is limited to warm-cache runs; it is not a bound for changed application builds. That release supersedes the historical `latest` reference above.
+
 ## Baseline and acceptance
 
 The last successful sequential release, [43086429153](https://github.com/glengerbush/ActualExpenses/actions/runs/43086429153), took about 21 minutes: source qualification 573 seconds, production image build 179 seconds, browser qualification 470 seconds. The target is under five minutes with warm caches on the existing GitHub-hosted Ubuntu runners. Cold caches and runner queues remain variable.

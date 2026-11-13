@@ -19,6 +19,15 @@ Fixture generation: `node actualBudget/tools/generate-import-payee-names.mjs`. T
 This adds compatibility coverage to the existing suite. No release checks or financial assertions were removed.
 
 Local validation passed all 36 import, payee/tag, budget-management and recovery
-tests, including the new complete import/native-restore regression. Patch version:
-actualBudget 0.2.5; Android remains unchanged. Hosted qualification and publication
-must succeed before the image is available for Coolify's manual pull/restart.
+tests, including the new complete import/native-restore regression.
+
+[Full qualification](https://github.com/glengerbush/ActualExpenses/actions/runs/43373167508)
+passed 460 Rust tests, all 65 source/financial commands and all 106 browser/API
+commands. [actualBudget 0.2.5](https://github.com/glengerbush/ActualExpenses/releases/tag/actualBudget-v0.2.5)
+published from `1632ff335020ac7bf2a7834512167a5b542cf67b`. Metadata checksum,
+exact workflow/issuer signature and commit/version annotations were independently
+verified; version and `latest` both resolve to
+`sha256:d61e1303196b710ee9da41a8025b8f01988b876d38031c1051e8b8467d39def7`.
+The source/version rebuild took 6m18s; the preceding 4m50s performance measurement
+was a warm-cache run. Android, Coolify and the local preview remain unchanged.
+Use Coolify's manual Pull Latest & Restart, then retry the original ZIP.

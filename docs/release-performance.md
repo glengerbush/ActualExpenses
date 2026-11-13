@@ -1,5 +1,13 @@
 # actualBudget release performance
 
+## Accepted result — 2026-11-13
+
+[Full stable release 43371486971](https://github.com/glengerbush/ActualExpenses/actions/runs/43371486971) succeeded in **4m50s**, from workflow creation at 05:21:25 UTC to completion at 05:26:15 UTC, including queueing, qualification, signing, verification and publication. It released [actualBudget 0.2.4](https://github.com/glengerbush/ActualExpenses/releases/tag/actualBudget-v0.2.4) from `1eb8519fc027dc4c7c73f2e6d9f8b330aec85d60`.
+
+All 459 Rust tests, 65 source/financial commands and 106 browser/API commands passed. The longest recovery scenario exercised its real lease wait. Build job: 66 seconds; longest browser job: 155 seconds; publication job: 44 seconds. This is a measured warm-cache result, not a guarantee for cold caches, dependency changes or GitHub queue delays. Coolify and the local preview were not changed.
+
+Downloaded release metadata passed its checksum. Independent Cosign verification confirmed the exact workflow identity, GitHub OIDC issuer and commit/version annotations. Both `0.2.4` and `latest` resolve to `sha256:5979ee8ef588cc27dbd84fc7912b472a201619b7704af98f8faa507e8535a620`.
+
 ## Baseline and acceptance
 
 The last successful sequential release, [43086429153](https://github.com/glengerbush/ActualExpenses/actions/runs/43086429153), took about 21 minutes: source qualification 573 seconds, production image build 179 seconds, browser qualification 470 seconds. The target is under five minutes with warm caches on the existing GitHub-hosted Ubuntu runners. Cold caches and runner queues remain variable.

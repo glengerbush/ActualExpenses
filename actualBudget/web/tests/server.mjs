@@ -15,7 +15,7 @@ export async function startServer(options = {}) {
     options.dataDirectory ??
     (await mkdtemp(`${tmpdir()}/actualbudget-browser-`));
   const child = spawn(
-    fileURLToPath(
+    process.env.ACTUALBUDGET_TEST_BINARY ?? fileURLToPath(
       new URL("../../server/target/debug/actualbudget-server", import.meta.url),
     ),
     [],
@@ -23,7 +23,7 @@ export async function startServer(options = {}) {
       env: {
         ...process.env,
         ACTUALBUDGET_DATA_DIR: directory,
-        ACTUALBUDGET_WEB_DIR: fileURLToPath(
+        ACTUALBUDGET_WEB_DIR: process.env.ACTUALBUDGET_TEST_WEB_DIR ?? fileURLToPath(
           new URL("../dist", import.meta.url),
         ),
         ACTUALBUDGET_HOST: "127.0.0.1",

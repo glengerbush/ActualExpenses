@@ -18,13 +18,13 @@ class QualificationTests(unittest.TestCase):
         commands = [{'cwd': 'web', 'argv': c} for c in smoke.browser_commands(q.ROOT / 'actualBudget')]
         self.assertGreater(len(commands), 100)
         self.assertIn(['node', 'tests/import-storage-browser.mjs'], [c['argv'] for c in commands])
-        self.assert_partition(commands, 8)
+        self.assert_partition(commands, 6)
 
     def test_every_source_check_runs_exactly_once_including_expanded_npm_commands(self):
         commands = q.source_commands()
         self.assertGreater(len(commands), 60)
         self.assertIn(['python3', 'actualBudget/tools/generate-v5-receipts.py', '--check'], [c['argv'] for c in commands])
-        self.assert_partition(commands, 6)
+        self.assert_partition(commands, 4)
 
     def assert_partition(self, commands, count):
         key = lambda c: (c['cwd'], tuple(c['argv']))

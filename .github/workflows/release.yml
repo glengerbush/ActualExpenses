@@ -246,7 +246,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5]
+        shard: [0, 1, 2, 3]
     env:
       RUSTUP_TOOLCHAIN: 1.99.1
       CARGO_INCREMENTAL: '0'
@@ -267,7 +267,7 @@ jobs:
           "$RUNNER_TEMP/contract-check/bin/pip" install jsonschema==4.23.0
           echo "$RUNNER_TEMP/contract-check/bin" >> "$GITHUB_PATH"
       - name: Check every assigned source and financial contract
-        run: python3 tools/qualification.py --shard-index ${{ matrix.shard }} --shard-count 6
+        run: python3 tools/qualification.py --shard-index ${{ matrix.shard }} --shard-count 4
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
@@ -289,15 +289,17 @@ jobs:
         with:
           persist-credentials: false
       - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        id: image-cargo-cache
         with:
           path: .build-cache
-          key: image-cargo-1.99.1-v1-${{ hashFiles('actualBudget/server/Cargo.lock') }}-${{ github.sha }}
+          key: image-cargo-1.99.1-v1-${{ hashFiles('actualBudget/server/Cargo.lock') }}-${{ hashFiles('actualBudget/server/**', 'actualBudget/Dockerfile') }}
           restore-keys: |
             image-cargo-1.99.1-v1-${{ hashFiles('actualBudget/server/Cargo.lock') }}-
             image-cargo-1.99.1-v1-
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
       - uses: reproducible-containers/buildkit-cache-dance@5422eac04292c961a382e0f584ea0f03ad9da723 # v3
         with:
+          skip-extraction: ${{ steps.image-cargo-cache.outputs.cache-hit }}
           utility-image: debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc
           cache-map: |
             {".build-cache/registry":"/usr/local/cargo/registry",".build-cache/target":"/build/server/target"}
@@ -336,7 +338,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+        shard: [0, 1, 2, 3, 4, 5]
     env:
       LOCAL_IMAGE: actualbudget-qualification:${{ github.sha }}
     steps:
@@ -356,7 +358,7 @@ jobs:
           sha256sum --check actualbudget-image.sha256
           docker load --input actualbudget-image.tar
       - name: Verify persistence and every assigned browser workflow
-        run: python3 actualBudget/tools/container-smoke.py --image "$LOCAL_IMAGE" --browser --keep-going --shard-index ${{ matrix.shard }} --shard-count 8
+        run: python3 actualBudget/tools/container-smoke.py --image "$LOCAL_IMAGE" --browser --keep-going --shard-index ${{ matrix.shard }} --shard-count 6
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

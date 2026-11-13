@@ -35,7 +35,7 @@ runs:
           ~/.cargo/registry
           ~/.cargo/git
           actualBudget/server/target
-        key: rust-1.99.1-nodebug-v1-${{ runner.os }}-${{ inputs.rust }}-${{ hashFiles('actualBudget/server/Cargo.lock') }}-${{ github.sha }}
+        key: rust-1.99.1-nodebug-v1-${{ runner.os }}-${{ inputs.rust }}-${{ hashFiles('actualBudget/server/Cargo.lock') }}-${{ hashFiles('actualBudget/server/Cargo.toml', 'actualBudget/server/src/**', 'actualBudget/server/tests/**', 'actualBudget/server/build.rs') }}
         restore-keys: |
           rust-1.99.1-nodebug-v1-${{ runner.os }}-${{ inputs.rust }}-${{ hashFiles('actualBudget/server/Cargo.lock') }}-
           rust-1.99.1-nodebug-v1-${{ runner.os }}-${{ inputs.rust }}-

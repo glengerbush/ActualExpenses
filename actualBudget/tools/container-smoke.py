@@ -13,6 +13,7 @@ from pathlib import Path
 import shlex
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -168,6 +169,7 @@ def main():
     prefix = "actualbudget-smoke-" + uuid.uuid4().hex
     container, volume = prefix + "-app", prefix + "-data"
     image = args.image or prefix + ":test"
+    extracted = tempfile.TemporaryDirectory(prefix="actualbudget-qualified-")
     try:
         if not args.image:
             docker("build", "--tag", image, "--file", str(project / "Dockerfile"),
@@ -209,6 +211,14 @@ def main():
         verify_receipts(base)
         if args.browser or args.browser_test:
             environment = dict(os.environ, ACTUALBUDGET_TEST_URL=f"http://actualbudget.test:{urlsplit(base).port}")
+            # Recovery fault-injection needs a disposable database it can stop and
+            # reopen. Use the exact image's executable/assets, never a debug build.
+            binary = Path(extracted.name) / "actualbudget-server"
+            web = Path(extracted.name) / "web"
+            docker("cp", f"{container}:/usr/local/bin/actualbudget-server", str(binary))
+            docker("cp", f"{container}:/app/web", str(web))
+            environment.update(ACTUALBUDGET_TEST_BINARY=str(binary),
+                               ACTUALBUDGET_TEST_WEB_DIR=str(web))
             if commands is not None:
                 run_commands(commands, project, environment, project.parent / f"qualification-results/browser-{args.shard_index}.json")
             elif args.browser:
@@ -226,6 +236,7 @@ def main():
         docker("logs", container, capture=False, check=False)
         raise
     finally:
+        extracted.cleanup()
         docker("rm", "--force", container, check=False)
         docker("volume", "rm", volume, check=False)
         if not args.image:

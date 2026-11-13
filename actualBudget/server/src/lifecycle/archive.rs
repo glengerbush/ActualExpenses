@@ -1113,7 +1113,11 @@ pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Err
                 crate::models::validate_id(&id)
             }
             .map_err(|e| invalid(e.message))?;
-            validate_name(&name).map_err(|e| invalid(e.message))?;
+            // Imported Actual payees can have blank, long or control-containing
+            // names. Native backups must preserve that supported source text.
+            if table != "payees" {
+                validate_name(&name).map_err(|e| invalid(e.message))?;
+            }
         }
     }
     crate::transaction_imports::validate(db, budget).map_err(|e| invalid(e.message))?;

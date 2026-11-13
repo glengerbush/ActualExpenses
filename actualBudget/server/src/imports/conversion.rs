@@ -592,7 +592,9 @@ pub(super) fn convert_loaded(
         } else {
             text(row, "name")?
         };
-        validate_name(name).map_err(|_| invalid("Invalid source payee name"))?;
+        // Actual exports allow blank, long and control-containing payee names,
+        // including deleted payees. Preserve source text and identities exactly;
+        // validation for newly entered names is not an archive compatibility rule.
         if !row["transfer_acct"].is_null() {
             transfer_payees.insert(id);
         }

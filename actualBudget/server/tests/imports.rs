@@ -88,6 +88,126 @@ impl Drop for Server {
 }
 const ARCHIVE: &[u8] = include_bytes!("../../tests/fixtures/import-26.10.0.zip");
 #[test]
+fn genuine_actual_payee_names_survive_import_without_normalization_or_financial_changes() {
+    let server = Server::start();
+    let bytes = include_bytes!("../../tests/fixtures/import-payee-names.zip");
+    let expected: Value =
+        serde_json::from_str(include_str!("../../tests/fixtures/import-payee-names.json")).unwrap();
+    let response = upload(&server, "source-payee-names", bytes.to_vec());
+    assert_eq!(response.status(), 201, "{}", response.text().unwrap());
+    let stage: Value = response.json().unwrap();
+    assert_eq!(stage["data"]["status"], "ready");
+    let id = stage["data"]["id"].as_str().unwrap();
+    let budget = stage["data"]["budget_id"].as_str().unwrap();
+    assert_eq!(
+        server
+            .get(&format!("/api/v1/imports/{id}/original.zip"))
+            .bytes()
+            .unwrap()
+            .as_ref(),
+        bytes
+    );
+    let activation = server.post(
+        &format!("/api/v1/imports/{id}/activate"),
+        "activate-names",
+        json!({}),
+    );
+    assert_eq!(activation.status(), 201, "{}", activation.text().unwrap());
+    let server = server.restart();
+    let root = format!("/api/v1/budgets/{budget}");
+    let payees: Value = server
+        .get(&format!("{root}/payees?include_deleted=true"))
+        .json()
+        .unwrap();
+    for expected_payee in expected["payees"].as_array().unwrap() {
+        let imported = payees["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["id"] == expected_payee["id"])
+            .unwrap();
+        assert_eq!(imported["name"], expected_payee["name"]);
+    }
+    let deleted = payees["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["id"] == expected["deletedPayee"])
+        .unwrap();
+    assert_eq!(deleted["name"], "");
+    assert_eq!(deleted["deleted"], true);
+    let transactions: Value = server.get(&format!("{root}/transactions")).json().unwrap();
+    assert_eq!(
+        transactions["data"].as_array().unwrap().len(),
+        expected["transactions"].as_array().unwrap().len()
+    );
+    for original in expected["transactions"].as_array().unwrap() {
+        let imported = transactions["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["id"] == original["id"])
+            .unwrap();
+        assert_eq!(imported["payee_id"], original["payee"]);
+        assert_eq!(imported["amount"], original["amount"]);
+        assert_eq!(imported["notes"], original["notes"]);
+    }
+    let accounts: Value = server.get(&format!("{root}/accounts")).json().unwrap();
+    assert_eq!(accounts["data"][0]["balance"], expected["balance"]);
+
+    let backup_response = server.post(
+        &format!("{root}/backups"),
+        "backup-names",
+        json!({"label":"Imported names"}),
+    );
+    assert!(
+        backup_response.status().is_success(),
+        "{}",
+        backup_response.text().unwrap()
+    );
+    let backup: Value = backup_response.json().unwrap();
+    let backup_id = backup["data"]["id"].as_str().unwrap();
+    let archive = server.get(&format!("{root}/backups/{backup_id}/download"));
+    assert!(archive.status().is_success());
+    let restored = Server::start();
+    let response = restored
+        .client
+        .post(format!("{}/api/v1/restores", restored.url))
+        .header("Content-Type", "application/zip")
+        .header("Idempotency-Key", "restore-names")
+        .body(archive.bytes().unwrap())
+        .send()
+        .unwrap();
+    assert!(
+        response.status().is_success(),
+        "{}",
+        response.text().unwrap()
+    );
+    let stage: Value = response.json().unwrap();
+    let restore_id = stage["data"]["id"].as_str().unwrap();
+    let response = restored.post(
+        &format!("{root}/restores/{restore_id}/activate"),
+        "activate-restore",
+        json!({"confirm_name":"Source payee names"}),
+    );
+    assert!(
+        response.status().is_success(),
+        "{}",
+        response.text().unwrap()
+    );
+    let restored_payees: Value = restored
+        .get(&format!("{root}/payees?include_deleted=true"))
+        .json()
+        .unwrap();
+    assert_eq!(restored_payees["data"], payees["data"]);
+    let restored_transactions: Value = restored
+        .get(&format!("{root}/transactions"))
+        .json()
+        .unwrap();
+    assert_eq!(restored_transactions["data"], transactions["data"]);
+}
+
+#[test]
 fn pinned_archive_stages_then_activates_atomically_and_replays_after_restart() {
     let server = Server::start();
     let expected: Value =

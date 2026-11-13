@@ -5,6 +5,12 @@ import { fileURLToPath } from "node:url";
 const artifacts = fileURLToPath(new URL("../test-results/", import.meta.url));
 await mkdir(artifacts, { recursive: true });
 import { startServer, transactionCreatePattern } from "./server.mjs";
+const recoveryKinds = process.argv.slice(2).map((argument) => {
+  const match = /^--recovery-kind=(transaction|action)$/.exec(argument);
+  if (!match) throw new Error(`Unknown concurrency scenario: ${argument}`);
+  return match[1];
+});
+if (!recoveryKinds.length) recoveryKinds.push("transaction", "action");
 const server = await startServer(),
   native = server.url.replace("actualbudget.test", "127.0.0.1");
 async function write(path, body, clock) {
@@ -338,7 +344,7 @@ try {
   expect(errors).toEqual([]);
   await context.close();
   // A rejection authorizes discard only until another attempt can reach the server.
-  for (const kind of ["transaction", "action"]) {
+  for (const kind of recoveryKinds) {
     const recoveryContext = await browser.newContext();
     const page = await recoveryContext.newPage();
     await page.goto(server.url);
@@ -566,7 +572,7 @@ try {
   }
   // A rejected newer retry cannot authorize a local discard while an older attempt is held.
   // Server cancellation either fences that older request or recovers its committed receipt.
-  for (const kind of ["transaction", "action"])
+  for (const kind of recoveryKinds)
     for (const alreadyCommitted of [false, true]) {
       const overlap = await browser.newContext();
       const a = await overlap.newPage();

@@ -123,7 +123,8 @@ def browser_commands(project):
     script = json.loads((project / "web/package.json").read_text())["scripts"]["test:browser"]
     commands = [shlex.split(part) for part in script.split(" && ")]
     allowed_flags = {"--check", "--extended", "--prefix", "--metadata",
-                     "--history", "--budget-metadata", "--types"}
+                     "--history", "--budget-metadata", "--types",
+                     "--recovery-kind=transaction", "--recovery-kind=action"}
     for command in commands:
         if (len(command) not in (2, 3) or command[0] not in ("node", "python3")
                 or (len(command) == 3 and command[2] not in allowed_flags)

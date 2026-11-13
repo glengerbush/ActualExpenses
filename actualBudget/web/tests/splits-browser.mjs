@@ -298,7 +298,15 @@ try {
   await page
     .getByLabel("Split 1 notes", { exact: true })
     .fill("Keep historical payee");
+  await expect(
+    page.getByRole("status").filter({
+      hasText: "Split draft saved on this device.",
+    }),
+  ).toBeVisible();
   await page.reload();
+  await expect(page.getByLabel("Split 1 notes", { exact: true })).toHaveValue(
+    "Keep historical payee",
+  );
   await expect(page.getByLabel("Split 1 payee", { exact: true })).toHaveValue(
     childPayee.id,
   );

@@ -18,6 +18,9 @@ class QualificationTests(unittest.TestCase):
         commands = [{'cwd': 'web', 'argv': c} for c in smoke.browser_commands(q.ROOT / 'actualBudget')]
         self.assertGreater(len(commands), 100)
         self.assertIn(['node', 'tests/import-storage-browser.mjs'], [c['argv'] for c in commands])
+        for kind in ('transaction', 'action'):
+            self.assertIn(['node', 'tests/concurrency-browser.mjs', f'--recovery-kind={kind}'],
+                          [c['argv'] for c in commands])
         self.assert_partition(commands, 6)
 
     def test_every_source_check_runs_exactly_once_including_expanded_npm_commands(self):

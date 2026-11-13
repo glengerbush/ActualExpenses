@@ -13,3 +13,6 @@ __pycache__/
 *.pyc
 .scratch/
 test-results/
+
+.build-cache/
+qualification-results/

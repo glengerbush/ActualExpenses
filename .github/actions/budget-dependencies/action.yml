@@ -1,0 +1,68 @@
+name: actualBudget qualification dependencies
+description: Install locked dependencies and reuse compiler/browser caches.
+inputs:
+  rust:
+    description: Rust cache namespace, or none for browser-only jobs.
+    default: none
+  chromium:
+    description: Install and launch the pinned browser.
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      with:
+        node-version: '24'
+        cache: npm
+        cache-dependency-path: |
+          actualBudget/web/package-lock.json
+          actualExpenses/tools/compatibility/package-lock.json
+    - name: Install locked Node dependencies
+      shell: bash
+      run: |
+        npm ci --prefix actualBudget/web &
+        web_pid=$!
+        npm ci --prefix actualExpenses/tools/compatibility &
+        oracle_pid=$!
+        status=0
+        wait "$web_pid" || status=1
+        wait "$oracle_pid" || status=1
+        exit "$status"
+    - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+      if: inputs.rust != 'none'
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          actualBudget/server/target
+        key: rust-1.99.1-nodebug-v1-${{ runner.os }}-${{ inputs.rust }}-${{ hashFiles('actualBudget/server/Cargo.lock') }}-${{ github.sha }}
+        restore-keys: |
+          rust-1.99.1-nodebug-v1-${{ runner.os }}-${{ inputs.rust }}-${{ hashFiles('actualBudget/server/Cargo.lock') }}-
+          rust-1.99.1-nodebug-v1-${{ runner.os }}-${{ inputs.rust }}-
+    - name: Install pinned Rust toolchain
+      if: inputs.rust != 'none'
+      shell: bash
+      run: rustup toolchain install 1.99.1 --profile minimal --component rustfmt --component clippy
+    - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+      if: inputs.chromium == 'true'
+      with:
+        path: ~/.cache/ms-playwright
+        key: chromium-${{ runner.os }}-${{ hashFiles('actualBudget/web/package-lock.json') }}
+        restore-keys: chromium-${{ runner.os }}-
+    - name: Install and verify pinned Chromium
+      if: inputs.chromium == 'true'
+      shell: bash
+      working-directory: actualBudget/web
+      run: |
+        npx playwright install chromium
+        node --input-type=module <<'JS'
+        import { chromium } from '@playwright/test';
+        import { appendFileSync } from 'node:fs';
+        const browser = await chromium.launch();
+        try {
+          const page = await browser.newPage();
+          await page.setContent('<p>qualification</p>');
+          if (await page.locator('p').innerText() !== 'qualification') throw Error('Browser launch failed');
+        } finally { await browser.close(); }
+        appendFileSync(process.env.GITHUB_ENV, `CHROMIUM_PATH=${chromium.executablePath()}\n`);
+        JS

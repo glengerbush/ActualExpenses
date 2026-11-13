@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import shlex
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -132,18 +133,6 @@ def browser_commands(project):
     return commands
 
 
-def run_browser_commands(commands, project, environment):
-    failures = []
-    for command in commands:
-        label = shlex.join(command)
-        print(f"RUN: {label}", flush=True)
-        result = subprocess.run(command, cwd=project / "web", env=environment)
-        print(f"{'PASS' if result.returncode == 0 else 'FAIL'}: {label}", flush=True)
-        if result.returncode:
-            failures.append((label, result.returncode))
-    print(f"Browser batch: {len(commands) - len(failures)}/{len(commands)} passed", flush=True)
-    if failures:
-        raise RuntimeError(f"Browser batch failures: {failures}")
 
 
 def main():
@@ -158,13 +147,24 @@ def main():
                                 help="Run a selected browser script; repeat for related regressions")
     parser.add_argument("--keep-going", action="store_true",
                         help="Collect every browser-script result, then fail if any script failed")
+    parser.add_argument('--shard-index', type=int, default=0)
+    parser.add_argument('--shard-count', type=int, default=1)
     args = parser.parse_args()
+    if args.shard_count != 1 and not (args.browser and args.keep_going):
+        parser.error('Sharding requires --browser --keep-going')
+    if not 0 <= args.shard_index < args.shard_count:
+        parser.error('Invalid shard index/count')
     if args.keep_going and not (args.browser or args.browser_test):
         parser.error("--keep-going requires --browser or --browser-test")
     commands = None
     if args.keep_going:
         commands = (browser_commands(project) if args.browser else
                     [["node", str(project / "web/tests" / script)] for script in args.browser_test])
+    sys.path.insert(0, str(project.parent / 'tools'))
+    from qualification import select_shard, run_commands
+    if commands is not None:
+        commands = select_shard([{'cwd': 'web', 'argv': c} for c in commands],
+                                args.shard_index, args.shard_count)
     prefix = "actualbudget-smoke-" + uuid.uuid4().hex
     container, volume = prefix + "-app", prefix + "-data"
     image = args.image or prefix + ":test"
@@ -210,7 +210,7 @@ def main():
         if args.browser or args.browser_test:
             environment = dict(os.environ, ACTUALBUDGET_TEST_URL=f"http://actualbudget.test:{urlsplit(base).port}")
             if commands is not None:
-                run_browser_commands(commands, project, environment)
+                run_commands(commands, project, environment, project.parent / f"qualification-results/browser-{args.shard_index}.json")
             elif args.browser:
                 subprocess.run(["npm", "--prefix", str(project / "web"), "run", "test:browser"],
                                env=environment, check=True)

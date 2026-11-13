@@ -12,6 +12,7 @@ on:
       - actualBudget/web/package-lock.json
       - release-policy.json
       - .github/workflows/release.yml
+      - .github/actions/**
       - tools/**
       - actualExpenses/tools/release.py
       - actualExpenses/tools/test_release.py
@@ -60,6 +61,7 @@ jobs:
       - name: Test independent and historical release automation
         run: |
           python3 -m unittest discover -s tools -p test_release.py -v
+          python3 -m unittest discover -s tools -p test_qualification.py -v
           python3 -m unittest discover -s actualExpenses/tools -p test_release.py -v
       - name: Plan the complete push without remote side effects
         id: plan
@@ -210,11 +212,165 @@ jobs:
         if: always()
         run: rm -f "$RUNNER_TEMP/actualexpenses.p12"
 
-  budget:
+  budget-rust:
     needs: plan
     if: needs.plan.outputs.budget_qualify == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 15
+    env:
+      RUSTUP_TOOLCHAIN: 1.99.1
+      CARGO_INCREMENTAL: '0'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/budget-dependencies
+        with:
+          rust: checks
+      - name: Check Rust and web sources
+        run: |
+          cargo fmt --manifest-path actualBudget/server/Cargo.toml -- --check
+          cargo clippy --locked --manifest-path actualBudget/server/Cargo.toml --all-targets -- -D warnings
+          cargo test --locked --manifest-path actualBudget/server/Cargo.toml
+          npm --prefix actualBudget/web run check
+          npm --prefix actualBudget/web run format:check
+          npm --prefix actualBudget/web run build
+
+  budget-source:
+    needs: plan
+    if: needs.plan.outputs.budget_qualify == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5]
+    env:
+      RUSTUP_TOOLCHAIN: 1.99.1
+      CARGO_INCREMENTAL: '0'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/budget-dependencies
+        with:
+          rust: source
+      - name: Prepare real API and contract dependencies
+        run: |
+          cargo build --locked --manifest-path actualBudget/server/Cargo.toml
+          python3 -m venv "$RUNNER_TEMP/contract-check"
+          "$RUNNER_TEMP/contract-check/bin/pip" install jsonschema==4.23.0
+          echo "$RUNNER_TEMP/contract-check/bin" >> "$GITHUB_PATH"
+      - name: Check every assigned source and financial contract
+        run: python3 tools/qualification.py --shard-index ${{ matrix.shard }} --shard-count 6
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          overwrite: true
+          name: source-timings-${{ matrix.shard }}
+          path: qualification-results/
+          if-no-files-found: warn
+          retention-days: 7
+
+  budget-build:
+    needs: plan
+    if: needs.plan.outputs.budget_qualify == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      LOCAL_IMAGE: actualbudget-qualification:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: .build-cache
+          key: image-cargo-1.99.1-v1-${{ hashFiles('actualBudget/server/Cargo.lock') }}-${{ github.sha }}
+          restore-keys: |
+            image-cargo-1.99.1-v1-${{ hashFiles('actualBudget/server/Cargo.lock') }}-
+            image-cargo-1.99.1-v1-
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - uses: reproducible-containers/buildkit-cache-dance@5422eac04292c961a382e0f584ea0f03ad9da723 # v3
+        with:
+          utility-image: debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc
+          cache-map: |
+            {".build-cache/registry":"/usr/local/cargo/registry",".build-cache/target":"/build/server/target"}
+      - name: Build the one image used by every shard and publication
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: actualBudget
+          file: actualBudget/Dockerfile
+          tags: ${{ env.LOCAL_IMAGE }}
+          outputs: type=docker,dest=${{ runner.temp }}/actualbudget-image.tar
+          cache-from: type=gha,scope=actualbudget-image
+          cache-to: type=gha,scope=actualbudget-image,mode=max
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ needs.plan.outputs.budget_version }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+      - name: Record image archive checksum
+        working-directory: ${{ runner.temp }}
+        run: sha256sum actualbudget-image.tar > actualbudget-image.sha256
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: actualbudget-image-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/actualbudget-image.tar
+            ${{ runner.temp }}/actualbudget-image.sha256
+          overwrite: true
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 2
+
+  budget-browser:
+    needs: [plan, budget-build]
+    if: needs.plan.outputs.budget_qualify == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    env:
+      LOCAL_IMAGE: actualbudget-qualification:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/budget-dependencies
+        with:
+          chromium: 'true'
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: actualbudget-image-${{ github.sha }}
+          path: ${{ runner.temp }}/image
+      - name: Verify and load the exact image
+        working-directory: ${{ runner.temp }}/image
+        run: |
+          sha256sum --check actualbudget-image.sha256
+          docker load --input actualbudget-image.tar
+      - name: Verify persistence and every assigned browser workflow
+        run: python3 actualBudget/tools/container-smoke.py --image "$LOCAL_IMAGE" --browser --keep-going --shard-index ${{ matrix.shard }} --shard-count 8
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          overwrite: true
+          name: browser-timings-${{ matrix.shard }}
+          path: qualification-results/
+          if-no-files-found: warn
+          retention-days: 7
+
+  budget:
+    needs: [plan, budget-build, budget-rust, budget-source, budget-browser]
+    if: needs.plan.outputs.budget_qualify == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     permissions:
       contents: write
       packages: write
@@ -226,99 +382,21 @@ jobs:
       VERSION: ${{ needs.plan.outputs.budget_version }}
       BEFORE: ${{ needs.plan.outputs.before }}
       CHANNEL: ${{ needs.plan.outputs.channel }}
-      RUSTUP_TOOLCHAIN: 1.99.1
       LOCAL_IMAGE: actualbudget-qualification:${{ github.sha }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          node-version: '24'
-      - name: Install pinned compiler and test dependencies
+          name: actualbudget-image-${{ github.sha }}
+          path: ${{ runner.temp }}/image
+      - name: Verify and load the qualified image
+        working-directory: ${{ runner.temp }}/image
         run: |
-          rustup toolchain install 1.99.1 --profile minimal --component rustfmt --component clippy
-          npm ci --prefix actualBudget/web
-          npm ci --prefix actualExpenses/tools/compatibility
-      - name: Install and verify pinned Chromium
-        working-directory: actualBudget/web
-        run: |
-          # Hosted Ubuntu already supplies Chromium's shared libraries. Avoid an
-          # apt refresh for optional font packages; a real launch verifies them.
-          npx playwright install chromium
-          node --input-type=module <<'JS'
-          import { chromium } from '@playwright/test';
-          import { appendFileSync } from 'node:fs';
-          const executablePath = chromium.executablePath();
-          const browser = await chromium.launch({ executablePath, headless: true });
-          try {
-            const page = await browser.newPage();
-            await page.setContent('<p>actualBudget browser qualification</p>');
-            if (await page.locator('p').innerText() !== 'actualBudget browser qualification') {
-              throw new Error('Chromium failed its launch check');
-            }
-          } finally {
-            await browser.close();
-          }
-          appendFileSync(process.env.GITHUB_ENV, `CHROMIUM_PATH=${executablePath}\n`);
-          JS
-      - name: Check public API, financial reference and web build
-        run: |
-          cargo fmt --manifest-path actualBudget/server/Cargo.toml -- --check
-          cargo clippy --locked --manifest-path actualBudget/server/Cargo.toml --all-targets -- -D warnings
-          cargo test --locked --manifest-path actualBudget/server/Cargo.toml
-          npm --prefix actualBudget/web run check
-          npm --prefix actualBudget/web run format:check
-          npm --prefix actualBudget/web run build
-          node actualBudget/tools/generate-opening-balances.mjs --check
-          node actualBudget/tools/generate-register.mjs --check
-          node actualBudget/tools/generate-calculator.mjs --check
-          node actualBudget/tools/generate-import-fixture.mjs --check
-          node actualBudget/tools/generate-concurrency.mjs --check
-          node actualBudget/tools/generate-account-lifecycle.mjs --check
-          node actualBudget/tools/generate-transaction-import-source.mjs --check
-          node actualBudget/tools/generate-transaction-parser-source.mjs --check
-          node actualBudget/tools/generate-transaction-normalization-source.mjs --check
-          node actualBudget/tools/generate-transaction-matching-source.mjs --check
-          node actualBudget/tools/generate-transaction-import-rules-source.mjs --check
-          node actualBudget/tools/generate-transaction-import-edges.mjs --check
-          node actualBudget/tools/generate-transaction-merge-source.mjs --check
-          node actualBudget/tools/generate-transaction-export-source.mjs --check
-          node actualBudget/tools/generate-transaction-format-flows.mjs --check
-          npm --prefix actualBudget/web run test:manual-retirement-api
-          npm --prefix actualBudget/web run test:migration-source
-          node actualBudget/tools/check-complete-migration-http.mjs
-          npm --prefix actualBudget/web run test:ynab-source
-          npm --prefix actualBudget/web run test:public-api-source
-          npm --prefix actualBudget/web run test:public-api-upgrade
-          npm --prefix actualBudget/web run test:rule-context-source
-          npm --prefix actualBudget/web run test:rule-context-limits
-          npm --prefix actualBudget/web run test:rule-template-limits
-          node actualBudget/tools/generate-rule-expressions-source.mjs --execution --check
-          node actualBudget/tools/check-rule-expressions-http.mjs --execution
-          node actualBudget/tools/generate-rule-expressions-source.mjs --nonfinite --check
-          node actualBudget/tools/generate-rule-expression-commits-source.mjs --nonfinite --check
-          node actualBudget/tools/check-rule-expressions-http.mjs --nonfinite
-          node actualBudget/tools/check-rule-expression-commits-http.mjs --nonfinite
-          node actualBudget/tools/check-rule-nonfinite-workflows-http.mjs
-          npm --prefix actualBudget/web run test:monte-carlo-source
-          node actualBudget/tools/check-monte-carlo-http.mjs --all
-          node actualBudget/tools/check-monte-carlo-http.mjs --strategies
-          node actualBudget/tools/check-monte-carlo-workflows-http.mjs --limits
-          node actualBudget/tools/check-monte-carlo-plans-http.mjs
-          node actualBudget/tools/check-monte-carlo-plans-http.mjs --strategies
-          node actualBudget/tools/check-formula-http.mjs --limits
-          python3 actualBudget/tools/generate-v5-receipts.py --check
-          python3 -m venv "$RUNNER_TEMP/contract-check"
-          "$RUNNER_TEMP/contract-check/bin/pip" install jsonschema==4.23.0
-          "$RUNNER_TEMP/contract-check/bin/python" actualBudget/tools/contract-smoke.py
-          "$RUNNER_TEMP/contract-check/bin/python" actualBudget/tools/check-monte-carlo-contract.py
-      - name: Build the exact image that will be qualified and published
-        run: |
-          docker build --tag "$LOCAL_IMAGE" --file actualBudget/Dockerfile --label "org.opencontainers.image.revision=$GITHUB_SHA" --label "org.opencontainers.image.version=$VERSION" --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" actualBudget
-      - name: Verify real container persistence and browser workflows
-        run: python3 actualBudget/tools/container-smoke.py --image "$LOCAL_IMAGE" --browser --keep-going
+          sha256sum --check actualbudget-image.sha256
+          docker load --input actualbudget-image.tar
       - name: Review publication dry run
         run: python3 tools/publish.py actualBudget --before "$BEFORE" --head "$GITHUB_SHA" --channel "$CHANNEL" --repository "$GITHUB_REPOSITORY" --image "$LOCAL_IMAGE" --directory dist/actualBudget
       - name: Log into GHCR only for an eligible publication
@@ -338,6 +416,3 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 tools/publish.py actualBudget --before "$BEFORE" --head "$GITHUB_SHA" --channel "$CHANNEL" --repository "$GITHUB_REPOSITORY" --image "$LOCAL_IMAGE" --directory dist/actualBudget --execute
-      - name: Remove local qualification image
-        if: always()
-        run: docker image rm "$LOCAL_IMAGE" || true

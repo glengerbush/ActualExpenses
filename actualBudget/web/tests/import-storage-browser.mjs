@@ -1,7 +1,8 @@
 import { chromium, webkit, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { startServer } from "./server.mjs";
 const server = await startServer();
 const useWebKit = process.env.IMPORT_BROWSER === "webkit";
@@ -39,10 +40,28 @@ try {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   const url = server.url.replace("actualbudget.test", "127.0.0.1");
-  const archive = await readFile(
+  const original = await readFile(
     fileURLToPath(
       new URL("../../tests/fixtures/import-26.10.0.zip", import.meta.url),
     ),
+  );
+  // A real folder-wrapped export, unique per invocation on the shared test server.
+  // Database and metadata bytes remain untouched; existing imports stay intact.
+  const archive = execFileSync(
+    "python3",
+    [
+      "-c",
+      `
+import io,sys,zipfile
+source=zipfile.ZipFile(io.BytesIO(sys.stdin.buffer.read()))
+output=io.BytesIO()
+with zipfile.ZipFile(output,"w",zipfile.ZIP_DEFLATED) as target:
+ for name in source.namelist(): target.writestr(sys.argv[1]+"/"+name,source.read(name))
+sys.stdout.buffer.write(output.getvalue())
+`,
+      randomUUID(),
+    ],
+    { input: original },
   );
   const expectedHash = createHash("sha256").update(archive).digest("hex");
   const uploads = [];
@@ -123,8 +142,9 @@ try {
   const stages = await (
     await context.request.get(url + "/api/v1/imports")
   ).json();
-  expect(stages.data).toHaveLength(1);
-  expect(stages.data[0].report.archive_sha256).toBe(expectedHash);
+  expect(
+    stages.data.filter((stage) => stage.report.archive_sha256 === expectedHash),
+  ).toHaveLength(1);
   expect(uploads[1]).toEqual(uploads[0]);
   await expect(
     page.locator(".balance-row").filter({ hasText: "Spending" }),
@@ -148,8 +168,9 @@ try {
     const legacy = await browser.newContext();
     const oldPage = await legacy.newPage();
     await oldPage.goto(url);
+    const legacyKey = randomUUID();
     await oldPage.evaluate(
-      async (bytes) => {
+      async ({ bytes, key, activationKey }) => {
         const db = await new Promise((resolve, reject) => {
           const request = indexedDB.open("actualBudget.imports.v1", 1);
           request.onupgradeneeded = () =>
@@ -163,8 +184,8 @@ try {
             {
               version: 1,
               sourceKind: "actual",
-              key: "legacy-file-upload",
-              activationKey: "legacy-file-activate",
+              key,
+              activationKey,
               filename: "Old desktop export.zip",
               file: new Blob([new Uint8Array(bytes)]),
               stage: null,
@@ -178,7 +199,7 @@ try {
         });
         db.close();
       },
-      [...archive],
+      { bytes: [...archive], key: legacyKey, activationKey: randomUUID() },
     );
     await oldPage
       .getByRole("button", { name: "Import Actual budget", exact: true })
@@ -214,7 +235,7 @@ try {
     });
     expect(upgraded).toEqual({
       version: 2,
-      key: "legacy-file-upload",
+      key: legacyKey,
       bytes: true,
       hash: expectedHash,
     });

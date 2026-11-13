@@ -56,13 +56,14 @@ def select_shard(commands, index, count):
     return shards(commands, count, timings)[index]
 
 
-def run_commands(commands, root, environment, report):
+def run_commands(commands, root, environment, report, prepare=None):
     results = []
     for command in commands:
         name = label(command)
         print(f'RUN: {name}', flush=True)
         started = time.monotonic()
-        result = subprocess.run(command['argv'], cwd=root / command['cwd'], env=environment)
+        command_environment = {**environment, **(prepare() if prepare else {})}
+        result = subprocess.run(command['argv'], cwd=root / command['cwd'], env=command_environment)
         elapsed = round(time.monotonic() - started, 3)
         results.append({'command': name, 'seconds': elapsed, 'exit_code': result.returncode})
         print(f'{"PASS" if result.returncode == 0 else "FAIL"}: {name} ({elapsed}s)', flush=True)

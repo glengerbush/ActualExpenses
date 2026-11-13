@@ -21,7 +21,7 @@ class QualificationTests(unittest.TestCase):
         for kind in ('transaction', 'action'):
             self.assertIn(['node', 'tests/concurrency-browser.mjs', f'--recovery-kind={kind}'],
                           [c['argv'] for c in commands])
-        self.assert_partition(commands, 6)
+        self.assert_partition(commands, 8)
 
     def test_every_source_check_runs_exactly_once_including_expanded_npm_commands(self):
         commands = q.source_commands()

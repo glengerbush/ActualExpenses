@@ -220,8 +220,18 @@ def main():
             docker("cp", f"{container}:/app/web", str(web))
             environment.update(ACTUALBUDGET_TEST_BINARY=str(binary),
                                ACTUALBUDGET_TEST_WEB_DIR=str(web))
+            def fresh_database():
+                # Imported fixtures have stable identities. Every command needs
+                # its own database, regardless of shard ordering or prior tests.
+                docker("rm", "--force", container)
+                docker("volume", "rm", volume)
+                docker("volume", "create", volume)
+                fresh_base = start(image, container, volume)
+                return {"ACTUALBUDGET_TEST_URL": f"http://actualbudget.test:{urlsplit(fresh_base).port}"}
             if commands is not None:
-                run_commands(commands, project, environment, project.parent / f"qualification-results/browser-{args.shard_index}.json")
+                run_commands(commands, project, environment,
+                             project.parent / f"qualification-results/browser-{args.shard_index}.json",
+                             prepare=fresh_database)
             elif args.browser:
                 subprocess.run(["npm", "--prefix", str(project / "web"), "run", "test:browser"],
                                env=environment, check=True)

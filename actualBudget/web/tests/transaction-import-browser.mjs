@@ -161,6 +161,9 @@ try {
     await page
       .getByLabel(`${field} column`, { exact: false })
       .selectOption(value);
+  await expect(
+    page.getByRole("button", { name: "Close", exact: true }),
+  ).toBeEnabled();
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Import and export transactions" }),
@@ -169,6 +172,9 @@ try {
   await page.getByRole("button", { name: "Read retained file" }).click();
   await expect(page.getByLabel("Amount column", { exact: false })).toHaveValue(
     "Amount",
+  );
+  await expect(page.getByLabel("Notes column", { exact: false })).toHaveValue(
+    "Notes",
   );
   await page.getByRole("button", { name: "Preview selected import" }).click();
   await expect(

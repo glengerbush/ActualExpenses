@@ -272,10 +272,9 @@ try {
     .getByRole("button", { name: "Recalculate formula", exact: true })
     .click();
   await expect(value).toHaveText(expected);
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
-  await expect(value).toHaveText("••••");
-  expect(await value.evaluate((e) => e.style.color)).toBe("");
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveCount(0);
   await expect(value).toHaveText(expected);
   await expect(
     widget.getByRole("button", { name: "Recalculate formula", exact: true }),
@@ -559,7 +558,7 @@ try {
   expect(errors).toEqual([]);
   expect(httpFailures).toEqual([]);
   console.log(
-    "PASS formula opt-in/command, source result/color and all source theme bindings across light/dark/midnight/custom, legacy theme upgrade, durable drafts, cache/quota/privacy and responsive keyboard/large-text editor",
+    "PASS formula opt-in/command, source result/color and all source theme bindings across light/dark/midnight/custom, legacy theme upgrade, durable drafts, cache/quota and responsive keyboard/large-text editor",
   );
 } catch (error) {
   const failedPage = browser?.contexts()[0]?.pages()[0];

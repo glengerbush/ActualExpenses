@@ -362,11 +362,9 @@ try {
   await expect(
     widget.getByRole("button", { name: "Run simulation", exact: true }),
   ).toBeEnabled();
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
   await expect(
-    widget.getByLabel("Median ending balance", { exact: true }),
-  ).toHaveText("••••");
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveCount(0);
   const largeText = await page.addStyleTag({
     content: "html { font-size: 200% !important; }",
   });
@@ -474,7 +472,7 @@ try {
   ).toBeVisible();
   expect(errors).toEqual([]);
   console.log(
-    "PASS gated manual run, source summary/percentiles, rich input editing, retained invalid draft, cancellation/recovery, saved offline view, privacy, keyboard and responsive/large-text layouts",
+    "PASS gated manual run, source summary/percentiles, rich input editing, retained invalid draft, cancellation/recovery, saved offline view, keyboard and responsive/large-text layouts",
   );
 } finally {
   await browser?.close();

@@ -37,11 +37,10 @@
   let breakdownPages = $state<Record<string, number>>({});
   let alive = true,
     generation = 0;
-  let privateAmounts = $derived(
+  let awaitingPreferences = $derived(
     preferences.budgetId !== budgetId ||
       !preferences.hasUsableShared ||
-      preferences.budgetEpoch !== projection.epoch ||
-      preferences.shared.privacy_mode,
+      preferences.budgetEpoch !== projection.epoch,
   );
   let nodeMeta = $derived(
     new Map(projection.node_metadata.map((node) => [node.key, node])),
@@ -57,7 +56,7 @@
     return node.name || t("Unnamed flow");
   }
   const money = (value: number) =>
-    privateAmounts ? "••••" : formatAmount(value);
+    awaitingPreferences ? "••••" : formatAmount(value);
   let flows = $derived(
     projection.result.links.flatMap((link, index) => {
       const meta = projection.link_metadata[index],
@@ -220,8 +219,8 @@
   });
 </script>
 
-{#if privateAmounts}<p>
-    {t("Financial plot hidden for privacy.")}
+{#if awaitingPreferences}<p>
+    {t("Loading display preferences…")}
   </p>{:else if !diagram}<p>
     {t(
       "This diagram is too large to draw here. Narrow dates or filters; exact flows and record details remain available in the table.",

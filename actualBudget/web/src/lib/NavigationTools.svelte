@@ -2,26 +2,15 @@
   import { t } from "./i18n.svelte";
   import { tick } from "svelte";
   import { preferences } from "./preferences.svelte";
-  import { errorMessage, uuid } from "./api";
+  import { errorMessage } from "./api";
   import type { NavigationCommand } from "./navigation";
-  let {
-    commands,
-    budgetId,
-    offline,
-    busy,
-  }: {
-    commands: NavigationCommand[];
-    budgetId?: string;
-    offline: boolean;
-    busy: boolean;
-  } = $props();
+  let { commands }: { commands: NavigationCommand[] } = $props();
   const release = "navigation-45";
   let dialog: HTMLDialogElement;
   let search = $state<HTMLInputElement>();
   let mode = $state<"search" | "help">("search");
   let query = $state("");
   let active = $state(0);
-  let saving = $state(false);
   let error = $state("");
   let trigger: HTMLElement | null = null;
   let matches = $derived(
@@ -100,41 +89,12 @@
     await preferences.updateDevice({ show_release_notices: input.checked });
     input.checked = !!preferences.device.show_release_notices;
   }
-  async function privacy() {
-    if (!budgetId || saving || offline) return;
-    saving = true;
-    error = "";
-    try {
-      await preferences.saveShared(
-        budgetId,
-        { privacy_mode: !preferences.shared.privacy_mode },
-        uuid(),
-        preferences.budgetEpoch,
-      );
-    } catch (e) {
-      error = errorMessage(e);
-    } finally {
-      saving = false;
-    }
-  }
 </script>
 
 <svelte:window onkeydown={keyboard} />
 <div class="navigation-tools" role="group" aria-label="Navigation tools">
   <button onclick={() => open("search")} aria-keyshortcuts="Control+k Meta+k"
     >Search commands</button
-  >
-  <button
-    onclick={privacy}
-    aria-pressed={!!preferences.shared.privacy_mode}
-    title={offline
-      ? "Reconnect to change the shared privacy preference"
-      : "Mask displayed amounts"}
-    disabled={!budgetId ||
-      !preferences.hasUsableShared ||
-      offline ||
-      busy ||
-      saving}>Privacy mode</button
   >
   <button onclick={() => open("help")} aria-keyshortcuts="?"
     >Help and releases</button
@@ -146,8 +106,8 @@
 {#if preferences.device.show_release_notices && preferences.device.seen_release !== release}
   <div class="release-notice" role="status">
     <p>
-      actualBudget navigation: command search, privacy masking and local help
-      are available in this fork.
+      actualBudget navigation: command search and local help are available in
+      this fork.
     </p>
     <button onclick={() => preferences.updateDevice({ seen_release: release })}
       >Dismiss release notice</button
@@ -214,7 +174,7 @@
     <h3>{t("Keyboard shortcuts")}</h3>
     <dl>
       <dt>Ctrl / Cmd + K</dt>
-      <dd>Search delivered views and accounts.</dd>
+      <dd>Search available views and commands.</dd>
       <dt>?</dt>
       <dd>Open help outside a text field.</dd>
       <dt>Escape</dt>
@@ -222,16 +182,10 @@
       <dt>Tab / Shift + Tab</dt>
       <dd>Move between controls. Focus stays inside this dialog.</dd>
     </dl>
-    <h3>Privacy and saved views</h3>
+    <h3>Saved views</h3>
     <p>
-      Privacy mode masks displayed amounts on every screen size. On desktop,
-      amount fields are masked at rest and reveal on hover or focus. Names,
-      dates, notes and exports remain visible. This display preference does not
-      secure access to your budget.
-    </p>
-    <p>
-      The last budget, account and supported view are remembered on this
-      browser. Unfinished entries keep their existing recovery prompts.
+      The last budget and supported view are remembered on this browser.
+      Unfinished entries keep their existing recovery prompts.
     </p>
     <h3>Connection and access</h3>
     <p>

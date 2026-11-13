@@ -13,16 +13,15 @@
   let result = $derived(projection.result),
     rows = $derived(result.graphData.data),
     visible = $derived(rows.slice(page * 50, page * 50 + 50));
-  let privateAmounts = $derived(
+  let awaitingPreferences = $derived(
     preferences.budgetId !== budgetId ||
       !preferences.hasUsableShared ||
-      preferences.budgetEpoch !== projection.epoch ||
-      preferences.shared.privacy_mode,
+      preferences.budgetEpoch !== projection.epoch,
   );
   const money = (value: number | null) =>
     value === null
       ? t("Unavailable")
-      : privateAmounts
+      : awaitingPreferences
         ? "••••"
         : formatAmount(value);
   const month = (value: string) =>
@@ -34,7 +33,7 @@
   const percentage = (value: number | null) =>
     value === null
       ? t("Unavailable")
-      : privateAmounts
+      : awaitingPreferences
         ? "••••"
         : new Intl.NumberFormat(languageState.language, {
             style: "percent",
@@ -133,7 +132,7 @@
       <dd>
         {result.yearsToRetire === null
           ? t("No crossover within 600 projected months")
-          : privateAmounts
+          : awaitingPreferences
             ? "••••"
             : new Intl.NumberFormat(languageState.language, {
                 maximumFractionDigits: 2,
@@ -151,14 +150,14 @@
   </dl>
   {#if crossoverMonth}<p>
       {t("Projected crossover:")}
-      {privateAmounts ? "••••" : month(crossoverMonth)}
+      {awaitingPreferences ? "••••" : month(crossoverMonth)}
     </p>{/if}
   <p>
     {t(
       "Income here is a withdrawal-rate estimate, including the historical line. It is not recorded earnings or a guaranteed investment return. Account balances remain separate from this estimate.",
     )}
   </p>
-  {#if privateAmounts}<p>{t("Financial plot hidden for privacy.")}</p>{:else}
+  {#if awaitingPreferences}<p>{t("Loading display preferences…")}</p>{:else}
     <label class="check"
       ><input type="checkbox" bind:checked={projectionOnly} />{t(
         "Show projected months only",

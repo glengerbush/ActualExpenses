@@ -56,25 +56,9 @@ try {
     page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
   await expect(page.getByTestId("register-total")).toHaveText("1,234.56");
-  await page.route(`**/api/v1/budgets/${id}/preferences`, async (route) => {
-    if (route.request().method() === "PATCH")
-      await route.fulfill({
-        status: 503,
-        contentType: "application/json",
-        body: JSON.stringify({
-          error: { code: "unavailable", message: "Try again" },
-        }),
-      });
-    else await route.continue();
-  });
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
   await expect(
-    page.getByRole("alert").filter({ hasText: "Retry the action" }),
-  ).toBeVisible();
-  await expect(page.getByTestId("register-total")).toHaveText("1,234.56");
-  await page.unroute(`**/api/v1/budgets/${id}/preferences`);
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
-  await expect(page.getByTestId("register-total")).toHaveText("••••");
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
@@ -82,23 +66,7 @@ try {
   await amountInput.fill("345.67");
   await page.getByLabel("Notes", { exact: true }).focus();
   await page.mouse.move(0, 0);
-  expect(
-    await page.evaluate(
-      async () => (await document.fonts.load('16px "Redacted Script"')).length,
-    ),
-  ).toBeGreaterThan(0);
-  await expect(amountInput).toHaveCSS(
-    "font-family",
-    '"Redacted Script", sans-serif',
-  );
   await expect(amountInput).toHaveValue("345.67");
-  await amountInput.focus();
-  await expect(amountInput).not.toHaveCSS(
-    "font-family",
-    '"Redacted Script", sans-serif',
-  );
-  await page.getByLabel("Notes", { exact: true }).focus();
-  await amountInput.hover();
   await expect(amountInput).not.toHaveCSS(
     "font-family",
     '"Redacted Script", sans-serif',
@@ -114,11 +82,11 @@ try {
     .getByRole("button", { name: "Transaction history", exact: true })
     .click();
   await expect.poll(() => held.length).toBeGreaterThan(0);
-  await expect(page.getByTestId("register-total")).toHaveText("••••");
+  await expect(page.getByTestId("register-total")).toHaveText("1,234.56");
   for (const route of held) await route.continue();
   await page.unroute(`**/api/v1/budgets/${id}/checkpoint`);
   await page.reload();
-  await expect(page.getByTestId("register-total")).toHaveText("••••");
+  await expect(page.getByTestId("register-total")).toHaveText("1,234.56");
 
   await page.keyboard.press("Control+k");
   const search = page.getByRole("searchbox", { name: "Search commands" });
@@ -145,21 +113,19 @@ try {
   await expect(
     page.getByRole("heading", { name: "Settings", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
-  ).toHaveAttribute("aria-pressed", "false");
+  ).toHaveCount(0);
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Settings", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
-  ).toHaveAttribute("aria-pressed", "false");
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+  ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
+  ).toHaveCount(0);
   let preferenceReads = 0,
     refreshRoute;
   await page.route(`**/api/v1/budgets/${id}/preferences?*`, async (route) => {
@@ -173,7 +139,7 @@ try {
   await expect.poll(() => !!refreshRoute).toBe(true);
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
+  ).toHaveCount(0);
   await refreshRoute.continue();
   await page.unroute(`**/api/v1/budgets/${id}/preferences?*`);
   await expect(
@@ -238,7 +204,7 @@ try {
   await expect(
     page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
-  await expect(page.locator(".amount").first()).toContainText("••••");
+  await expect(page.locator(".amount").first()).toContainText("1,234.56");
   await context.setOffline(true);
   await page
     .getByRole("button", { name: "Help and releases", exact: true })
@@ -268,7 +234,7 @@ try {
     ),
   ).toBe(true);
   // Recovery spans budgets after the chooser clears the active preference.
-  // Exercise both a private budget and a different, unmasked budget's rows.
+  // Keep amounts visible across budgets, including offline recovery.
   await context.setOffline(false);
   const otherBudget = randomUUID(),
     otherAccount = randomUUID();
@@ -293,7 +259,7 @@ try {
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
-  ).toHaveAttribute("aria-pressed", "false");
+  ).toHaveCount(0);
   async function pending(amount, notes) {
     await page
       .getByRole("button", { name: "Add transaction", exact: true })
@@ -314,8 +280,8 @@ try {
     .click();
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await pending("12.34", "Private budget pending");
+  ).toHaveCount(0);
+  await pending("12.34", "First budget pending");
   await page.getByRole("button", { name: "All budgets", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Your budgets", exact: true }),
@@ -325,41 +291,23 @@ try {
     .click();
   const recovery = page.getByTestId("pending-expenses");
   await expect(recovery.locator("article")).toHaveCount(2);
-  await expect(recovery).toContainText("Private budget pending");
+  await expect(recovery).toContainText("First budget pending");
   await expect(recovery).toContainText("Other budget pending");
-  await expect(recovery.locator(".amount").nth(0)).toContainText("••••");
-  await expect(recovery.locator(".amount").nth(1)).toContainText("••••");
-  await expect(recovery).not.toContainText("-12.34");
-  await expect(recovery).not.toContainText("-4.56");
-  const privateRow = recovery
-    .locator("article")
-    .filter({ hasText: "Private budget pending" });
-  const otherRow = recovery
-    .locator("article")
-    .filter({ hasText: "Other budget pending" });
-  await privateRow
-    .getByRole("button", { name: "Show amount", exact: true })
-    .click();
-  await expect(privateRow.locator(".amount")).toContainText("-12.34");
-  await expect(otherRow.locator(".amount")).toContainText("••••");
-  await privateRow
-    .getByRole("button", { name: "Hide amount", exact: true })
-    .click();
-  await expect(privateRow.locator(".amount")).toContainText("••••");
-  await otherRow
-    .getByRole("button", { name: "Show amount", exact: true })
-    .click();
-  await expect(otherRow.locator(".amount")).toContainText("-4.56");
+  await expect(recovery).toContainText("-12.34");
+  await expect(recovery).toContainText("-4.56");
+  await expect(
+    recovery.getByRole("button", { name: "Show amount", exact: true }),
+  ).toHaveCount(0);
   await page.getByRole("button", { name: "Done", exact: true }).click();
   await page
     .getByRole("button", { name: "Review pending expenses", exact: true })
     .click();
-  await expect(recovery.locator(".amount").nth(0)).toContainText("••••");
-  await expect(recovery.locator(".amount").nth(1)).toContainText("••••");
+  await expect(recovery).toContainText("-12.34");
+  await expect(recovery).toContainText("-4.56");
 
   expect(errors).toEqual([]);
   console.log(
-    "navigation browser: privacy, keyboard search/focus, remembered views, notices, mobile/offline help passed",
+    "navigation browser: visible amounts, keyboard search/focus, remembered views, notices, mobile/offline help passed",
   );
 } finally {
   await browser?.close();

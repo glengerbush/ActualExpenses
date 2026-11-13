@@ -30,12 +30,14 @@ pub fn convert_actual(input: &Value) -> Result<Value, Error> {
     let mut unmapped_synced = Map::new();
     let mut unmapped_global = Map::new();
     for (key, value) in synced {
+        if key == "isPrivacyEnabled" {
+            continue;
+        }
         let mapped = match key.as_str() {
             "sync-transfer-date" => Some("sync_transfer_date"),
             "numberFormat" => Some("number_format"),
             "dateFormat" => Some("date_format"),
             "hideFraction" => Some("hide_fraction"),
-            "isPrivacyEnabled" => Some("privacy_mode"),
             "firstDayOfWeekIdx" => Some("first_day_of_week"),
             "defaultCurrencyCode" => Some("currency_code"),
             "currencySymbolPosition" => Some("currency_symbol_position"),
@@ -47,13 +49,11 @@ pub fn convert_actual(input: &Value) -> Result<Value, Error> {
                 continue;
             }
             let converted = match mapped {
-                "sync_transfer_date" | "hide_fraction" | "currency_space" | "privacy_mode" => {
-                    match value {
-                        Value::Bool(_) => Some(value.clone()),
-                        Value::String(v) if v == "true" || v == "false" => Some(json!(v == "true")),
-                        _ => None,
-                    }
-                }
+                "sync_transfer_date" | "hide_fraction" | "currency_space" => match value {
+                    Value::Bool(_) => Some(value.clone()),
+                    Value::String(v) if v == "true" || v == "false" => Some(json!(v == "true")),
+                    _ => None,
+                },
                 "first_day_of_week" => value
                     .as_str()
                     .and_then(|s| s.parse::<u64>().ok())

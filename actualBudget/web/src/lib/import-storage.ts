@@ -33,19 +33,34 @@ export async function readImportSession(): Promise<ImportSession | null> {
         const value = request.result;
         if (
           value &&
-          (value.version !== 1 ||
+          (![1, 2].includes(value.version) ||
             typeof value.key !== "string" ||
             (value.sourceKind !== undefined &&
               !["actual", "ynab4", "nynab"].includes(value.sourceKind)) ||
             typeof value.activationKey !== "string" ||
-            (value.file !== null && !(value.file instanceof Blob)))
+            (value.file !== null &&
+              !(value.version === 1
+                ? value.file instanceof Blob
+                : value.file instanceof ArrayBuffer)))
         )
           reject(
             new Error(
               "Saved import could not be validated. Keep this browser's data for recovery.",
             ),
           );
-        else resolve(value ?? null);
+        else
+          resolve(
+            value
+              ? {
+                  ...value,
+                  version: 1,
+                  file:
+                    value.version === 2 && value.file !== null
+                      ? new Blob([value.file])
+                      : value.file,
+                }
+              : null,
+          );
       };
       request.onerror = () =>
         reject(new Error("Cannot read saved import recovery data."));
@@ -55,6 +70,14 @@ export async function readImportSession(): Promise<ImportSession | null> {
   }
 }
 export async function saveImportSession(session: ImportSession): Promise<void> {
+  // Safari/WebKit can reject Blob/File values in IndexedDB even for tiny files.
+  // Read before opening a transaction: awaiting file I/O inside it can close it.
+  // Keep the original bytes and request identities, with legacy Blob reads intact.
+  const stored = {
+    ...session,
+    version: 2,
+    file: session.file ? await session.file.arrayBuffer() : null,
+  };
   const db = await database();
   try {
     await new Promise<void>((resolve, reject) => {
@@ -62,6 +85,7 @@ export async function saveImportSession(session: ImportSession): Promise<void> {
       const store = transaction.objectStore("session");
       const previous = store.get("current");
       let conflict = false;
+      let failure: unknown;
       previous.onsuccess = () => {
         if (
           previous.result &&
@@ -75,21 +99,32 @@ export async function saveImportSession(session: ImportSession): Promise<void> {
           transaction.abort();
         } else {
           try {
-            store.put(session, "current");
-          } catch {
+            store.put(stored, "current");
+          } catch (error) {
+            failure = error;
             transaction.abort();
           }
         }
       };
       transaction.oncomplete = () => resolve();
-      transaction.onabort = transaction.onerror = () =>
+      transaction.onerror = (event) => {
+        failure ??= (event.target as IDBRequest)?.error ?? transaction.error;
+      };
+      transaction.onabort = () => {
+        const cause = failure ?? transaction.error;
+        const quota =
+          cause instanceof DOMException && cause.name === "QuotaExceededError";
         reject(
           new Error(
             conflict
               ? "Another tab has an import in progress. Reload to recover it."
-              : "Import recovery data could not be saved. Free browser storage and retry the original operation safely.",
+              : quota
+                ? "Import recovery data could not be saved because browser storage is full. Free storage and retry the original operation safely."
+                : "Import recovery data could not be saved. Check that browser storage is enabled and retry. Keep the original export and retry the saved operation safely.",
+            { cause },
           ),
         );
+      };
     });
   } finally {
     db.close();

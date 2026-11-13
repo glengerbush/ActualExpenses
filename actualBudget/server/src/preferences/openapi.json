@@ -469,10 +469,6 @@
           "revision": {
             "type": "integer",
             "minimum": 0
-          },
-          "privacy_mode": {
-            "type": "boolean",
-            "description": "Mask displayed amounts. Additive optional field; defaults false. Does not change arithmetic or protect server access."
           }
         },
         "required": [
@@ -689,17 +685,6 @@
                 "type": "null"
               }
             ]
-          },
-          "privacy_mode": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Mask displayed amounts. Additive optional field; defaults false. Does not change arithmetic or protect server access."
           }
         }
       },
@@ -875,10 +860,6 @@
                   "mobileCalculator",
                   "monteCarloReport"
                 ]
-              },
-              "privacy_mode": {
-                "type": "boolean",
-                "description": "Mask displayed amounts. Additive optional field; defaults false. Does not change arithmetic or protect server access."
               }
             },
             "required": [

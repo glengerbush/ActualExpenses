@@ -345,19 +345,7 @@ try {
       ).pathname,
     });
   expect(runs).toHaveLength(2);
-  await api(root + "/preferences", { privacy_mode: true }, "PATCH");
-  await page.reload();
-  await expect(
-    widget.getByLabel("Median ending balance", { exact: true }),
-  ).toHaveText("••••");
-  await expect(
-    widget.getByRole("img", { name: "Portfolio performance", exact: true }),
-  ).toHaveCount(0);
-  await expect(
-    widget.getByRole("img", { name: "Annual cash flow", exact: true }),
-  ).toHaveCount(0);
   // Failure leaves the last saved scenario visible and permits an explicit retry.
-  await api(root + "/preferences", { privacy_mode: false }, "PATCH");
   await page.reload();
   await widget.getByText("Individual simulation runs", { exact: true }).click();
   await expect(
@@ -500,7 +488,7 @@ try {
   }
   expect(errors).toEqual([]);
   console.log(
-    "PASS source ranking/detail, charts, frozen linked inputs, cached switching/reload/offline, privacy and mobile",
+    "PASS source ranking/detail, charts, frozen linked inputs, cached switching/reload/offline, mobile",
   );
 } finally {
   await browser?.close();

@@ -263,11 +263,9 @@ try {
     table.getByRole("button", { name: /Inspect flow/ }).first(),
   ).toBeEnabled();
   await page.evaluate(() => window.restoreSankeyPut());
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
-  await expect(widget.locator("svg")).toHaveCount(0);
-  await expect(table).toContainText("••••");
-  await expect(table).not.toContainText("76.50");
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveCount(0);
   await assertSource("budgeted");
   await mkdir(new URL("../artifacts/", import.meta.url), { recursive: true });
   await widget.scrollIntoViewIfNeeded();
@@ -457,7 +455,7 @@ try {
       .pathname,
   });
   console.log(
-    "PASS source-exact imported/editable Spent/Budgeted/grouped flows; record details, cache failure/fallback, privacy, navigation, opt-out, German config invariance and responsive keyboard renders",
+    "PASS source-exact imported/editable Spent/Budgeted/grouped flows; record details, cache failure/fallback, navigation, opt-out, German config invariance and responsive keyboard renders",
   );
 } finally {
   await browser?.close();

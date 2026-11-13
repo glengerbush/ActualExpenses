@@ -141,11 +141,7 @@
     return readable ? formatAmount(value) : "••••";
   }
   function shown(value: unknown) {
-    return !readable || preferences.shared.privacy_mode
-      ? "••••"
-      : value === null
-        ? "None"
-        : String(value);
+    return !readable ? "••••" : value === null ? "None" : String(value);
   }
   onMount(() => {
     if (budget)

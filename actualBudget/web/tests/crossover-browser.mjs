@@ -384,11 +384,9 @@ try {
   );
   await sourceRows("saved-hampel");
   await page.evaluate(() => window.restoreCrossoverPut());
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
-  await expect(widget.locator("svg")).toHaveCount(0);
-  await expect(table).toContainText("••••");
-  await expect(widget).not.toContainText("14,000.00");
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveCount(0);
   await sourceRows("saved-hampel");
   await mkdir(new URL("../artifacts/", import.meta.url), { recursive: true });
   await widget
@@ -540,7 +538,7 @@ try {
       .pathname,
   });
   console.log(
-    "PASS whole-source saved crossover controls/financial rows, methods/growth/empty/range semantics, invalid draft reload, cache/quota/privacy, navigation/defaults, German/date invariance and responsive keyboard renders",
+    "PASS whole-source saved crossover controls/financial rows, methods/growth/empty/range semantics, invalid draft reload, cache/quota/navigation/defaults, German/date invariance and responsive keyboard renders",
   );
 } finally {
   await browser?.close();

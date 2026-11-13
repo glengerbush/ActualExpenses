@@ -741,32 +741,27 @@
               </div>
             </fieldset>{/if}
           <details>
-            <summary>First five parsed records</summary
-            >{#if preferences.shared.privacy_mode}<p>
-                Parsed record values are hidden in privacy mode. Column names
-                remain available for mapping.
-              </p>{:else}
-              <!-- svelte-ignore a11y_no_noninteractive_tabindex (keyboard access to overflow table) -->
-              <div
-                class="scroll"
-                tabindex="0"
-                role="region"
-                aria-label="Parsed file records"
-              >
-                <table>
-                  <thead
-                    ><tr
-                      >{#each columns as c (c)}<th>{c}</th>{/each}</tr
-                    ></thead
-                  ><tbody
-                    >{#each parsed.slice(0, 5) as row, i (i)}<tr
-                        >{#each columns as c (c)}<td>{String(row[c] ?? "")}</td
-                          >{/each}</tr
-                      >{/each}</tbody
-                  >
-                </table>
-              </div>
-            {/if}
+            <summary>First five parsed records</summary>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (keyboard access to overflow table) -->
+            <div
+              class="scroll"
+              tabindex="0"
+              role="region"
+              aria-label="Parsed file records"
+            >
+              <table>
+                <thead
+                  ><tr
+                    >{#each columns as c (c)}<th>{c}</th>{/each}</tr
+                  ></thead
+                ><tbody
+                  >{#each parsed.slice(0, 5) as row, i (i)}<tr
+                      >{#each columns as c (c)}<td>{String(row[c] ?? "")}</td
+                        >{/each}</tr
+                    >{/each}</tbody
+                >
+              </table>
+            </div>
           </details>
           <div class="options">
             <label

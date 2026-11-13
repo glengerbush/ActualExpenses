@@ -373,10 +373,9 @@ try {
   await page
     .getByRole("button", { name: "Preview report", exact: true })
     .click();
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
-  await expect(result).not.toContainText("60.00");
-  await expect(result).toContainText("••••");
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveCount(0);
   await mkdir(new URL("../artifacts/", import.meta.url), { recursive: true });
   await page.screenshot({
     path: new URL("../artifacts/custom-reports-desktop.png", import.meta.url)
@@ -473,7 +472,7 @@ try {
     ),
   ).toBe(true);
   console.log(
-    "PASS source saved report, five formats, live/static, time, reset, duplicate/save/reload, details, widget link, durable canceled intent/cache reset, privacy, mobile/dark/200%-equivalent keyboard",
+    "PASS source saved report, five formats, live/static, time, reset, duplicate/save/reload, details, widget link, durable canceled intent/cache reset, mobile/dark/200%-equivalent keyboard",
   );
 } finally {
   await browser?.close();

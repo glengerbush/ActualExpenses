@@ -194,14 +194,9 @@ try {
     path: new URL("../artifacts/reports-mobile.png", import.meta.url).pathname,
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
   await expect(
-    page.getByTestId("report-widget").filter({ hasText: "Recorded total" }),
-  ).not.toContainText("100.00");
-  await expect(
-    page.getByTestId("report-widget").filter({ hasText: "Recorded total" }),
-  ).toContainText("••••");
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Close reports", exact: true })
     .click();

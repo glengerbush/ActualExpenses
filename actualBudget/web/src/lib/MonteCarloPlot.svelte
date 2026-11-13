@@ -6,13 +6,13 @@
     title,
     series,
     ages,
-    masked,
+    awaitingPreferences,
     stacked = false,
   }: {
     title: string;
     series: PlotSeries[];
     ages: number[];
-    masked: boolean;
+    awaitingPreferences: boolean;
     stacked?: boolean;
   } = $props();
   let extents = $derived(
@@ -59,7 +59,7 @@
 
 <figure aria-label={t(title)}>
   <figcaption>{t(title)}</figcaption>
-  {#if masked}<p>{t("Chart hidden in privacy mode.")}</p>
+  {#if awaitingPreferences}<p>{t("Loading display preferences…")}</p>
   {:else}
     <p class="scale">
       {t("Amount range:")}

@@ -148,20 +148,7 @@ try {
   await expect(
     page.getByRole("button", { name: "Retry saving file options" }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Privacy mode", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
   await page.getByText("First five parsed records", { exact: true }).click();
-  await expect(
-    page.getByText("Parsed record values are hidden in privacy mode.", {
-      exact: false,
-    }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("region", { name: "Parsed file records" }),
-  ).toHaveCount(0);
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
   await expect(
     page.getByRole("region", { name: "Parsed file records" }),
   ).toBeVisible();

@@ -247,11 +247,9 @@ try {
     .getByRole("button", { name: "Recalculate forecast", exact: true })
     .click();
   await expect(savedWidget.getByRole("status")).toHaveCount(0);
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
-  await expect(savedWidget).not.toContainText("104.00");
-  await expect(savedWidget).toContainText("••••");
-  await expect(savedWidget.locator("svg")).toHaveCount(0);
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Close reports", exact: true })
     .click();
@@ -411,7 +409,7 @@ try {
     ).config.meta.accounts,
   ).toEqual(saved.config.meta.accounts);
   console.log(
-    "PASS source forecast dates/amounts, settings/save, canceled intent across reload/cache reset, method error recovery, privacy, German, mobile/dark/large-text keyboard",
+    "PASS source forecast dates/amounts, settings/save, canceled intent across reload/cache reset, method error recovery, German, mobile/dark/large-text keyboard",
   );
 } finally {
   await browser?.close();

@@ -3,7 +3,6 @@
   import CustomReportPlot from "./CustomReportPlot.svelte";
   import { errorMessage } from "./api";
   import { formatAmount } from "./money";
-  import { preferences } from "./preferences.svelte";
   import {
     displayProjection,
     customMetric,
@@ -119,9 +118,7 @@
     return value === null
       ? "Unavailable"
       : percent
-        ? preferences.shared.privacy_mode
-          ? "••••"
-          : `${value}%`
+        ? `${value}%`
         : formatAmount(Math.round(value));
   }
   async function inspect(offset = 0) {
@@ -144,10 +141,7 @@
 </script>
 
 {#if query.kind === "custom"}
-  {#if !preferences.shared.privacy_mode}<CustomReportPlot
-      {query}
-      {projection}
-    />{:else}<p class="muted">{t("Financial plot hidden for privacy.")}</p>{/if}
+  <CustomReportPlot {query} {projection} />
   <p class="summary-value">
     {amount(
       customMetric(
@@ -193,7 +187,7 @@
           </div>{/each}
       </div>
     </div>{/each}
-{:else if !preferences.shared.privacy_mode && stacked}<svg
+{:else if stacked}<svg
     viewBox="0 0 600 200"
     role="img"
     aria-label={t(
@@ -212,7 +206,7 @@
       "Account balances stacked above and below zero. Exact account names and balances appear in the table.",
     )}
   </p>
-{:else if !preferences.shared.privacy_mode && view.rows.length}
+{:else if view.rows.length}
   <svg
     viewBox="0 0 600 200"
     role="img"
@@ -242,9 +236,7 @@
         {line.label}
       </li>{/each}
   </ul>
-{:else if preferences.shared.privacy_mode}<p class="muted">
-    {t("Financial plot hidden for privacy.")}
-  </p>{/if}
+{/if}
 <details
   open={query.kind === "custom" &&
     ["Table", "TableGraph"].includes(String(query.options.graphType))}

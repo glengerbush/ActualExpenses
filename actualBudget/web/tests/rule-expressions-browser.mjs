@@ -181,20 +181,19 @@ try {
   await page.locator(".preview-list").screenshot({
     path: "test-results/rule-expressions/invalid-preview-mobile.png",
   });
-  await call(root + "/preferences", { privacy_mode: true }, "PATCH");
   await page.reload();
   await open();
   await page
     .getByRole("button", { name: "Preview draft rule", exact: true })
     .click();
-  await expect(page.locator(".preview-list")).not.toContainText("-12.5");
-  await expect(page.locator(".preview-list")).toContainText("••••");
+  await expect(page.locator(".preview-list")).toContainText("-12.5");
+  await expect(page.locator(".preview-list")).not.toContainText("••••");
   await page
     .getByRole("button", { name: "Discard draft", exact: true })
     .click();
   await call(
     root + "/preferences",
-    { privacy_mode: false, experimental: { formulaMode: true } },
+    { experimental: { formulaMode: true } },
     "PATCH",
   );
   await page.reload();
@@ -272,7 +271,7 @@ try {
   });
   expect(errors).toEqual([]);
   console.log(
-    "PASS calculated rule editing, reload, preview, apply, opt-out retention, errors, privacy, split formulas and keyboard/large-text mobile on HTTP",
+    "PASS calculated rule editing, reload, preview, apply, opt-out retention, errors, split formulas and keyboard/large-text mobile on HTTP",
   );
 } finally {
   await browser?.close();

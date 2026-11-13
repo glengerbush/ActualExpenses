@@ -39,7 +39,7 @@
       preferences.budgetEpoch === epoch &&
       preferences.shared.experimental.formulaMode,
   );
-  let hidden = $derived(!enabled || preferences.shared.privacy_mode);
+  let hidden = $derived(!enabled);
   let display = $derived.by(() => {
     if (hidden) return { text: "••••", error: null };
     const output = value?.output;

@@ -10,7 +10,6 @@
   let { onclose }: { onclose: () => void } = $props();
   let items = $state.raw<OutboxEntry[]>([]);
   let names = $state.raw<Record<string, string>>({});
-  let revealed = $state<Record<string, boolean>>({});
   let loading = $state(true);
   let error = $state("");
   let notice = $state("");
@@ -107,9 +106,7 @@
           </p>
           <p class="amount">
             <span id={`pending-amount-${item.key}`}
-              >{revealed[item.key]
-                ? formatAmountInput(item.row.amount, item.format)
-                : "••••"}</span
+              >{formatAmountInput(item.row.amount, item.format)}</span
             >
             ·
             <time datetime={item.row.date}>{item.row.date}</time>
@@ -122,14 +119,6 @@
                 : t("Saved on this device. Waiting to sync."))}
           </p>
           <div class="actions">
-            <button
-              type="button"
-              aria-expanded={!!revealed[item.key]}
-              aria-controls={`pending-amount-${item.key}`}
-              onclick={() => {
-                revealed[item.key] = !revealed[item.key];
-              }}>{t(revealed[item.key] ? "Hide amount" : "Show amount")}</button
-            >
             <button onclick={() => void retry(item)} disabled={busy}
               >{t("Retry pending expense")}</button
             >

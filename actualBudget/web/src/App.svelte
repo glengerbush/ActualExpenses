@@ -618,15 +618,10 @@
 
 <a class="skip-link" href="#main">{t("Skip to content")}</a>
 <ThemeRecovery />
-<div class="app-shell" class:privacy-mode={!!preferences.shared.privacy_mode}>
+<div class="app-shell">
   <aside class="sidebar" aria-label={t("Budget navigation")}>
     <div class="brand">actualBudget</div>
-    <NavigationTools
-      {commands}
-      budgetId={budget?.id}
-      offline={disconnected}
-      busy={loading}
-    />
+    <NavigationTools {commands} />
 
     {#if budget}
       <button class="quiet" onclick={showBudgets} disabled={loading}

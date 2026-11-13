@@ -38,11 +38,10 @@
       preferences.hasUsableShared &&
       preferences.shared.experimental.balanceForecastReport,
   );
-  let privateAmounts = $derived(
+  let awaitingPreferences = $derived(
     preferences.budgetId !== budgetId ||
       !preferences.hasUsableShared ||
-      preferences.budgetEpoch !== epoch ||
-      preferences.shared.privacy_mode,
+      preferences.budgetEpoch !== epoch,
   );
   let chart = $derived(projection?.chart ?? []),
     rows = $derived(chart.slice(page * 50, page * 50 + 50));
@@ -76,7 +75,7 @@
       )
       .join(" ");
   });
-  const money = (v: number) => (privateAmounts ? "••••" : formatAmount(v));
+  const money = (v: number) => (awaitingPreferences ? "••••" : formatAmount(v));
   const date = (v: string) => displayDate(v, preferences.shared.date_format);
   const key = () => `view:forecast:${budgetId}:${document.id}`;
   async function load() {
@@ -193,8 +192,8 @@
           <dd>{money(chart.at(-1)!.balance)} · {date(chart.at(-1)!.date)}</dd>
         </div>
       </dl>
-      {#if privateAmounts}<p>
-          {t("Financial plot hidden for privacy.")}
+      {#if awaitingPreferences}<p>
+          {t("Loading display preferences…")}
         </p>{:else}<svg
           viewBox="0 0 600 200"
           role="img"

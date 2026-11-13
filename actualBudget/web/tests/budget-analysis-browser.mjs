@@ -217,11 +217,9 @@ try {
     }),
   ).toBeEnabled();
   await page.evaluate(() => window.restoreAnalysisPut());
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
-  await expect(widget).not.toContainText("-98.75");
-  await expect(widget).toContainText("••••");
-  await expect(widget.locator("svg")).toHaveCount(0);
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Close reports", exact: true })
     .click();

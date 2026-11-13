@@ -173,20 +173,21 @@ try {
   await page.screenshot({ path: artifacts + "/mobile.png", fullPage: true });
   await corrected.scrollIntoViewIfNeeded();
   await page.screenshot({ path: artifacts + "/mobile-register-viewport.png" });
-  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
-  await expect(page.getByTestId("register-total")).toHaveText("••••");
+  await expect(
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveCount(0);
   await expect(corrected.locator('td[data-label="Payment"]')).toHaveText(
-    "••••",
+    "13.00",
   );
   await page.emulateMedia({ colorScheme: "dark" });
   await page.addStyleTag({ content: ":root{font-size:200%}" });
   await page.screenshot({
-    path: artifacts + "/dark-large-private.png",
+    path: artifacts + "/dark-large.png",
     fullPage: true,
   });
   await corrected.scrollIntoViewIfNeeded();
   await page.screenshot({
-    path: artifacts + "/dark-large-private-viewport.png",
+    path: artifacts + "/dark-large-viewport.png",
   });
   await expect(
     page.getByRole("alert").filter({ hasText: "Unable to complete operation" }),
@@ -202,11 +203,11 @@ try {
       })
     ).data,
     source.after,
-    "Privacy/rendering never modifies financial results",
+    "Rendering never modifies financial results",
   );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS existing desktop/mobile/private register observes real external API batch, exact source money/IDs/rows and no browser errors",
+    "PASS existing desktop/mobile register observes real external API batch, exact source money/IDs/rows and no browser errors",
   );
 } catch (error) {
   if (page) {

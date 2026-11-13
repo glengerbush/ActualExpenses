@@ -138,7 +138,7 @@ class Preferences {
     if (!validShared(values))
       throw new Error("Saved display preferences are invalid.");
     // Registers open from saved snapshots before HTTP refresh. An older snapshot
-    // in this epoch must not undo confirmed privacy/formatting preferences.
+    // in this epoch must not undo confirmed formatting preferences.
     if (
       this.hasUsableShared &&
       this.budgetId === budgetId &&
@@ -162,7 +162,7 @@ class Preferences {
     this.loading = true;
     this.error = "";
     // A same-budget refresh keeps confirmed values until the HTTP read completes.
-    // Resetting to defaults or an older cache can briefly expose masked amounts.
+    // Resetting to defaults or an older cache can briefly show incorrect formatting.
     if (!keepCurrent) {
       this.hasUsableShared = false;
       this.cachedAt = null;

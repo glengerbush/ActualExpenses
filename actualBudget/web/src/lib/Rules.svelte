@@ -18,7 +18,6 @@
     resetCorrectedClock,
   } from "./edit-clock";
   import { captureAmountFormat, formatAmount } from "./money";
-  import { preferences } from "./preferences.svelte";
   import {
     rulesKey,
     readRulesDraft,
@@ -410,7 +409,6 @@
     error = "";
   }
   function previewAmount(amount: number | null): string {
-    if (preferences.shared.privacy_mode) return "••••";
     return amount !== null && Number.isSafeInteger(amount)
       ? formatAmount(amount)
       : amount === null

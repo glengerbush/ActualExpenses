@@ -120,12 +120,11 @@ pub(super) fn resolve(
                         break;
                     }
                     if value.is_null() {
-                        candidate[key] =
-                            if ["sync_transfer_date", "privacy_mode"].contains(&key.as_str()) {
-                                json!(false)
-                            } else {
-                                crate::preferences::defaults()[key].clone()
-                            };
+                        candidate[key] = if key == "sync_transfer_date" {
+                            json!(false)
+                        } else {
+                            crate::preferences::defaults()[key].clone()
+                        };
                     } else if key == "experimental" {
                         for (name, enabled) in value.as_object().unwrap() {
                             candidate[key][name] = enabled.clone();

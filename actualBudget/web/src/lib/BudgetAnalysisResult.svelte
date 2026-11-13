@@ -36,11 +36,10 @@
     metric = $state<"spent" | "budgeted">("spent");
   let alive = true,
     generation = 0;
-  let privateAmounts = $derived(
+  let awaitingPreferences = $derived(
     preferences.budgetId !== budgetId ||
       !preferences.hasUsableShared ||
-      preferences.budgetEpoch !== projection.epoch ||
-      preferences.shared.privacy_mode,
+      preferences.budgetEpoch !== projection.epoch,
   );
   let rows = $derived(projection.result.intervalData),
     visible = $derived(rows.slice(page * 50, page * 50 + 50));
@@ -105,7 +104,7 @@
     }));
   });
   const money = (value: number) =>
-    privateAmounts ? "••••" : formatAmount(value);
+    awaitingPreferences ? "••••" : formatAmount(value);
   async function inspect(
     value: string,
     kind: "spent" | "budgeted",
@@ -166,8 +165,7 @@
 </script>
 
 <div class="actions">
-  <button onclick={exportCsv}>{t("Export as CSV")}</button
-  >{#if privateAmounts}<p>{t("CSV includes unmasked amounts.")}</p>{/if}
+  <button onclick={exportCsv}>{t("Export as CSV")}</button>
 </div>
 <dl>
   <div>
@@ -191,8 +189,8 @@
     {t("Uncarried overspending at period end:")}
     {money(projection.result.finalOverspendingAdjustment)}
   </p>{/if}
-{#if privateAmounts}<p>
-    {t("Financial plot hidden for privacy.")}
+{#if awaitingPreferences}<p>
+    {t("Loading display preferences…")}
   </p>{:else if !knownStyle}<p>
     {t(
       "The saved chart style is unavailable. Exact monthly values and CSV remain available.",

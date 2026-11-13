@@ -56,15 +56,15 @@
       },
     ),
   );
-  let masked = $derived(
+  let awaitingPreferences = $derived(
     preferences.budgetId !== budgetId ||
       !preferences.hasUsableShared ||
-      preferences.budgetEpoch !== projection.epoch ||
-      Boolean(preferences.shared.privacy_mode),
+      preferences.budgetEpoch !== projection.epoch,
   );
-  const money = (n: number) => (masked ? "••••" : formatAmount(Math.round(n)));
+  const money = (n: number) =>
+    awaitingPreferences ? "••••" : formatAmount(Math.round(n));
   const percent = (n: number | null) =>
-    masked
+    awaitingPreferences
       ? "••••"
       : n === null
         ? t("None")
@@ -73,7 +73,7 @@
             maximumFractionDigits: 4,
           }).format(n);
   const outcome = (index: number) =>
-    masked
+    awaitingPreferences
       ? "••••"
       : result.depletionYearBySimulation[index] === -1
         ? t("Lasted the full horizon")
@@ -276,7 +276,7 @@
       title="Annual cash flow"
       series={cashflow}
       ages={rows.map((row) => config.currentAge + row.year - 1)}
-      {masked}
+      {awaitingPreferences}
       stacked
     />
     <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard access to horizontally scrolling data.) -->
@@ -304,7 +304,7 @@
               ><td>{money(row.contributions)}</td><td
                 >{money(row.surplusSaved)}</td
               ><td>{money(row.feesPaid)}</td><td>{money(row.endBalance)}</td><td
-                >{masked
+                >{awaitingPreferences
                   ? "••••"
                   : t(
                       row.afterDepletion
@@ -320,8 +320,8 @@
     </div>
     <details bind:open={explanationsOpen}>
       <summary>{t("Year-by-year explanation")}</summary>
-      {#if masked}<p>
-          {t("Details hidden in privacy mode.")}
+      {#if awaitingPreferences}<p>
+          {t("Loading display preferences…")}
         </p>{:else if explanationsOpen}
         {#each rows.filter((row) => !row.afterDepletion) as row (row.year)}
           <details class="year" bind:open={expandedYears[row.year]}>

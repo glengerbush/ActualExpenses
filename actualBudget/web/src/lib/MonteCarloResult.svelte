@@ -10,16 +10,15 @@
     projection,
   }: { budgetId: string; projection: MonteCarloProjection } = $props();
   let result = $derived(projection.result);
-  let masked = $derived(
+  let awaitingPreferences = $derived(
     preferences.budgetId !== budgetId ||
       !preferences.hasUsableShared ||
-      preferences.budgetEpoch !== projection.epoch ||
-      Boolean(preferences.shared.privacy_mode),
+      preferences.budgetEpoch !== projection.epoch,
   );
   const money = (value: number) =>
-    masked ? "••••" : formatAmount(Math.round(value));
+    awaitingPreferences ? "••••" : formatAmount(Math.round(value));
   const percent = (value: number) =>
-    masked
+    awaitingPreferences
       ? "••••"
       : new Intl.NumberFormat(languageState.language, {
           style: "percent",
@@ -102,12 +101,12 @@
     </div>
     <div>
       <dt>{t("Median depletion age among failed runs")}</dt>
-      <dd>{masked ? "••••" : age(result.medianDepletionYear)}</dd>
+      <dd>{awaitingPreferences ? "••••" : age(result.medianDepletionYear)}</dd>
     </div>
     <div>
       <dt>{t("Earliest / latest depletion age")}</dt>
       <dd>
-        {masked
+        {awaitingPreferences
           ? "••••"
           : `${age(result.earliestDepletionYear)} / ${age(result.latestDepletionYear)}`}
       </dd>
@@ -127,7 +126,7 @@
     ages={result.percentileBands.map(
       (row) => projection.config.currentAge + row.year,
     )}
-    {masked}
+    {awaitingPreferences}
   />
   {#if graph === "worst"}
     <details>
@@ -198,7 +197,7 @@
         <tbody
           >{#each result.depletionHistogram as row (row.year)}<tr
               ><th scope="row">{age(row.year)}</th><td
-                >{masked ? "••••" : row.count}</td
+                >{awaitingPreferences ? "••••" : row.count}</td
               ><td>{percent(result.depletionProbabilityByYear[row.year])}</td
               ></tr
             >{/each}</tbody

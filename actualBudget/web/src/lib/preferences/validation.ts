@@ -11,7 +11,6 @@ export function validShared(value: unknown): value is SharedPreferences {
   return (
     numberFormats.includes(v.number_format) &&
     dateFormats.includes(v.date_format) &&
-    (v.privacy_mode === undefined || typeof v.privacy_mode === "boolean") &&
     typeof v.hide_fraction === "boolean" &&
     Number.isInteger(v.first_day_of_week) &&
     v.first_day_of_week >= 0 &&

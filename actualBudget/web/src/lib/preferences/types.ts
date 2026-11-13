@@ -32,7 +32,6 @@ export const featureNames = [
 export type FeatureName = (typeof featureNames)[number];
 export interface SharedPreferences {
   sync_transfer_date?: boolean;
-  privacy_mode?: boolean;
   number_format: NumberFormat;
   date_format: DateFormat;
   hide_fraction: boolean;
@@ -54,7 +53,6 @@ export const defaultShared = (): SharedPreferences => ({
   number_format: "comma-dot",
   date_format: "MM/dd/yyyy",
   hide_fraction: false,
-  privacy_mode: false,
   first_day_of_week: 0,
   currency_code: "",
   currency_symbol_position: "before",

@@ -66,9 +66,7 @@ pub fn defaults() -> Value {
     json!({"number_format":"comma-dot","date_format":"MM/dd/yyyy","hide_fraction":false,"first_day_of_week":0,"currency_code":"","currency_symbol_position":"before","currency_space":false,"experimental":flags})
 }
 pub fn validate_change(key: &str, value: &Value) -> Result<(), Error> {
-    if !["sync_transfer_date", "privacy_mode"].contains(&key)
-        && !defaults().as_object().unwrap().contains_key(key)
-    {
+    if key != "sync_transfer_date" && !defaults().as_object().unwrap().contains_key(key) {
         return Err(Error::invalid(format!("Unknown preference: {key}")));
     }
     if value.is_null() {
@@ -77,9 +75,7 @@ pub fn validate_change(key: &str, value: &Value) -> Result<(), Error> {
     let valid = match key {
         "number_format" => value.as_str().is_some_and(|v| NUMBER_FORMATS.contains(&v)),
         "date_format" => value.as_str().is_some_and(|v| DATE_FORMATS.contains(&v)),
-        "sync_transfer_date" | "hide_fraction" | "currency_space" | "privacy_mode" => {
-            value.is_boolean()
-        }
+        "sync_transfer_date" | "hide_fraction" | "currency_space" => value.is_boolean(),
         "first_day_of_week" => value.as_u64().is_some_and(|v| v <= 6),
         "currency_code" => value
             .as_str()
@@ -107,6 +103,9 @@ pub(crate) fn normalize_currency(values: &mut Value) {
     }
 }
 pub(crate) fn remove_retired_features(values: &mut Value) {
+    if let Some(values) = values.as_object_mut() {
+        values.remove("privacy_mode");
+    }
     if let Some(flags) = values
         .get_mut("experimental")
         .and_then(Value::as_object_mut)
@@ -175,7 +174,7 @@ pub fn apply_changes(
     for (key, value) in changes {
         validate_change(key, value)?;
         if value.is_null() {
-            values[key] = if ["sync_transfer_date", "privacy_mode"].contains(&key.as_str()) {
+            values[key] = if key == "sync_transfer_date" {
                 json!(false)
             } else {
                 defaults()[key].clone()
@@ -250,7 +249,9 @@ async fn update(
     for (key, value) in &changes {
         // Old committed requests must still resolve their original receipt.
         // apply_changes rejects these retired flags for every new write.
-        if key == "experimental" && value.is_object() {
+        if key == "privacy_mode" && (value.is_boolean() || value.is_null()) {
+            continue;
+        } else if key == "experimental" && value.is_object() {
             let mut supported = value.clone();
             supported.as_object_mut().unwrap().retain(|flag, enabled| {
                 !matches!(flag.as_str(), "enableBanking" | "akahuBankSync") || !enabled.is_boolean()

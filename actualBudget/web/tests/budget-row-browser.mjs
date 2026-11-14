@@ -56,13 +56,17 @@ try {
   await server.stop();
   // Actual pre-retirement storage: both category and group hidden.
   execFileSync("python3", [
+    "tests/historical-schema.py",
+    directory + "/actualbudget.sqlite3",
+    "29",
+  ]);
+  execFileSync("python3", [
     "-c",
     `import sqlite3,sys
 c=sqlite3.connect(sys.argv[1]+'/actualbudget.sqlite3')
 for t in ['categories','category_groups']:
- for e in ['insert','update']:c.execute('DROP TRIGGER visible_'+t+'_'+e)
  c.execute('UPDATE '+t+' SET hidden=1')
-c.execute('PRAGMA user_version=29');c.commit()`,
+c.commit()`,
     directory,
   ]);
   server = await startServer({ dataDirectory: directory });
@@ -112,37 +116,31 @@ c.execute('PRAGMA user_version=29');c.commit()`,
   const row = page
     .locator(".budget-month")
     .first()
-    .locator(".budget-category")
-    .filter({ hasText: "Groceries" });
-  expect(
-    await page
-      .locator(".budget-category button, .budget-category input")
-      .count(),
-  ).toBe(0);
-  await row.click();
-  await expect(page.locator(".inline-plan-row #plan-amount")).toBeFocused();
-  await page.getByLabel("Amount", { exact: true }).fill("125");
-  await page.getByRole("button", { name: "Save plan", exact: true }).click();
-  await expect(page.locator(".inline-plan-row")).toHaveCount(0);
+    .locator(`.budget-category[data-id="${category}"]`);
+  const planned = row.getByRole("textbox", { name: /^Planned Groceries for/ });
+  await expect(planned).toBeVisible();
+  await planned.fill("125");
+  await planned.press("Enter");
+  await expect(planned).toHaveValue("125.00");
   expect(
     (await call(root + "/budget?month=" + month)).months[month].categories.find(
       (c) => c.id === category,
     ).budgeted,
   ).toBe(12500);
-  await expect(row).toHaveAttribute("tabindex", "0");
-  await row.focus();
+  const edit = row.getByRole("button", { name: /^Edit Groceries for/ });
+  await edit.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByLabel("Amount", { exact: true })).toHaveValue(
-    "125.00",
-  );
-  await page
-    .getByRole("button", { name: "Category settings", exact: true })
-    .click();
-  await expect(page.getByLabel("Name", { exact: true })).toHaveValue(
-    "Groceries",
-  );
+  await expect(
+    page.getByRole("region", { name: "Budget options for Groceries" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("switch", { name: "Carryover excess from previous month" }),
+  ).toBeVisible();
+  await expect(
+    row.getByRole("textbox", { name: "Category name Groceries", exact: true }),
+  ).toHaveValue("Groceries");
   await expect(page.getByLabel("Hidden", { exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.locator(".brand").click();
   await mkdir("test-results/budget-rows", { recursive: true });
   await page.screenshot({
     path: "test-results/budget-rows/desktop.png",

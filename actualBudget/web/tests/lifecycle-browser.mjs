@@ -242,9 +242,7 @@ try {
       )
     ).arrayBuffer(),
   );
-  await page
-    .getByRole("button", { name: "Back to budgets", exact: true })
-    .click();
+  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
   await page
     .getByRole("button", { name: "Restore backup", exact: true })
     .click();
@@ -295,9 +293,6 @@ try {
     page.getByRole("button", { name: "Retry saved upload", exact: true }),
   ).toBeEnabled();
   await page.reload();
-  await page
-    .getByRole("button", { name: "Restore backup", exact: true })
-    .click();
   await page
     .getByRole("button", { name: "Retry saved upload", exact: true })
     .click();
@@ -356,9 +351,6 @@ try {
     page.getByRole("button", { name: "Retry saved restore", exact: true }),
   ).toBeEnabled();
   await page.reload();
-  await page
-    .getByRole("button", { name: "Restore backup", exact: true })
-    .click();
   await page
     .getByRole("button", { name: "Retry saved restore", exact: true })
     .click();

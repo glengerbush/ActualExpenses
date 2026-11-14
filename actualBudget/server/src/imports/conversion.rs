@@ -530,7 +530,8 @@ pub(super) fn convert_loaded(
             None if row["account_group_id"].is_null() => Value::Null,
             _ => return Err(invalid("Invalid account group reference")),
         };
-        converted["accounts"].as_array_mut().unwrap().push(json!({"id":id,"name":name,"off_budget":flag(row,"offbudget")?,"closed":flag(row,"closed")?,"notes":notes,"group_id":group,"sort_order":account_order[id],"tombstone":flag(row,"tombstone")?,"last_reconciled":crate::reconciliation::source_timestamp(&row["last_reconciled"])?}));
+        crate::reconciliation::source_timestamp(&row["last_reconciled"])?;
+        converted["accounts"].as_array_mut().unwrap().push(json!({"id":id,"name":name,"off_budget":flag(row,"offbudget")?,"closed":flag(row,"closed")?,"notes":notes,"group_id":group,"sort_order":account_order[id],"tombstone":flag(row,"tombstone")?,"last_reconciled":Value::Null}));
     }
     converted["notes"] = crate::notes::convert(&source)?;
     converted["notes_version"] = json!(1);
@@ -823,8 +824,12 @@ pub(super) fn convert_loaded(
             &mut requirements,
             &format!("register:{key}"),
             1,
-            true,
-            "Register setting has unsupported semantics; original source retained",
+            !key.starts_with("retired-saved-filter:"),
+            if key.starts_with("retired-saved-filter:") {
+                "Saved filter depends on retired notes and remains inactive; original source retained"
+            } else {
+                "Register setting has unsupported semantics; original source retained"
+            },
         );
     }
     let prefs = preferences::convert_actual(&json!({"synced":synced}))?;

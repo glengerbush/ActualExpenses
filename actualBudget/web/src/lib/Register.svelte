@@ -238,7 +238,7 @@
     }
   }
   function canEditRow(row: Transaction) {
-    const local = queue.find((item) => item.row.id === row.id);
+    const local = localRows.get(row.id);
     if (!local) return !rowEditingDisabled;
     return (
       local.offlineCreated &&
@@ -256,7 +256,7 @@
   }
   function activateRow(event: MouseEvent | KeyboardEvent, row: Transaction) {
     const target = event.target as HTMLElement;
-    const local = queue.find((item) => item.row.id === row.id);
+    const local = localRows.get(row.id);
     if (
       target.closest("button, input, label, select, textarea, a, summary") ||
       !canEditRow(row)
@@ -355,14 +355,21 @@
   let register = $state.raw<RegisterPage | null>(null);
   let expandedSplits = $state<string[]>([]);
   // Device saves are ordinary entries. The delivery queue is never a separate ledger.
-  let visibleTransactions = $derived.by(() => {
-    const rows = new Map((register?.data ?? []).map((row) => [row.id, row]));
+  let localRows = $derived.by(() => {
+    const rows = new Map<string, OutboxEntry>();
     for (const item of queue) {
       if (
         item.pending.budgetEpoch &&
         item.pending.budgetEpoch !== preferences.budgetEpoch
       )
         continue;
+      rows.set(item.row.id, item);
+    }
+    return rows;
+  });
+  let visibleTransactions = $derived.by(() => {
+    const rows = new Map((register?.data ?? []).map((row) => [row.id, row]));
+    for (const item of localRows.values()) {
       if (item.pending.method === "DELETE") rows.delete(item.row.id);
       else rows.set(item.row.id, { ...item.row, running_balance: null });
     }
@@ -1407,9 +1414,7 @@
                 <td class="row-actions"
                   ><button
                     onclick={() => {
-                      const local = queue.find(
-                        (item) => item.row.id === row.id,
-                      );
+                      const local = localRows.get(row.id);
                       if (local?.offlineCreated && !local.attempted) {
                         void deleteQueued(local);
                         return;

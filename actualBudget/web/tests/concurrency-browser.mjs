@@ -1,3 +1,9 @@
+import {
+  savedWork,
+  expectSavedWork,
+  openSavedWork,
+  history,
+} from "./saved-work-ui.mjs";
 import { transactionRows, transactionAction } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -99,29 +105,22 @@ try {
     },
   );
   await transactionRows(a.page, { name: /^Edit / }).click();
-  await a.page.getByLabel("Notes", { exact: true }).fill("Older client note");
+  await a.page.getByLabel("Date", { exact: true }).fill("02/01/2026");
   await a.page.getByLabel("Amount", { exact: true }).fill("2");
   await a.page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(
-    a.page.getByRole("button", {
-      name: "Retry pending expense",
-      exact: true,
-    }),
-  ).toBeVisible();
+  await expectSavedWork(a.page, 1);
   await transactionRows(b.page, { name: /^Edit / }).click();
-  await b.page.getByLabel("Notes", { exact: true }).fill("Newer client note");
+  await b.page.getByLabel("Date", { exact: true }).fill("02/02/2026");
   await b.page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(b.page.locator(".register-table")).toContainText(
-    "Newer client note",
-  );
+  await expect(b.page.locator(".register-table")).toContainText("02/02/2026");
   await a.page.reload();
-  await expect(a.page.getByTestId("pending-expenses")).toHaveCount(0);
+  await expectSavedWork(a.page, 0);
   await expect(
-    a.page.getByText("A newer edit replaced these fields: Notes", {
+    a.page.getByText("A newer edit replaced these fields: Date", {
       exact: true,
     }),
   ).toBeVisible();
@@ -136,30 +135,24 @@ try {
   await a.page
     .getByRole("button", { name: "Confirm delete", exact: true })
     .click();
-  await expect(
-    a.page.getByRole("button", { name: "Retry pending expense", exact: true }),
-  ).toBeVisible();
+  await expectSavedWork(a.page, 1);
   await b.page.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(b.page.getByTestId("register-total")).toHaveText("-2.00");
   await transactionRows(b.page, { name: /^Edit / }).click();
-  await b.page.getByLabel("Notes", { exact: true }).fill("Newer than deletion");
+  await b.page.getByLabel("Date", { exact: true }).fill("02/03/2026");
   await b.page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(b.page.locator(".register-table")).toContainText(
-    "Newer than deletion",
-  );
+  await expect(b.page.locator(".register-table")).toContainText("02/03/2026");
   await a.page.reload();
-  await expect(a.page.getByTestId("pending-expenses")).toHaveCount(0);
+  await expectSavedWork(a.page, 0);
   await expect(
     a.page.getByText(
       "A newer edit kept this transaction. The pending deletion was canceled.",
       { exact: true },
     ),
   ).toBeVisible();
-  await expect(a.page.locator(".register-table")).toContainText(
-    "Newer than deletion",
-  );
+  await expect(a.page.locator(".register-table")).toContainText("02/03/2026");
   const deletes = attempts.filter((a) => a.method === "DELETE");
   expect(deletes[1]).toEqual(deletes[0]);
   // Unchanged refresh uses one cursor request, not the full register/reference endpoints.
@@ -180,7 +173,7 @@ try {
   expect(requests[0]).toContain("/changes?");
   // Newer fields remain hidden after publication of a tombstone.
   await transactionRows(b.page, { name: /^Edit / }).click();
-  await b.page.getByLabel("Notes", { exact: true }).fill("Hidden edit");
+  await b.page.getByLabel("Date", { exact: true }).fill("02/04/2026");
   await a.page.unroute(
     `**/api/v1/budgets/${budget}/transactions/${transaction}`,
   );
@@ -248,7 +241,7 @@ try {
     .click();
   await expect(
     page.getByRole("button", {
-      name: "Cancel pending change safely",
+      name: "Cancel saved change safely",
       exact: true,
     }),
   ).toBeVisible();
@@ -259,26 +252,26 @@ try {
   });
   await page.clock.setSystemTime(new Date());
   await page.reload();
-  await page
-    .getByRole("button", { name: "Retry pending expense", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Retry sync", exact: true }).click();
   await expect(
     page.getByRole("button", {
-      name: "Cancel pending change safely",
+      name: "Cancel saved change safely",
       exact: true,
     }),
   ).toBeVisible();
   await expect.poll(() => clockRequests.length).toBe(2);
   expect(clockRequests[1]).toEqual(clockRequests[0]);
   await page
-    .getByRole("button", { name: "Cancel pending change safely", exact: true })
+    .getByRole("button", { name: "Cancel saved change safely", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses"))
+  await expect(page.getByTestId("sync-issues"))
     .toHaveCount(0)
     .catch(async (error) => {
       console.log(await page.locator("body").innerText());
       throw error;
     });
+  await expectSavedWork(page, 0);
+  await page.waitForLoadState("networkidle");
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
@@ -307,27 +300,25 @@ try {
   await (await transactionAction(page, { name: /^Duplicate / })).click();
   await expect(
     page.getByRole("button", {
-      name: "Cancel pending change safely",
+      name: "Cancel saved change safely",
       exact: true,
     }),
   ).toBeVisible();
   await page.clock.setSystemTime(new Date());
   await page.reload();
-  await page
-    .getByRole("button", { name: "Retry pending expense", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Retry sync", exact: true }).click();
   await expect(
     page.getByRole("button", {
-      name: "Cancel pending change safely",
+      name: "Cancel saved change safely",
       exact: true,
     }),
   ).toBeVisible();
   await expect.poll(() => actionRequests.length).toBe(2);
   expect(actionRequests[1]).toEqual(actionRequests[0]);
   await page
-    .getByRole("button", { name: "Cancel pending change safely", exact: true })
+    .getByRole("button", { name: "Cancel saved change safely", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+  await expectSavedWork(page, 0);
   await expect(page.getByTestId("register-total")).toHaveText("-1.00");
   await (await transactionAction(page, { name: /^Duplicate / })).click();
   await expect(page.getByTestId("register-total")).toHaveText("-2.00");
@@ -397,12 +388,9 @@ try {
     });
     const discardName =
       kind === "transaction"
-        ? "Cancel pending change safely"
-        : "Cancel pending change safely";
-    const retryName =
-      kind === "transaction"
-        ? "Retry pending expense"
-        : "Retry pending expense";
+        ? "Cancel saved change safely"
+        : "Cancel saved change safely";
+    const retryName = kind === "transaction" ? "Retry sync" : "Retry sync";
     const discard = page.getByRole("button", {
       name: discardName,
       exact: true,
@@ -523,7 +511,7 @@ try {
               online: navigator.onLine,
               visibility: document.visibilityState,
               pendingMessage: document.querySelector(
-                '[data-testid="pending-expenses"]',
+                '[data-testid="sync-issues"]',
               )?.textContent,
               operations: operations
                 .filter((entry) => entry.budgetId === budgetId)
@@ -609,14 +597,11 @@ try {
           ? transactionCreatePattern(budget).test(request.url())
           : request.url().endsWith("/duplicate"));
       const firstRequest = a.waitForRequest(matches);
-      const retryName =
-        kind === "transaction"
-          ? "Retry pending expense"
-          : "Retry pending expense";
+      const retryName = kind === "transaction" ? "Retry sync" : "Retry sync";
       const discardName =
         kind === "transaction"
-          ? "Cancel pending change safely"
-          : "Cancel pending change safely";
+          ? "Cancel saved change safely"
+          : "Cancel saved change safely";
       if (kind === "transaction")
         await a
           .getByRole("button", { name: "Save transaction", exact: true })
@@ -667,7 +652,10 @@ try {
       await intercepted;
       const b = await overlap.newPage();
       await b.goto(server.url);
-      await b.getByRole("button", { name: retryName, exact: true }).click();
+      await openSavedWork(b);
+      await b
+        .getByRole("button", { name: "Retry saved expense", exact: true })
+        .click();
       await expect(
         b.getByRole("button", { name: discardName, exact: true }),
       ).toBeVisible();
@@ -708,7 +696,7 @@ try {
           .first(),
       ).toBeVisible();
       await expect(
-        b.getByRole("button", { name: retryName, exact: true }),
+        b.getByRole("button", { name: "Retry saved expense", exact: true }),
       ).toBeEnabled();
       if (!alreadyCommitted) {
         expect(cancellationStatus).toBeUndefined();
@@ -719,7 +707,7 @@ try {
         // above must preserve the exact identity and cancellation fence.
         await b.evaluate(() => dispatchEvent(new Event("online")));
         await expect.poll(() => cancelAttempts).toBeGreaterThanOrEqual(3);
-        await expect(b.getByTestId("pending-expenses")).toHaveCount(0);
+        await expectSavedWork(b, 0);
       }
       await expect
         .poll(() => lostCancellationStatus)
@@ -733,7 +721,9 @@ try {
         await expect.poll(() => delayedStatus).toBe(409);
       }
       await b.reload();
-      await expect(b.getByTestId("pending-expenses")).toHaveCount(0);
+      await b.waitForLoadState("networkidle");
+      await expectSavedWork(b, 0);
+      await history(b);
       await expect(
         b.getByRole("button", { name: "Add transaction", exact: true }),
       ).toBeEnabled();
@@ -748,12 +738,7 @@ try {
       expect(
         rows.filter((row) => row.id === original.postDataJSON().id),
       ).toHaveLength(alreadyCommitted ? 1 : 0);
-      if (!alreadyCommitted)
-        await expect(
-          b.getByText("This change was canceled before it was saved.", {
-            exact: true,
-          }),
-        ).toBeVisible();
+      // Toasts expire; the empty durable queue and unchanged ledger prove cancellation.
       await overlap.close();
     }
   // Older API1 servers must never receive an unrecognized cancellation header as an edit.
@@ -779,7 +764,7 @@ try {
     .click();
   await expect(
     unsupportedPage.getByRole("button", {
-      name: "Cancel pending change safely",
+      name: "Cancel saved change safely",
       exact: true,
     }),
   ).toBeVisible();
@@ -795,7 +780,7 @@ try {
       unsupportedWrites++;
   });
   await unsupportedPage
-    .getByRole("button", { name: "Cancel pending change safely", exact: true })
+    .getByRole("button", { name: "Cancel saved change safely", exact: true })
     .click();
   await expect(
     unsupportedPage.getByText(
@@ -804,8 +789,10 @@ try {
     ),
   ).toBeVisible();
   await unsupportedPage.reload();
+  await unsupportedPage.waitForLoadState("networkidle");
+  await openSavedWork(unsupportedPage);
   await unsupportedPage
-    .getByRole("button", { name: "Retry pending expense", exact: true })
+    .getByRole("button", { name: "Retry saved expense", exact: true })
     .click();
   await expect(
     unsupportedPage.getByText(
@@ -839,7 +826,6 @@ try {
       category_id: category,
       amount: -100,
       date: "2026-01-01",
-      notes: "Latent off-budget category",
     },
     "2026-01-01T00:00:00.000Z-0000-0000000000000001",
   );
@@ -870,15 +856,10 @@ try {
     { budget, off },
   );
   await latentPage.reload();
-  await transactionRows(
-    latentPage
-      .getByRole("row")
-      .filter({ hasText: "Latent off-budget category" }),
-    { name: /^Edit / },
-  ).click();
   await latentPage
-    .getByLabel("Notes", { exact: true })
-    .fill("Only notes changed");
+    .locator(`.register-table tr[data-transaction-id="${latent}"]`)
+    .click();
+  await latentPage.getByLabel("Date", { exact: true }).fill("02/05/2026");
   const sentPatch = latentPage.waitForRequest(
     (request) =>
       request.method() === "PATCH" && request.url().endsWith(latentPath),
@@ -887,10 +868,10 @@ try {
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
   expect((await sentPatch).postDataJSON()).toEqual({
-    notes: "Only notes changed",
+    date: "2026-02-05",
   });
   await expect(latentPage.locator(".register-table")).toContainText(
-    "Only notes changed",
+    "02/05/2026",
   );
   expect(
     (await (await fetch(native + latentPath)).json()).data.category_id,

@@ -287,13 +287,13 @@ fn account_lifecycle_matches_pinned_public_oracle_and_survives_restart() {
                     .iter()
                     .find(|row| row["id"] == id(number))
                     .unwrap();
-                for field in ["amount", "date", "cleared"] {
+                for field in ["amount", "date"] {
                     assert_eq!(row[field], expected_tx[field]);
                 }
-                assert_eq!(
-                    row["notes"].as_str().unwrap_or(""),
-                    expected_tx["notes"].as_str().unwrap_or("")
-                );
+                // Historical oracle status/notes are retired product semantics.
+                assert_eq!(row["notes"], "");
+                assert_eq!(row["cleared"], true);
+                assert_eq!(row["reconciled"], false);
             }
             assert_eq!(
                 register["data"].as_array().unwrap().len(),
@@ -500,13 +500,12 @@ fn pinned_actual_account_archive_import_preserves_groups_notes_order_and_closed_
             .iter()
             .find(|row| row["id"] == expected_tx["id"])
             .unwrap();
-        for field in ["amount", "date", "cleared", "reconciled"] {
+        for field in ["amount", "date"] {
             assert_eq!(row[field], expected_tx[field]);
         }
-        assert_eq!(
-            row["notes"].as_str().unwrap_or(""),
-            expected_tx["notes"].as_str().unwrap_or("")
-        );
+        assert_eq!(row["notes"], "");
+        assert_eq!(row["cleared"], true);
+        assert_eq!(row["reconciled"], false);
         assert_eq!(row["account_id"], expected_tx["account"]);
     }
     let groups = s.get(&format!("{root}/account-groups"));
@@ -676,22 +675,22 @@ fn deleted_account_history_accepts_hidden_field_merges_without_resurrection() {
         ));
     }
     let path = format!("{root}/transactions/{}", id(11));
-    let latest = json!({"notes":"Newest hidden note"});
+    let latest = json!({"date":"2026-02-01"});
     let merged = ok(s.write("PATCH", &path, "latest", Some(c4), latest.clone()));
     assert_eq!(merged["data"]["deleted"], true);
-    assert_eq!(merged["data"]["notes"], "Newest hidden note");
+    assert_eq!(merged["data"]["date"], "2026-02-01");
     let independent = ok(s.write(
         "PATCH",
         &path,
         "independent",
         Some(c3),
-        json!({"notes":"Older note","amount":-2500}),
+        json!({"date":"2026-01-15","amount":-2500}),
     ));
-    assert_eq!(independent["data"]["notes"], "Newest hidden note");
+    assert_eq!(independent["data"]["date"], "2026-02-01");
     assert_eq!(independent["data"]["amount"], -2500);
     assert_eq!(independent["data"]["deleted"], true);
-    assert_eq!(independent["conflicts"][0]["field"], "notes");
-    assert_eq!(independent["data"]["field_versions"]["notes"], c4);
+    assert_eq!(independent["conflicts"][0]["field"], "date");
+    assert_eq!(independent["data"]["field_versions"]["date"], c4);
     assert_eq!(independent["data"]["field_versions"]["amount"], c3);
     let s = s.restart();
     assert_eq!(

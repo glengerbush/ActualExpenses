@@ -89,8 +89,8 @@ try {
     await transactionAction(page, { name: "Edit splits", exact: true })
   ).click();
   await page
-    .getByLabel("Split 1 notes", { exact: true })
-    .fill("Keep exact retry");
+    .getByLabel("Split 2 payee", { exact: true })
+    .selectOption(childPayee.id);
   const attempts = [];
   await page.route("**/transactions/*/splits", async (route) => {
     const r = route.request();
@@ -154,8 +154,8 @@ try {
     peer.getByRole("heading", { name: "Split transaction", exact: true }),
   ).toBeVisible();
   await page
-    .getByLabel("Split 1 notes", { exact: true })
-    .fill("Owner retained");
+    .getByLabel("Split 2 category", { exact: true })
+    .selectOption(childCategory.id);
   await expect(
     page
       .getByRole("status")
@@ -170,9 +170,9 @@ try {
   await peer
     .getByRole("button", { name: "Recover saved split", exact: true })
     .click();
-  await expect(peer.getByLabel("Split 1 notes", { exact: true })).toHaveValue(
-    "Owner retained",
-  );
+  await expect(
+    peer.getByLabel("Split 2 category", { exact: true }),
+  ).toHaveValue(childCategory.id);
   await peer.close();
   await call(base + "/payees", {
     id: randomUUID(),
@@ -196,9 +196,9 @@ try {
   await (
     await transactionAction(page, { name: "Edit splits", exact: true })
   ).click();
-  await expect(page.getByLabel("Split 1 notes", { exact: true })).toHaveValue(
-    "Owner retained",
-  );
+  await expect(
+    page.getByLabel("Split 2 category", { exact: true }),
+  ).toHaveValue(childCategory.id);
   // Unsplitting must not silently discard edited children, for either action.
   let splitPosts = 0;
   page.on("request", (r) => {
@@ -206,7 +206,6 @@ try {
   });
   for (const action of ["Unsplit this child", "Unsplit all children"]) {
     for (const [field, value, original, select] of [
-      ["notes", action, "Owner retained", false],
       ["amount", "-21.00", "-20.00", false],
       ["payee", childPayee.id, "", true],
       ["category", childCategory.id, "", true],
@@ -226,7 +225,7 @@ try {
       ).toBeVisible();
       await expect(input).toHaveValue(value);
       expect(splitPosts).toBe(0);
-      if (field === "notes") {
+      if (field === "amount") {
         await mkdir("../../.scratch/ticket14-review", { recursive: true });
         const mobile = action === "Unsplit all children";
         await page.setViewportSize(
@@ -307,17 +306,17 @@ try {
       .getByRole("option", { name: "Removed payee", exact: true }),
   ).toHaveCount(1);
   await page
-    .getByLabel("Split 1 notes", { exact: true })
-    .fill("Keep historical payee");
+    .getByLabel("Split 1 category", { exact: true })
+    .selectOption(childCategory.id);
   await expect(
     page.getByRole("status").filter({
       hasText: "Split draft saved on this device.",
     }),
   ).toBeVisible();
   await page.reload();
-  await expect(page.getByLabel("Split 1 notes", { exact: true })).toHaveValue(
-    "Keep historical payee",
-  );
+  await expect(
+    page.getByLabel("Split 1 category", { exact: true }),
+  ).toHaveValue(childCategory.id);
   await expect(page.getByLabel("Split 1 payee", { exact: true })).toHaveValue(
     childPayee.id,
   );
@@ -345,7 +344,8 @@ try {
   expect(retained.retained_payee_id).toBe(childPayee.id);
   expect(retained.payee_id).toBeNull();
   expect(retained.children[0].retained_payee_id).toBe(childPayee.id);
-  expect(retained.children[0].notes).toBe("Keep historical payee");
+  expect(retained.children[0].notes).toBe("");
+  expect(retained.children[0].category_id).toBe(childCategory.id);
   await (
     await transactionAction(page, { name: "Edit splits", exact: true })
   ).click();

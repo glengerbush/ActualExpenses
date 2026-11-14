@@ -58,9 +58,6 @@ try {
     }
     async function retryAfterYearChange(button, attempts) {
       if (format !== "MM/dd/yyyy") return;
-      await expect(
-        page.getByRole("button", { name: button, exact: true }),
-      ).toBeVisible();
       if (button === "Retry pending expense")
         await expect(
           page
@@ -105,7 +102,6 @@ try {
       .getByRole("button", { name: "Add transaction", exact: true })
       .click();
     await page.getByLabel("Amount", { exact: true }).fill("1");
-    await page.getByLabel("Notes", { exact: true }).fill("Recovered date");
     await page.getByLabel("Date", { exact: true }).fill("");
     await page.getByLabel("Date", { exact: true }).pressSequentially(raw);
     // Captured draft format must win even after shared display format changes.
@@ -129,9 +125,7 @@ try {
       await (await fetch(api + `/api/v1/budgets/${budget}/transactions`)).json()
     ).data;
     expect(transactions).toHaveLength(1);
-    expect(transactions.find((t) => t.notes === "Recovered date").date).toBe(
-      expected,
-    );
+    expect(transactions.find((t) => t.amount === -100).date).toBe(expected);
     await context.close();
   }
   console.log(

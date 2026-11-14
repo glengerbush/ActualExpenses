@@ -1,3 +1,5 @@
+#[path = "support/retired_rows.rs"]
+mod retirement;
 use reqwest::blocking::{Client, Response};
 use serde_json::{Value, json};
 use std::{
@@ -302,8 +304,9 @@ fn missed_occurrences_catch_up_atomically_and_repeat_without_duplicate_purchases
     let second: Value = second.json().unwrap();
     assert_eq!(second["data"]["posted_count"], 0);
     let after: Value = server.get(&format!("{root}/transactions")).json().unwrap();
-    let oracle: Value =
-        serde_json::from_str(include_str!("../../tests/fixtures/schedules.json")).unwrap();
+    let oracle: Value = serde_json::from_str(include_str!("../../tests/fixtures/schedules.json"))
+        .map(retirement::current)
+        .unwrap();
     let expected = oracle["snapshots"]
         .as_array()
         .unwrap()
@@ -327,7 +330,7 @@ fn missed_occurrences_catch_up_atomically_and_repeat_without_duplicate_purchases
             .any(|r| r["id"] == before["data"][0]["id"])
     );
     assert_eq!(after["balances"]["total"], -600);
-    assert_eq!(after["balances"]["cleared"], 0);
+    assert_eq!(after["balances"]["cleared"], -600);
     let still: Value = server.get(&format!("{root}/transactions")).json().unwrap();
     assert_eq!(still, after);
 }
@@ -346,49 +349,62 @@ fn genuine_schema18_upgrade_keeps_ledger_history_receipts_and_refreshes_blocked_
     let b = f["metadata"]["id"].as_str().unwrap();
     let a = f["account"]["id"].as_str().unwrap();
     let root = format!("/api/v1/budgets/{b}");
-    let mut current = server
+    let current = server
         .get(&format!("{root}/transactions?account_id={a}&limit=1000"))
         .json::<Value>()
         .unwrap();
-    let mut original = f["register"].clone();
-    let old = original["snapshot"].as_str().unwrap().to_owned();
-    let fresh = current["snapshot"].as_str().unwrap().to_owned();
-    assert_eq!(&old[..34], &fresh[..34], "Upgrade retains the cursor epoch");
-    let changes = server
-        .get(&format!("{root}/changes?cursor={old}&limit=1000"))
-        .json::<Value>()
-        .unwrap();
-    assert_eq!(changes["has_more"], false);
-    assert_eq!(changes["next_cursor"], fresh);
-    let events = changes["data"].as_array().unwrap();
-    assert_eq!(
-        events.len(),
-        1,
-        "Only manual-only preference invalidation: {changes}"
+    let old = f["register"]["snapshot"].as_str().unwrap();
+    let fresh = current["snapshot"].as_str().unwrap();
+    assert_ne!(
+        &old[..34],
+        &fresh[..34],
+        "Tracking conversion rotates obsolete envelope cursors"
     );
-    assert_eq!(events[0]["entity"], "preferences");
-    assert!(events[0]["data"].get("experimental").is_none());
-    current.as_object_mut().unwrap().remove("snapshot");
-    original.as_object_mut().unwrap().remove("snapshot");
     assert_eq!(
-        current, original,
-        "All financial rows, fields, order and totals survive"
+        server
+            .get(&format!("{root}/changes?cursor={old}&limit=1000"))
+            .status(),
+        409
     );
-    let mut checkpoint = server
+    let mut expected = retirement::current(f["register"].clone());
+    for key in ["balances", "filtered_balances"] {
+        expected[key]["cleared"] = expected[key]["total"].clone();
+        expected[key]["uncleared"] = json!(0);
+    }
+    for (actual, original) in current["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .zip(expected["data"].as_array().unwrap())
+    {
+        for (key, value) in original.as_object().unwrap() {
+            assert_eq!(&actual[key], value, "{key}");
+        }
+    }
+    assert_eq!(
+        current["data"].as_array().unwrap().len(),
+        expected["data"].as_array().unwrap().len()
+    );
+    for key in ["balances", "filtered_balances", "filtered_count"] {
+        assert_eq!(current[key], expected[key], "{key}");
+    }
+    let checkpoint = server
         .get(&format!("{root}/checkpoint"))
         .json::<Value>()
         .unwrap();
     assert_eq!(checkpoint["data"]["snapshot"], fresh);
-    checkpoint["data"]["snapshot"] = f["checkpoint"]["data"]["snapshot"].clone();
-    assert_eq!(checkpoint, f["checkpoint"]);
-    let mut history = server.client.get(format!("{}{root}/history", server.url));
-    for (k, v) in f["owner_headers"].as_object().unwrap() {
-        history = history.header(k, v.as_str().unwrap());
-    }
-    assert_eq!(
-        history.send().unwrap().json::<Value>().unwrap(),
-        f["history"]
-    );
+    let owner = f["owner_headers"]["X-Actual-History-Owner"]
+        .as_str()
+        .unwrap();
+    let history = server
+        .client
+        .get(format!("{}{root}/history", server.url))
+        .header("X-Actual-History-Owner", owner)
+        .send()
+        .unwrap()
+        .json::<Value>()
+        .unwrap();
+    assert!(history["data"]["undo"].is_null());
     for i in 0..2 {
         let mut request = server
             .client
@@ -438,7 +454,7 @@ fn genuine_schema18_upgrade_keeps_ledger_history_receipts_and_refreshes_blocked_
         .unwrap();
     assert_eq!(upload.status(), 201, "{}", upload.text().unwrap());
     let stage: Value = upload.json().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 27);
+    assert_eq!(stage["data"]["report"]["schema_version"], 36);
     let response = target.post(
         &format!(
             "{root}/restores/{}/activate",
@@ -452,9 +468,23 @@ fn genuine_schema18_upgrade_keeps_ledger_history_receipts_and_refreshes_blocked_
         .get(&format!("{root}/transactions?account_id={a}&limit=1000"))
         .json()
         .unwrap();
-    let mut expected = f["register"].clone();
-    expected["snapshot"] = restored["snapshot"].clone();
-    assert_eq!(restored, expected);
+    for (actual, original) in restored["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .zip(expected["data"].as_array().unwrap())
+    {
+        for (key, value) in original.as_object().unwrap() {
+            assert_eq!(&actual[key], value, "{key}");
+        }
+    }
+    assert_eq!(
+        restored["data"].as_array().unwrap().len(),
+        expected["data"].as_array().unwrap().len()
+    );
+    for key in ["balances", "filtered_balances", "filtered_count"] {
+        assert_eq!(restored[key], expected[key], "{key}");
+    }
     assert_ne!(restored["snapshot"], f["register"]["snapshot"]);
 }
 
@@ -584,16 +614,23 @@ fn mapped(value: &Value, ids: &std::collections::BTreeMap<String, String>) -> Va
 #[test]
 fn linked_schedule_financial_pipeline_matches_independent_settled_source_ledger() {
     let oracle: Value =
-        serde_json::from_str(include_str!("../../tests/fixtures/schedule-financial.json")).unwrap();
+        serde_json::from_str(include_str!("../../tests/fixtures/schedule-financial.json"))
+            .map(retirement::current)
+            .unwrap();
     check_financial_pipeline(oracle);
 }
 #[test]
-fn calculated_schedule_actions_match_independent_settled_source_ledger() {
-    let oracle: Value = serde_json::from_str(include_str!(
-        "../../tests/fixtures/schedule-expressions-financial.json"
-    ))
-    .unwrap();
-    check_financial_pipeline(oracle);
+fn calculated_schedule_actions_are_rejected_without_writes() {
+    let s = Server::start();
+    setup(&s);
+    let before = checkpoint(&s);
+    let response = command(
+        &s,
+        "retired-formula",
+        json!({"action":"create","id":S,"conditions":[{"field":"account","op":"is","value":A},{"field":"date","op":"is","value":"2026-11-09"}],"actions":[{"op":"set","field":"amount","value":null,"options":{"formula":"=-1"}}]}),
+    );
+    assert_eq!(response.status(), 400);
+    assert_eq!(checkpoint(&s), before);
 }
 fn check_financial_pipeline(oracle: Value) {
     for case in oracle["cases"].as_array().unwrap() {
@@ -682,7 +719,7 @@ fn check_financial_pipeline(oracle: Value) {
             let actions = case
                 .get("ordinary_actions")
                 .cloned()
-                .unwrap_or(json!([{"op":"append-notes","value":" / checked"}]));
+                .unwrap_or(json!([{"op":"set","field":"category","value":CATEGORY}]));
             let response=s.post(&format!("{root}/rules"),"ordinary-rule",json!({"id":"21220000-0000-4000-8000-000000000230","stage":"post","conditionsOp":"and","conditions":[{"field":"category","op":"is","value":CATEGORY}],"actions":actions,"snapshot":checkpoint(&s)["snapshot"]}));
             assert_eq!(response.status(), 201);
         }
@@ -895,6 +932,7 @@ fn overdue_cap_refuses_atomically_then_explicit_through_dates_make_recoverable_p
     let fixture: Value = serde_json::from_str(include_str!(
         "../../tests/fixtures/schedules-overdue-26.10.json"
     ))
+    .map(retirement::current)
     .unwrap();
     let response = s
         .client
@@ -1422,7 +1460,7 @@ fn explicit_unlink_releases_occurrence_without_erasing_payment_and_new_post_repl
 }
 
 #[test]
-fn schedule_link_history_merges_unrelated_notes_but_refuses_a_new_reconciliation_generation() {
+fn schedule_link_history_replays_but_refuses_a_new_overlapping_date() {
     let s = Server::start();
     setup(&s);
     let root = format!("/api/v1/budgets/{B}");
@@ -1450,16 +1488,6 @@ fn schedule_link_history_merges_unrelated_notes_but_refuses_a_new_reconciliation
         .send()
         .unwrap();
     assert_eq!(response.status(), 200);
-    assert_eq!(
-        s.client
-            .patch(format!("{}{root}/transactions/{id}", s.url))
-            .header("Idempotency-Key", "unrelated-note")
-            .json(&json!({"notes":"Other device note"}))
-            .send()
-            .unwrap()
-            .status(),
-        200
-    );
     let inverse = |action: &str, key: &str| {
         let history: Value = s
             .client
@@ -1480,25 +1508,31 @@ fn schedule_link_history_merges_unrelated_notes_but_refuses_a_new_reconciliation
             .unwrap()
     };
     for action in ["undo", "redo"] {
-        let response = inverse(action, &format!("notes-{action}"));
+        let response = inverse(action, &format!("date-{action}"));
         assert_eq!(response.status(), 200, "{}", response.text().unwrap());
         assert_eq!(
             s.get(&format!("{root}/transactions/{id}"))
                 .json::<Value>()
-                .unwrap()["data"]["notes"],
-            "Other device note"
+                .unwrap()["data"]["date"],
+            "2026-11-09"
         );
     }
-    let cp = checkpoint(&s);
-    let response=s.post(&format!("{root}/accounts/{A}/reconciliation"),"new-lock",json!({"action":"lock","statement_balance":-100,"date":"2026-11-09","snapshot":cp["snapshot"]}));
-    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    assert_eq!(
+        s.client
+            .patch(format!("{}{root}/transactions/{id}", s.url))
+            .header("Idempotency-Key", "unrelated-date")
+            .json(&json!({"date":"2026-11-10"}))
+            .send()
+            .unwrap()
+            .status(),
+        200
+    );
     let before: Value = s.get(&format!("{root}/transactions")).json().unwrap();
-    assert_eq!(before["data"][0]["reconciled"], true);
     let response = inverse("undo", "refuse-new-lock");
     assert_eq!(
         response.status(),
         409,
-        "A newer reconciliation generation must not be authorized by old link history"
+        "A newer occurrence date must not be overwritten by old link history"
     );
     assert_eq!(
         s.get(&format!("{root}/transactions"))
@@ -1513,6 +1547,7 @@ fn reassignment_releases_original_auto_claim_and_matches_all_four_pinned_financi
     let oracle: Value = serde_json::from_str(include_str!(
         "../../tests/fixtures/schedule-reassignment.json"
     ))
+    .map(retirement::current)
     .unwrap();
     for case in oracle["cases"].as_array().unwrap() {
         let s = Server::start();
@@ -1863,7 +1898,7 @@ fn conversion_history_restores_original_then_refuses_undo_after_new_scheduled_pa
     assert_eq!(restored["data"].as_array().unwrap().len(), 1);
     assert_eq!(restored["data"][0]["id"], original);
     assert_eq!(restored["data"][0]["cleared"], true);
-    assert_eq!(restored["data"][0]["notes"], "Original purchase");
+    assert_eq!(restored["data"][0]["notes"], "");
     let response = inverse("redo", "redo-convert");
     assert_eq!(response.status(), 200, "{}", response.text().unwrap());
     assert!(

@@ -1157,7 +1157,9 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "deprecated": true,
+            "description": "Legacy compatibility field; imported transaction notes are not persisted."
           },
           "category": {
             "anyOf": [
@@ -1460,7 +1462,9 @@
             "format": "date"
           },
           "notes": {
-            "type": "string"
+            "type": "string",
+            "deprecated": true,
+            "description": "Legacy compatibility field; imported transaction notes are not persisted."
           },
           "cleared": {
             "type": "boolean"
@@ -1675,7 +1679,9 @@
           },
           "notes": {
             "type": "string",
-            "maxLength": 10000
+            "const": "",
+            "deprecated": true,
+            "description": "Legacy response field; transaction notes are retired and always empty."
           },
           "account_name": {
             "type": "string"
@@ -1793,6 +1799,27 @@
           },
           "pending": {
             "const": true
+          },
+          "category_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "category_group_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "color_override": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "group_sort_order": {
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "required": [
@@ -2137,7 +2164,9 @@
           },
           "notes": {
             "type": "string",
-            "maxLength": 10000
+            "const": "",
+            "deprecated": true,
+            "description": "Legacy response field; transaction notes are retired and always empty."
           },
           "account_name": {
             "type": "string"
@@ -2252,6 +2281,27 @@
           },
           "pending": {
             "const": true
+          },
+          "category_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "category_group_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "color_override": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "group_sort_order": {
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "required": [

@@ -658,7 +658,7 @@ fn source_clocks_preserve_forget_order_and_invalid_coordinates_reject_before_act
 }
 
 #[test]
-fn genuine_schema13_upgrade_retains_protected_transfer_state_and_original_receipts() {
+fn genuine_schema13_upgrade_completes_transfer_state_and_keeps_original_receipts() {
     let fixture: Value =
         serde_json::from_str(include_str!("../../tests/fixtures/locations-schema13.json")).unwrap();
     let budget = fixture["budget"]["data"]["id"].as_str().unwrap();
@@ -683,7 +683,7 @@ fn genuine_schema13_upgrade_retains_protected_transfer_state_and_original_receip
                 .body(include_bytes!("../../tests/fixtures/locations-schema13.zip").to_vec())
                 .send()
                 .unwrap());
-            assert_eq!(stage["data"]["report"]["schema_version"], 27);
+            assert_eq!(stage["data"]["report"]["schema_version"], 36);
             ok(s.write(
                 "POST",
                 &format!(
@@ -695,17 +695,23 @@ fn genuine_schema13_upgrade_retains_protected_transfer_state_and_original_receip
                 json!({"confirm_name":fixture["budget"]["data"]["name"]}),
             ));
         }
+        let mut expected_account = fixture["account"].clone();
+        expected_account["last_reconciled"] = Value::Null;
         assert_eq!(
             s.get(&format!("{root}/accounts/{account}"))["data"],
-            fixture["account"]
+            expected_account
         );
-        for row in fixture["rows"].as_array().unwrap() {
+        for saved in fixture["rows"].as_array().unwrap() {
+            let mut row = saved.clone();
+            row["notes"] = json!("");
+            row["cleared"] = json!(true);
+            row["reconciled"] = json!(false);
             assert_eq!(
                 s.get(&format!(
                     "{root}/transactions/{}",
                     row["id"].as_str().unwrap()
                 ))["data"],
-                *row
+                row
             );
         }
         assert_eq!(
@@ -719,14 +725,15 @@ fn genuine_schema13_upgrade_retains_protected_transfer_state_and_original_receip
             fixture["transfer"]
         );
         assert_eq!(
-            ok(s.write(
+            s.write(
                 "POST",
                 &format!("{root}/accounts/{account}/reconciliation"),
                 "reconcile13",
                 None,
                 fixture["reconciliation_body"].clone()
-            )),
-            fixture["reconciliation"]
+            )
+            .status(),
+            404
         );
         assert_eq!(s.get(&format!("{root}/payee-locations"))["data"], json!([]));
         assert_eq!(

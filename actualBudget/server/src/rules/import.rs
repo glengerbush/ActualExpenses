@@ -83,18 +83,24 @@ pub fn convert(
             stage = json!("pre");
         }
         let value = json!({"id":id,"stage":stage,"conditionsOp":row["conditions_op"],"conditions":conditions,"actions":actions});
-        let rule: Rule = serde_json::from_value(value.clone())
+        let mut rule: Rule = serde_json::from_value(value.clone())
             .map_err(|_| Error::invalid("Invalid saved rule shape"))?;
-        let retired = rule.actions.iter().any(|a| {
+        let mut retired = rule.actions.iter().any(|a| {
             !a["options"]["formula"].is_null()
                 || !a["options"]["template"].is_null()
                 || a["options"]["method"] == "formula"
         });
+        let (removed_notes, note_condition, notes_retired) = retire_note_behavior(&mut rule);
+        retired |= notes_retired;
+        if removed_notes || note_condition {
+            requirements.push(json!({"feature":"retired_rule_notes","count":1,"blocking":false,"rule_id":id,"reason":if retired {"Rule depends on retired notes and remains inactive; original source retained"} else {"Retired note actions omitted; financial actions retained"},"raw":row}));
+        }
+        let value = serde_json::to_value(&rule).map_err(Error::internal)?;
         let dead = row["tombstone"] == 1 || row["tombstone"] == true || retired;
         if !dead && let Err(error) = engine::validate(&rule) {
             requirements.push(json!({"feature":"rules","count":1,"blocking":true,"rule_id":id,"reason":error.message,"raw":row}));
         }
-        rules.push(json!({"rule":value,"tombstone":dead}));
+        rules.push(json!({"rule":value,"tombstone":dead,"retired":retired}));
     }
     let mut learning = true;
     for row in source["preferences"].as_array().into_iter().flatten() {
@@ -206,6 +212,70 @@ pub fn enrich(db: &Connection, budget: Option<&str>) -> Result<(), Error> {
     }
     Ok(())
 }
+// Preserve predicates when retiring them: removing one would broaden financial execution.
+fn retire_note_behavior(rule: &mut Rule) -> (bool, bool, bool) {
+    let previous_actions = rule.actions.len();
+    rule.actions.retain(|action| {
+        !(action["op"] == "set" && action["field"] == "notes"
+            || matches!(
+                action["op"].as_str(),
+                Some("append-notes" | "prepend-notes")
+            ))
+    });
+    let removed = previous_actions != rule.actions.len();
+    let condition = rule.conditions.iter().any(|c| c["field"] == "notes");
+    (
+        removed,
+        condition,
+        condition || removed && rule.actions.is_empty(),
+    )
+}
+
+/// Normalize retained native rule definitions without replaying source imports or receipts.
+pub fn normalize_retired_notes(db: &Connection, budget: Option<&str>) -> Result<(), Error> {
+    let mut query=db.prepare("SELECT budget_id,id,stage,conditions_op,conditions,actions FROM rules WHERE tombstone=0 AND (?1 IS NULL OR budget_id=?1)")?;
+    let rows = query
+        .query_map([budget], |r| {
+            Ok((
+                r.get::<_, String>(0)?,
+                r.get::<_, String>(1)?,
+                r.get::<_, Option<String>>(2)?,
+                r.get::<_, String>(3)?,
+                r.get::<_, String>(4)?,
+                r.get::<_, String>(5)?,
+            ))
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+    for (b, id, stage, conditions_op, conditions, actions) in rows {
+        let mut rule = Rule {
+            id: id.clone(),
+            stage,
+            conditions_op,
+            conditions: serde_json::from_str(&conditions).map_err(Error::internal)?,
+            actions: serde_json::from_str(&actions).map_err(Error::internal)?,
+        };
+        let (removed, condition, retired) = retire_note_behavior(&mut rule);
+        if removed || condition {
+            db.execute(
+                "UPDATE rules SET actions=?3,tombstone=?4 WHERE budget_id=?1 AND id=?2",
+                params![
+                    b,
+                    id,
+                    serde_json::to_string(&rule.actions).map_err(Error::internal)?,
+                    retired
+                ],
+            )?;
+            if retired {
+                db.execute(
+                    "UPDATE schedules SET tombstone=1 WHERE budget_id=?1 AND rule_id=?2",
+                    params![b, id],
+                )?;
+            }
+        }
+    }
+    Ok(())
+}
+
 pub fn validate(db: &Connection, b: &str) -> Result<(), Error> {
     let valid: bool = db.query_row(
         "SELECT EXISTS(SELECT 1 FROM rule_settings WHERE budget_id=?1 AND id='learning')",
@@ -244,4 +314,63 @@ pub fn validate(db: &Connection, b: &str) -> Result<(), Error> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn converted(conditions: Value, actions: Value) -> Value {
+        convert(&json!({"rules":[{"id":"00000000-0000-4000-8000-000000000001","conditions_op":"and","conditions":conditions,"actions":actions}]}), &BTreeMap::new(), &BTreeMap::new()).unwrap()
+    }
+
+    #[test]
+    fn legacy_note_actions_do_not_block_financial_rule_imports() {
+        let data = converted(
+            json!([{"field":"amount","op":"is","value":-100}]),
+            json!([
+                {"op":"set","field":"notes","value":"legacy"},
+                {"op":"append-notes","value":"tag"},
+                {"op":"set","field":"amount","value":-250}
+            ]),
+        );
+        assert_eq!(data["rules"][0]["tombstone"], false);
+        assert_eq!(
+            data["rules"][0]["rule"]["actions"],
+            json!([{"op":"set","field":"amount","value":-250}])
+        );
+        assert!(
+            data["requirements"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|r| r["blocking"] == false)
+        );
+        assert_eq!(
+            data["requirements"][0]["raw"]["actions"]
+                .as_array()
+                .unwrap()
+                .len(),
+            3
+        );
+    }
+
+    #[test]
+    fn retired_note_conditions_never_broaden_matching_or_block_archives() {
+        let data = converted(
+            json!([{"field":"notes","op":"contains","value":"old"}]),
+            json!([{"op":"set","field":"amount","value":200}]),
+        );
+        assert_eq!(data["rules"][0]["tombstone"], true);
+        assert_eq!(data["rules"][0]["retired"], true);
+        assert_eq!(data["rules"][0]["rule"]["conditions"][0]["field"], "notes");
+        assert_eq!(data["requirements"][0]["blocking"], false);
+    }
+
+    #[test]
+    fn unrelated_unsupported_actions_still_block_imports() {
+        let data = converted(json!([]), json!([{"op":"unknown-action"}]));
+        assert_eq!(data["rules"][0]["tombstone"], false);
+        assert_eq!(data["requirements"][0]["blocking"], true);
+    }
 }

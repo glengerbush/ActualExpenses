@@ -424,7 +424,7 @@ try {
       .pathname,
   });
   await page
-    .getByRole("button", { name: "Close reports", exact: true })
+    .getByRole("button", { name: "Transaction history", exact: true })
     .click();
   await page.keyboard.press("Control+k");
   await page
@@ -462,7 +462,7 @@ try {
     (d) => d.id === before.id,
   );
   await page
-    .getByRole("button", { name: "Close reports", exact: true })
+    .getByRole("button", { name: "Transaction history", exact: true })
     .click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
@@ -479,7 +479,9 @@ try {
     )
     .toBe("dd.MM.yyyy");
   await page.locator("#language").selectOption("de");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Dashboards and reports", exact: true })
     .click();

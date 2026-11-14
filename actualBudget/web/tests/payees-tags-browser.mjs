@@ -61,9 +61,7 @@ try {
   });
   const page = await context.newPage();
   await page.goto(server.url);
-  await page
-    .getByRole("button", { name: "Payees fixture Tracking Open" })
-    .click();
+  await page.getByRole("button", { name: "Payees fixture Open" }).click();
   await page.getByRole("button", { name: "Payees", exact: true }).click();
   await page
     .getByRole("button", { name: "Edit MARKET 001", exact: true })
@@ -120,7 +118,7 @@ try {
     page.getByRole("heading", { name: "Pending change" }),
   ).toBeVisible();
   await expect(page.getByRole("alert")).toContainText("Cannot reach");
-  await stale.getByRole("button", { name: "Done", exact: true }).click();
+  await stale.getByRole("button", { name: "Add payee", exact: true }).click();
   await expect(stale.getByRole("alert")).toContainText("Another tab");
   await page.unroute(`**/api/v1${root}/payees`);
   await page.reload();
@@ -274,20 +272,25 @@ try {
   ).toBeDisabled();
   await context.setOffline(false);
   await page.reload();
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await page.locator('summary[aria-label="Filters and columns"]').click();
   await page
     .getByRole("button", { name: "Add condition", exact: true })
     .click();
-  await page.getByLabel(/^Field 1/).selectOption("notes");
-  await page.getByLabel(/^Operator 1/).selectOption("contains");
-  await page.getByLabel("Value 1", { exact: true }).fill("#Food");
+  await expect(
+    page
+      .getByLabel(/^Field 1/)
+      .getByRole("option", { name: "Notes", exact: true }),
+  ).toHaveCount(0);
+  await page.getByLabel(/^Field 1/).selectOption("amount");
+  await page.getByLabel(/^Operator 1/).selectOption("is");
+  await page.getByLabel("Amount value 1", { exact: true }).fill("-12.50");
   await page
     .getByRole("button", { name: "Apply filters and columns", exact: true })
     .click();
-  await expect(
-    page.getByText("#Food ##Food #Foodie", { exact: true }),
-  ).toBeVisible();
+  await expect(page.locator("td.amount")).toHaveText(["-12.50"]);
   console.log(
     "PASS payees: rename merge tag retirement immutable retry cross-tab Done filters mobile offline",
   );

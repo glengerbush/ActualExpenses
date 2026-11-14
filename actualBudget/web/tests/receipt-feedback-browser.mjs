@@ -80,7 +80,7 @@ try {
     await page.reload();
     await transactionRows(page, { name: /^Edit / }).click();
     await page.getByLabel("Amount", { exact: true }).fill("2");
-    await page.getByLabel("Notes", { exact: true }).fill("Original notes");
+    await page.getByLabel("Date", { exact: true }).fill("02/01/2026");
     const horizon = Date.now() + 2500;
     await page.evaluate(
       (horizon) =>
@@ -99,7 +99,7 @@ try {
     const request = await captured;
     await expect(
       page.getByRole("button", {
-        name: "Cancel pending change safely",
+        name: "Cancel saved change safely",
         exact: true,
       }),
     ).toBeVisible();
@@ -120,7 +120,7 @@ try {
           await write(
             "PATCH",
             path,
-            { notes: "Newer winning notes" },
+            { date: "2026-02-02" },
             new Date(horizon + 1).toISOString() + "-0000-0000000000000002",
           )
         ).status,
@@ -144,10 +144,10 @@ try {
     const outcome = await committed.json();
     if (hidden) expect(outcome.data.deleted).toBe(true);
     else
-      expect(outcome.conflicts.map((field) => field.field)).toContain("notes");
+      expect(outcome.conflicts.map((field) => field.field)).toContain("date");
     await page
       .getByRole("button", {
-        name: "Cancel pending change safely",
+        name: "Cancel saved change safely",
         exact: true,
       })
       .click();
@@ -158,7 +158,7 @@ try {
       page.getByText(
         hidden
           ? "This transaction remains deleted. Its newer field edits were retained without restoring it."
-          : "A newer edit replaced these fields: Notes",
+          : "A newer edit replaced these fields: Date",
         { exact: true },
       ),
     ).toBeVisible();
@@ -166,9 +166,7 @@ try {
       await expect(page.getByTestId("register-total")).toHaveText("0.00");
     else {
       await expect(page.getByTestId("register-total")).toHaveText("-2.00");
-      await expect(page.locator(".register-table")).toContainText(
-        "Newer winning notes",
-      );
+      await expect(page.locator(".register-table")).toContainText("02/02/2026");
     }
     await context.close();
   }

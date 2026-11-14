@@ -1,4 +1,6 @@
 //! Public HTTP qualification: independent clients must not duplicate occurrences.
+#[path = "support/retired_rows.rs"]
+mod retirement;
 use reqwest::blocking::Client;
 use serde_json::{Value, json};
 use std::{
@@ -163,8 +165,9 @@ fn concurrent_catch_up_and_import_retries_keep_one_pinned_ledger_and_original_re
         "Eight independent clients together post the five missed source occurrences"
     );
     let ledger = server.get(&format!("{root}/transactions"));
-    let oracle: Value =
-        serde_json::from_str(include_str!("../../tests/fixtures/schedules.json")).unwrap();
+    let oracle: Value = serde_json::from_str(include_str!("../../tests/fixtures/schedules.json"))
+        .map(retirement::current)
+        .unwrap();
     let expected = oracle["snapshots"]
         .as_array()
         .unwrap()
@@ -192,7 +195,7 @@ fn concurrent_catch_up_and_import_retries_keep_one_pinned_ledger_and_original_re
         project(&expected["transactions"], "schedule", "payee")
     );
     assert_eq!(ledger["balances"]["total"], -600);
-    assert_eq!(ledger["balances"]["cleared"], 0);
+    assert_eq!(ledger["balances"]["cleared"], -600);
     let checkpoint = server.get(&format!("{root}/checkpoint"));
     let server = server.restart();
     for key in ["race-activate", "new-activation-attempt"] {

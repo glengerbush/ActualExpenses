@@ -190,7 +190,7 @@ fn csv_preview_matches_a_manual_expense_and_repeated_commit_does_not_duplicate_i
     assert_eq!(after["data"].as_array().unwrap().len(), 1);
     assert_eq!(after["data"][0]["id"], id);
     assert_eq!(after["data"][0]["amount"], -1234);
-    assert_eq!(after["data"][0]["notes"], "Manual note");
+    assert_eq!(after["data"][0]["notes"], "");
     assert_eq!(after["data"][0]["cleared"], true);
     assert_eq!(after["balances"]["total"], -1234);
     assert_eq!(send("commit", &command).json::<Value>().unwrap(), receipt);
@@ -372,7 +372,7 @@ fn remembered_options_keep_individual_original_clocks_files_and_receipts_across_
         .unwrap();
     assert_eq!(stage.status(), 201);
     let stage = stage.json::<Value>().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 27);
+    assert_eq!(stage["data"]["report"]["schema_version"], 36);
     let activate = target.post(
         &format!(
             "{root}/restores/{}/activate",
@@ -641,21 +641,19 @@ fn manual_merge_recovery(newer_peer_note: bool) {
                     .iter()
                     .find(|row| row["id"] == id)
                     .unwrap()["notes"],
-                f["before"]["transactions"]
-                    .as_array()
-                    .unwrap()
-                    .iter()
-                    .find(|row| row["id"] == id)
-                    .unwrap()["notes"]
+                ""
             );
         }
     }
-    let current = s
-        .get(&format!("{root}/checkpoint"))
-        .json::<Value>()
+    let remote = s
+        .client
+        .patch(format!("{}{root}/transactions/{keeper}", s.url))
+        .header("Idempotency-Key", "remote-date-overlap")
+        .header("X-Actual-Budget-Epoch", epoch)
+        .json(&json!({"date":"2026-11-10"}))
+        .send()
         .unwrap();
-    let locked=s.post(&format!("{root}/accounts/{}/reconciliation",peer["account"].as_str().unwrap()),"lock-peer",json!({"action":"lock","snapshot":current["data"]["snapshot"],"statement_balance":peer["amount"],"date":"2026-11-09"}));
-    assert_eq!(locked.status(), 200, "{}", locked.text().unwrap());
+    assert_eq!(remote.status(), 200, "{}", remote.text().unwrap());
     let protected = s
         .get(&format!("{root}/transactions"))
         .json::<Value>()
@@ -701,6 +699,6 @@ fn manual_merge_cancel_restart_preserves_newer_peer_edit_and_original_receipt() 
     manual_merge_recovery(true);
 }
 #[test]
-fn manual_merge_inverse_refuses_new_reconciliation_generation() {
+fn manual_merge_inverse_refuses_new_overlapping_edit() {
     manual_merge_recovery(false);
 }

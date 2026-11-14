@@ -1,4 +1,6 @@
 //! Independent source archives exercise discovery only through the public API.
+#[path = "support/retired_rows.rs"]
+mod retirement;
 use reqwest::blocking::Client;
 use serde_json::{Value, json};
 use std::{
@@ -150,9 +152,12 @@ fn deleted_schedule_returns_history_to_discovery_and_undo_restores_links() {
     let manifest: Value = serde_json::from_str(include_str!(
         "../../tests/fixtures/schedule-discovery/manifest.json"
     ))
+    .map(retirement::current)
     .unwrap();
     let oracle: Value =
-        serde_json::from_str(include_str!("../../tests/fixtures/schedule-matching.json")).unwrap();
+        serde_json::from_str(include_str!("../../tests/fixtures/schedule-matching.json"))
+            .map(retirement::current)
+            .unwrap();
     let archive = &manifest["archives"][0];
     assert_eq!(archive["name"], "weekly exact");
     let server = Server::start(tempfile::tempdir().unwrap());
@@ -285,6 +290,7 @@ fn imported_deleted_schedule_hides_link_without_changing_original_payment() {
     let oracle: Value = serde_json::from_str(include_str!(
         "../../tests/fixtures/schedule-deleted-link.json"
     ))
+    .map(retirement::current)
     .unwrap();
     let bytes = include_bytes!("../../tests/fixtures/schedule-deleted-link-26.10.zip");
     assert_eq!(
@@ -352,10 +358,13 @@ fn imported_deleted_schedule_hides_link_without_changing_original_payment() {
 #[test]
 fn discovery_matches_all_pinned_histories_and_preserves_imported_ledgers() {
     let oracle: Value =
-        serde_json::from_str(include_str!("../../tests/fixtures/schedule-matching.json")).unwrap();
+        serde_json::from_str(include_str!("../../tests/fixtures/schedule-matching.json"))
+            .map(retirement::current)
+            .unwrap();
     let manifest: Value = serde_json::from_str(include_str!(
         "../../tests/fixtures/schedule-discovery/manifest.json"
     ))
+    .map(retirement::current)
     .unwrap();
     assert_eq!(
         manifest["archives"].as_array().unwrap().len(),
@@ -441,6 +450,7 @@ fn discovery_pages_are_complete_and_invalid_or_stale_reads_have_no_effects() {
     let manifest: Value = serde_json::from_str(include_str!(
         "../../tests/fixtures/schedule-discovery/manifest.json"
     ))
+    .map(retirement::current)
     .unwrap();
     let archive = &manifest["archives"][0];
     let server = Server::start(tempfile::tempdir().unwrap());
@@ -520,6 +530,7 @@ fn imported_tied_account_ranks_preserve_source_name_order_and_discovery_winner()
     let fixture: Value = serde_json::from_str(include_str!(
         "../../tests/fixtures/discovery-account-order.json"
     ))
+    .map(retirement::current)
     .unwrap();
     let server = Server::start(tempfile::tempdir().unwrap());
     let root = import(

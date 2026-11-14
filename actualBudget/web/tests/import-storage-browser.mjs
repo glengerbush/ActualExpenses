@@ -86,16 +86,18 @@ sys.stdout.buffer.write(output.getvalue())
     if (new URL(request.url()).pathname === "/api/v1/imports/actual")
       uploads.push({ key: request.headers()["idempotency-key"] });
   });
-  async function open() {
+  async function open(page) {
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
     await page
-      .getByRole("button", { name: "Import Actual budget", exact: true })
+      .getByRole("navigation", { name: "Settings sections" })
+      .getByRole("button", { name: "Import", exact: true })
       .click();
     await expect(
-      page.getByRole("heading", { name: "Import Actual budget", exact: true }),
+      page.getByRole("heading", { name: "Import", exact: true }),
     ).toBeVisible();
   }
   await page.goto(url);
-  await open();
+  await open(page);
   await page.getByLabel("Actual ZIP export").setInputFiles({
     name: "Desktop budget.zip",
     mimeType: "application/zip",
@@ -131,7 +133,7 @@ sys.stdout.buffer.write(output.getvalue())
     "Upload outcome is unconfirmed",
   );
   await page.reload();
-  await open();
+  await open(page);
   await page
     .getByRole("button", { name: "Retry saved upload", exact: true })
     .click();
@@ -153,7 +155,7 @@ sys.stdout.buffer.write(output.getvalue())
     page.locator(".balance-row").filter({ hasText: "Reserve" }),
   ).toBeVisible();
   await page.reload();
-  await open();
+  await open(page);
   await page
     .getByRole("button", { name: "Activate imported budget", exact: true })
     .click();
@@ -201,9 +203,7 @@ sys.stdout.buffer.write(output.getvalue())
       },
       { bytes: [...archive], key: legacyKey, activationKey: randomUUID() },
     );
-    await oldPage
-      .getByRole("button", { name: "Import Actual budget", exact: true })
-      .click();
+    await open(oldPage);
     await oldPage
       .getByRole("button", { name: "Retry saved upload", exact: true })
       .click();

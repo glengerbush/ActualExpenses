@@ -177,21 +177,8 @@ async fn update(
         .as_object()
         .ok_or_else(|| Error::invalid("Expected a preference changes object"))?
         .clone();
-    for (key, value) in &changes {
-        // Old committed requests must still resolve their original receipt.
-        // apply_changes rejects these retired flags for every new write.
-        if key == "privacy_mode" && (value.is_boolean() || value.is_null()) {
-            continue;
-        } else if key == "experimental" && value.is_object() {
-            let mut supported = value.clone();
-            supported.as_object_mut().unwrap().retain(|flag, enabled| {
-                !matches!(flag.as_str(), "enableBanking" | "akahuBankSync") || !enabled.is_boolean()
-            });
-            validate_change(key, &supported)?;
-        } else {
-            validate_change(key, value)?;
-        }
-    }
+    // Resolve exact committed receipts before validating current preferences.
+    // apply_changes validates every new field before persisting any settings.
     let key = idempotency_key(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
     let payload = input.to_string();

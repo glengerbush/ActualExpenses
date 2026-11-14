@@ -1,4 +1,4 @@
-//! Payee identity and note-tag management. Tombstones retain provenance; aliases
+//! Payee management and retained archive tag metadata. Tombstones retain provenance; aliases
 //! resolve before ordinary transaction writes. Bulk intents commit atomically.
 use crate::{
     api::{budget_id, idempotency_key, json_error},
@@ -29,13 +29,6 @@ pub fn router() -> Router<Store> {
             get(read).patch(mutate),
         )
         .route("/api/v1/budgets/{budget}/payees/batch", post(mutate))
-}
-fn domain(uri: &str) -> &'static str {
-    if uri.contains("/tags") {
-        "tags"
-    } else {
-        "payees"
-    }
 }
 fn fields(body: &Value, allowed: &[&str]) -> Result<(), Error> {
     let fields = body
@@ -82,7 +75,8 @@ struct Page {
     #[serde(default)]
     include_transfers: bool,
     #[serde(default)]
-    include_hidden: bool,
+    #[serde(rename = "include_hidden")]
+    _include_hidden: bool,
     #[serde(default)]
     unused: bool,
 }
@@ -92,7 +86,6 @@ fn limit() -> u32 {
 async fn list(
     State(s): State<Store>,
     p: Result<Path<String>, PathRejection>,
-    OriginalUri(uri): OriginalUri,
     q: Result<Query<Page>, QueryRejection>,
 ) -> Result<Json<Value>, Error> {
     let b = budget_id(p)?;
@@ -103,20 +96,17 @@ async fn list(
     {
         return Err(Error::invalid("Invalid pagination or search"));
     }
-    let entity = domain(uri.path());
-    Ok(Json(s.run(move|db|{concurrency::check_snapshot(db,&b,q.snapshot.as_deref())?;let sql=if entity=="payees"{"SELECT p.id FROM payees p LEFT JOIN accounts a ON a.budget_id=p.budget_id AND a.id=p.transfer_account_id WHERE p.budget_id=?1 AND (?2 OR p.tombstone=0) AND (?3 OR p.transfer_account_id IS NULL) AND (p.transfer_account_id IS NULL OR a.tombstone=0) AND (?4 IS NULL OR instr(lower(COALESCE(a.name,p.name)),lower(?4))>0) AND (?5=0 OR NOT EXISTS(SELECT 1 FROM transactions t WHERE t.budget_id=p.budget_id AND t.payee_id=p.id AND t.tombstone=0)) ORDER BY p.name,p.id LIMIT ?6 OFFSET ?7"}else{"SELECT id FROM tags WHERE budget_id=?1 AND (?2 OR tombstone=0) AND (?3 OR hidden=0) AND (?4 IS NULL OR instr(lower(tag),lower(?4))>0) AND (?5=0 OR 1=1) ORDER BY tag,id LIMIT ?6 OFFSET ?7"};let mut query=db.prepare(sql)?;let ids=query.query_map(params![b,q.include_deleted,if entity=="payees"{q.include_transfers}else{q.include_hidden},q.q,q.unused,q.limit+1,q.offset],|r|r.get::<_,String>(0))?.collect::<Result<Vec<_>,_>>()?;let more=ids.len()>q.limit as usize;let rows=ids.iter().take(q.limit as usize).map(|id|record(db,&b,entity,id)).collect::<Result<Vec<_>,_>>()?;Ok(json!({"data":rows,"next_offset":if more{Some(q.offset+q.limit)}else{None}}))}).await?))
+    Ok(Json(s.run(move|db|{concurrency::check_snapshot(db,&b,q.snapshot.as_deref())?;let sql="SELECT p.id FROM payees p LEFT JOIN accounts a ON a.budget_id=p.budget_id AND a.id=p.transfer_account_id WHERE p.budget_id=?1 AND (?2 OR p.tombstone=0) AND (?3 OR p.transfer_account_id IS NULL) AND (p.transfer_account_id IS NULL OR a.tombstone=0) AND (?4 IS NULL OR instr(lower(COALESCE(a.name,p.name)),lower(?4))>0) AND (?5=0 OR NOT EXISTS(SELECT 1 FROM transactions t WHERE t.budget_id=p.budget_id AND t.payee_id=p.id AND t.tombstone=0)) ORDER BY p.name,p.id LIMIT ?6 OFFSET ?7";let mut query=db.prepare(sql)?;let ids=query.query_map(params![b,q.include_deleted,q.include_transfers,q.q,q.unused,q.limit+1,q.offset],|r|r.get::<_,String>(0))?.collect::<Result<Vec<_>,_>>()?;let more=ids.len()>q.limit as usize;let rows=ids.iter().take(q.limit as usize).map(|id|record(db,&b,"payees",id)).collect::<Result<Vec<_>,_>>()?;Ok(json!({"data":rows,"next_offset":if more{Some(q.offset+q.limit)}else{None}}))}).await?))
 }
 async fn read(
     State(s): State<Store>,
     p: Result<Path<(String, String)>, PathRejection>,
-    OriginalUri(uri): OriginalUri,
 ) -> Result<Json<Value>, Error> {
     let Path((b, id)) = p.map_err(|_| Error::invalid("Invalid reference path"))?;
     validate_id(&b)?;
     validate_id(&id)?;
-    let entity = domain(uri.path());
     Ok(Json(
-        json!({"data":s.run(move|db|{store::require_budget(db,&b)?;record(db,&b,entity,&id)}).await?}),
+        json!({"data":s.run(move|db|{store::require_budget(db,&b)?;record(db,&b,"payees",&id)}).await?}),
     ))
 }
 async fn mutate(
@@ -129,7 +119,6 @@ async fn mutate(
     let parts = uri.path().split('/').collect::<Vec<_>>();
     let b = parts[4].to_owned();
     validate_id(&b)?;
-    let entity = domain(uri.path());
     let action = parts.get(6).copied().unwrap_or("create").to_owned();
     let Json(body) = input.map_err(json_error)?;
     let key = idempotency_key(&headers)?;
@@ -146,7 +135,7 @@ async fn mutate(
         name: &'a str,
         is_income: Option<bool>,
     }
-    let payload = if created && entity == "payees" {
+    let payload = if created {
         fields(&body, &["id", "name", "is_income"])?;
         if !body["is_income"].is_null() {
             return Err(Error::invalid("Payees cannot specify is_income"));
@@ -178,15 +167,11 @@ async fn mutate(
                 crate::lifecycle::require_epoch(db, &b, epoch.as_deref())?;
                 let clock = concurrency::clock(db, &b, proposed.as_deref())?;
                 match action.as_str() {
-                    "create" => create(db, &b, entity, &body, &clock),
-                    "batch" => batch(db, &b, entity, &body, &clock),
-                    "discover" if entity == "tags" => {
-                        fields(&body, &[])?;
-                        discover(db, &b, &clock)
-                    }
+                    "create" => create(db, &b, &body, &clock),
+                    "batch" => batch(db, &b, &body, &clock),
                     id => {
                         validate_id(id)?;
-                        patch(db, &b, entity, id, &body, &clock)
+                        patch(db, &b, id, &body, &clock)
                     }
                 }
             },
@@ -207,25 +192,10 @@ fn active(value: &Value) -> Result<(), Error> {
         Ok(())
     }
 }
-pub(crate) fn duplicate(
-    db: &Connection,
-    b: &str,
-    entity: &str,
-    id: &str,
-    name: &str,
-) -> Result<(), Error> {
-    let column = if entity == "payees" { "name" } else { "tag" };
+pub(crate) fn duplicate(db: &Connection, b: &str, id: &str, name: &str) -> Result<(), Error> {
     let exists: bool = db.query_row(
-        &format!(
-            "SELECT EXISTS(SELECT 1 FROM {entity} WHERE budget_id=?1 AND id<>?2 AND {column}=?3{})",
-            if entity == "payees" {
-                " AND tombstone=0 AND transfer_account_id IS NULL"
-            } else {
-                ""
-            }
-        ),
-        params![b, id, name],
-        |r| r.get(0),
+        "SELECT EXISTS(SELECT 1 FROM payees WHERE budget_id=?1 AND id<>?2 AND name=?3 AND tombstone=0 AND transfer_account_id IS NULL)",
+        params![b, id, name], |r| r.get(0),
     )?;
     if exists {
         Err(Error::conflict(
@@ -245,153 +215,48 @@ pub fn validate_tag(tag: &str) -> Result<(), Error> {
         Ok(())
     }
 }
-pub(crate) fn create(
-    db: &Connection,
-    b: &str,
-    entity: &str,
-    body: &Value,
-    clock: &str,
-) -> Result<Value, Error> {
-    fields(
-        body,
-        if entity == "payees" {
-            &["id", "name", "is_income"]
-        } else {
-            &["id", "tag", "color", "description"]
-        },
-    )?;
+pub(crate) fn create(db: &Connection, b: &str, body: &Value, clock: &str) -> Result<Value, Error> {
+    fields(body, &["id", "name", "is_income"])?;
     let id = text(body, "id")?;
     validate_id(id)?;
-    let column = if entity == "payees" { "name" } else { "tag" };
-    let name = text(body, column)?.trim_matches(js_whitespace);
-    if entity == "payees" {
-        validate_name(name)?
-    } else {
-        validate_tag(name)?
-    }
-    if entity == "tags" {
-        let existing: Option<String> = db
-            .query_row(
-                "SELECT id FROM tags WHERE budget_id=?1 AND tag=?2",
-                params![b, name],
-                |r| r.get(0),
-            )
-            .optional()?;
-        if let Some(existing) = existing {
-            let collision: bool = db.query_row(
-                "SELECT EXISTS(SELECT 1 FROM tags WHERE budget_id=?1 AND id=?2 AND tag<>?3)",
-                params![b, id, name],
-                |r| r.get(0),
-            )?;
-            if collision {
-                return Err(Error::conflict("Reference ID already exists"));
-            }
-            let before = record(db, b, entity, &existing)?;
-            if before["field_versions"]["tombstone"]
-                .as_str()
-                .unwrap_or(concurrency::ZERO)
-                >= clock
-            {
-                return Err(Error::conflict(
-                    "A newer tag removal exists. Refresh first.",
-                ));
-            }
-            db.execute(
-                "UPDATE tags SET tombstone=0 WHERE budget_id=?1 AND id=?2",
-                params![b, existing],
-            )?;
-            concurrency::seed_field_version(db, b, entity, &existing, "tombstone", clock)?;
-            self::patch(
-                db,
-                b,
-                entity,
-                &existing,
-                &json!({"color":body.get("color").unwrap_or(&Value::Null),"description":body.get("description").unwrap_or(&Value::Null)}),
-                clock,
-            )?;
-            return record(db, b, entity, &existing);
-        }
-    }
-    duplicate(db, b, entity, id, name)?;
+    let name = text(body, "name")?.trim_matches(js_whitespace);
+    validate_name(name)?;
+    duplicate(db, b, id, name)?;
     if db.query_row(
-        &format!("SELECT EXISTS(SELECT 1 FROM {entity} WHERE budget_id=?1 AND id=?2)"),
+        "SELECT EXISTS(SELECT 1 FROM payees WHERE budget_id=?1 AND id=?2)",
         params![b, id],
         |r| r.get::<_, bool>(0),
     )? {
         return Err(Error::conflict("Reference ID already exists"));
     }
     db.execute(
-        &format!("INSERT INTO {entity}(budget_id,id,{column}) VALUES(?1,?2,?3)"),
+        "INSERT INTO payees(budget_id,id,name) VALUES(?1,?2,?3)",
         params![b, id, name],
     )?;
-    concurrency::seed_field_version(db, b, entity, id, column, clock)?;
-    if entity == "tags" {
-        let mut patch = body.clone();
-        patch.as_object_mut().unwrap().remove("id");
-        patch.as_object_mut().unwrap().remove("tag");
-        if !patch.as_object().unwrap().is_empty() {
-            self::patch(db, b, entity, id, &patch, clock)?;
-        }
-    }
-    record(db, b, entity, id)
+    concurrency::seed_field_version(db, b, "payees", id, "name", clock)?;
+    record(db, b, "payees", id)
 }
-fn patch(
-    db: &Connection,
-    b: &str,
-    entity: &str,
-    id: &str,
-    body: &Value,
-    clock: &str,
-) -> Result<Value, Error> {
-    fields(
-        body,
-        if entity == "payees" {
-            &["name", "favorite", "learn_categories"]
-        } else {
-            &["tag", "color", "description", "hidden"]
-        },
-    )?;
+fn patch(db: &Connection, b: &str, id: &str, body: &Value, clock: &str) -> Result<Value, Error> {
+    fields(body, &["name", "favorite", "learn_categories"])?;
     if body.as_object().unwrap().is_empty() {
         return Err(Error::invalid("Supply a field to update"));
     }
-    let before = record(db, b, entity, id)?;
+    let before = record(db, b, "payees", id)?;
     active(&before)?;
     let mut conflicts = vec![];
     for (field, value) in body.as_object().unwrap() {
         let value = match field.as_str() {
-            "name" | "tag" => {
+            "name" => {
                 let v = value
                     .as_str()
                     .ok_or_else(|| Error::invalid("Name must be text"))?
                     .trim_matches(js_whitespace);
-                if field == "name" {
-                    validate_name(v)?
-                } else {
-                    validate_tag(v)?
-                }
+                validate_name(v)?;
                 json!(v)
             }
-            "favorite" | "hidden" | "learn_categories" => {
+            "favorite" | "learn_categories" => {
                 if !value.is_boolean() {
                     return Err(Error::invalid("Expected a boolean"));
-                }
-                value.clone()
-            }
-            "color" => {
-                if !value.is_null()
-                    && !value.as_str().is_some_and(|v| {
-                        v.len() == 7
-                            && v.starts_with('#')
-                            && v[1..].bytes().all(|c| c.is_ascii_hexdigit())
-                    })
-                {
-                    return Err(Error::invalid("color must be #RRGGBB or null"));
-                }
-                value.clone()
-            }
-            "description" => {
-                if !value.is_null() && !value.as_str().is_some_and(|v| v.chars().count() <= 10000) {
-                    return Err(Error::invalid("description must be text or null"));
                 }
                 value.clone()
             }
@@ -404,17 +269,8 @@ fn patch(
             conflicts.push(json!({"field":field,"winning_clock":old,"submitted_clock":clock}));
             continue;
         }
-        if matches!(field.as_str(), "name" | "tag") {
-            duplicate(db, b, entity, id, value.as_str().unwrap())?;
-        }
-        if field == "tag" && value != before["tag"] {
-            rename_notes(
-                db,
-                b,
-                before["tag"].as_str().unwrap(),
-                value.as_str().unwrap(),
-                clock,
-            )?;
+        if field == "name" {
+            duplicate(db, b, id, value.as_str().unwrap())?;
         }
         let sql = match value {
             Value::Null => rusqlite::types::Value::Null,
@@ -423,22 +279,16 @@ fn patch(
             _ => unreachable!(),
         };
         db.execute(
-            &format!("UPDATE {entity} SET {field}=?3 WHERE budget_id=?1 AND id=?2"),
+            &format!("UPDATE payees SET {field}=?3 WHERE budget_id=?1 AND id=?2"),
             params![b, id, sql],
         )?;
-        concurrency::seed_field_version(db, b, entity, id, field, clock)?;
+        concurrency::seed_field_version(db, b, "payees", id, field, clock)?;
     }
     Ok(
-        json!({"response_status":200,"response_body":{"data":record(db,b,entity,id)?,"conflicts":conflicts,"cursor":concurrency::cursor(db,b)?}}),
+        json!({"response_status":200,"response_body":{"data":record(db,b,"payees",id)?,"conflicts":conflicts,"cursor":concurrency::cursor(db,b)?}}),
     )
 }
-fn batch(
-    db: &Connection,
-    b: &str,
-    entity: &str,
-    body: &Value,
-    clock: &str,
-) -> Result<Value, Error> {
+fn batch(db: &Connection, b: &str, body: &Value, clock: &str) -> Result<Value, Error> {
     fields(body, &["action", "ids", "target_id"])?;
     let action = text(body, "action")?;
     let ids = body["ids"]
@@ -446,10 +296,10 @@ fn batch(
         .filter(|v| !v.is_empty() && v.len() <= 1000)
         .ok_or_else(|| Error::invalid("Select 1–1000 records"))?;
     let mut seen = BTreeSet::new();
-    let target = if action == "merge" && entity == "payees" {
+    let target = if action == "merge" {
         let target = text(body, "target_id")?;
         validate_id(target)?;
-        active(&record(db, b, entity, target)?)?;
+        active(&record(db, b, "payees", target)?)?;
         Some(target)
     } else {
         if body.get("target_id").is_some() {
@@ -457,9 +307,7 @@ fn batch(
         }
         None
     };
-    if !(entity == "payees" && ["merge", "remove", "favorite", "unfavorite"].contains(&action)
-        || entity == "tags" && ["hide", "show", "remove"].contains(&action))
-    {
+    if !["merge", "remove", "favorite", "unfavorite"].contains(&action) {
         return Err(Error::invalid("Unsupported management action"));
     }
     for id in ids {
@@ -470,7 +318,7 @@ fn batch(
                 "Select distinct source records, excluding the merge target",
             ));
         }
-        let value = record(db, b, entity, id)?;
+        let value = record(db, b, "payees", id)?;
         active(&value)?;
         if value["field_versions"]
             .as_object()
@@ -487,14 +335,14 @@ fn batch(
         let field = match action {
             "merge" | "remove" => "tombstone",
             "favorite" | "unfavorite" => "favorite",
-            _ => "hidden",
+            _ => unreachable!(),
         };
-        let value = !matches!(action, "show" | "unfavorite");
+        let value = action != "unfavorite";
         db.execute(
-            &format!("UPDATE {entity} SET {field}=?3 WHERE budget_id=?1 AND id=?2"),
+            &format!("UPDATE payees SET {field}=?3 WHERE budget_id=?1 AND id=?2"),
             params![b, id, value],
         )?;
-        concurrency::seed_field_version(db, b, entity, id, field, clock)?;
+        concurrency::seed_field_version(db, b, "payees", id, field, clock)?;
         if let Some(target) = target {
             db.execute(
                 "UPDATE payees SET merged_into=?3 WHERE budget_id=?1 AND (id=?2 OR merged_into=?2)",
@@ -504,101 +352,10 @@ fn batch(
                 "UPDATE transactions SET payee_id=?3 WHERE budget_id=?1 AND payee_id=?2",
                 params![b, id, target],
             )?;
-            concurrency::seed_field_version(db, b, entity, id, "merged_into", clock)?;
+            concurrency::seed_field_version(db, b, "payees", id, "merged_into", clock)?;
         }
     }
     Ok(json!({"ids":seen,"action":action,"target_id":target}))
-}
-/// Exact pinned notes token boundaries, including escaped ## and adjacent tags.
-pub fn tags_in(notes: &str) -> Vec<(usize, usize, &str)> {
-    let mut tags = vec![];
-    let mut previous = None;
-    for (i, c) in notes.char_indices() {
-        if c == '#' && previous != Some('#') {
-            let start = i + 1;
-            let end = notes[start..]
-                .char_indices()
-                .find(|(_, c)| *c == '#' || js_whitespace(*c))
-                .map(|(n, _)| start + n)
-                .unwrap_or(notes.len());
-            if end > start {
-                tags.push((i, end, &notes[start..end]));
-            }
-        }
-        previous = Some(c);
-    }
-    tags
-}
-fn rename_notes(db: &Connection, b: &str, old: &str, new: &str, clock: &str) -> Result<(), Error> {
-    let mut q=db.prepare("SELECT id,notes FROM transactions WHERE budget_id=?1 AND tombstone=0 AND instr(notes,'#')>0")?;
-    let rows = q
-        .query_map([b], |r| {
-            Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
-        })?
-        .collect::<Result<Vec<_>, _>>()?;
-    for (id, notes) in rows {
-        let matching = tags_in(&notes)
-            .into_iter()
-            .filter(|(_, _, tag)| *tag == old)
-            .collect::<Vec<_>>();
-        if matching.is_empty() {
-            continue;
-        }
-        let versions = concurrency::versions(db, b, &id)?;
-        if versions["notes"].as_str().unwrap_or(concurrency::ZERO) > clock {
-            return Err(Error::conflict(
-                "Newer transaction notes prevent this rename. Refresh first.",
-            ));
-        }
-        let mut renamed = String::new();
-        let mut from = 0;
-        for (start, end, _) in matching {
-            renamed.push_str(&notes[from..start]);
-            renamed.push('#');
-            renamed.push_str(new);
-            from = end;
-        }
-        renamed.push_str(&notes[from..]);
-        if renamed.chars().count() > 10000 {
-            return Err(Error::invalid("Renamed notes exceed 10000 characters"));
-        }
-        db.execute(
-            "UPDATE transactions SET notes=?3 WHERE budget_id=?1 AND id=?2",
-            params![b, id, renamed],
-        )?;
-        concurrency::seed_field_version(db, b, "transactions", &id, "notes", clock)?;
-    }
-    Ok(())
-}
-fn discover(db: &Connection, b: &str, clock: &str) -> Result<Value, Error> {
-    let mut q = db.prepare(
-        "SELECT notes FROM transactions WHERE budget_id=?1 AND tombstone=0 AND instr(notes,'#')>0",
-    )?;
-    let notes = q
-        .query_map([b], |r| r.get::<_, String>(0))?
-        .collect::<Result<Vec<_>, _>>()?;
-    let mut found = BTreeSet::new();
-    for note in &notes {
-        for (_, _, tag) in tags_in(note) {
-            found.insert(tag);
-        }
-    }
-    let mut created = vec![];
-    for tag in found {
-        validate_tag(tag)?;
-        let existing: Option<String> = db
-            .query_row(
-                "SELECT id FROM tags WHERE budget_id=?1 AND tag=?2 AND tombstone=0",
-                params![b, tag],
-                |r| r.get(0),
-            )
-            .optional()?;
-        if existing.is_none() {
-            let id = uuid::Uuid::new_v4().to_string();
-            created.push(create(db, b, "tags", &json!({"id":id,"tag":tag}), clock)?);
-        }
-    }
-    Ok(json!({"created":created}))
 }
 pub fn canonical(db: &Connection, b: &str, id: &str) -> Result<String, Error> {
     let mut id = id.to_owned();

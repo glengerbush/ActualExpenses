@@ -1,3 +1,4 @@
+import { savedWork, expectSavedWork } from "./saved-work-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { startServer } from "./server.mjs";
@@ -37,6 +38,14 @@ try {
       opening_balance: 10000,
       opening_date: "2026-01-01",
     });
+    // Reverse key order: IDB's UUID ordering must never select an older local edit.
+    await context.addInitScript(() => {
+      let serial = Number(sessionStorage.getItem("test-uuid-serial") ?? 999999);
+      crypto.randomUUID = () => {
+        sessionStorage.setItem("test-uuid-serial", String(--serial));
+        return `f0000000-0000-4000-8000-${String(serial).padStart(12, "0")}`;
+      };
+    });
     await page.goto(server.url);
     await page.evaluate(
       ({ budget, account }) =>
@@ -55,13 +64,12 @@ try {
       .click();
     await page.getByLabel("Amount", { exact: true }).fill("1");
     await page
-      .getByLabel("Notes", { exact: true })
-      .fill("Reloaded pending expense");
-    await page
       .getByRole("button", { name: "Save transaction", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "Edit pending expense", exact: true })
+      .locator(".register-table tr[data-transaction-id]")
+      .filter({ hasText: /-[123]\.00/ })
+      .first()
       .click();
     await page.getByLabel("Amount", { exact: true }).fill("2");
     await page.reload();
@@ -71,27 +79,36 @@ try {
       .getByRole("button", { name: "Save transaction", exact: true })
       .click();
     await expect(page.locator(".transaction-form")).toHaveCount(0);
-    await expect(page.getByTestId("pending-expenses")).toContainText("-2.00");
+    await expect(page.locator(".register-table")).toContainText("-2.00");
     await expect(
-      page.getByRole("button", { name: "Delete pending expense", exact: true }),
+      page
+        .locator(".register-table tr[data-transaction-id]")
+        .filter({ hasText: /-[123]\.00/ })
+        .first()
+        .getByRole("button", { name: /^Delete / }),
     ).toBeVisible();
     await page
-      .getByRole("button", { name: "Edit pending expense", exact: true })
+      .locator(".register-table tr[data-transaction-id]")
+      .filter({ hasText: /-[123]\.00/ })
+      .first()
       .click();
     await page.getByLabel("Amount", { exact: true }).fill("3");
     await page
       .getByRole("button", { name: "Save transaction", exact: true })
       .click();
-    await expect(page.getByTestId("pending-expenses")).toContainText("-3.00");
+    await expect(page.locator(".register-table")).toContainText("-3.00");
     if (action === "delete") {
       await page
-        .getByRole("button", { name: "Delete pending expense", exact: true })
+        .locator(".register-table tr[data-transaction-id]")
+        .filter({ hasText: /-[123]\.00/ })
+        .first()
+        .getByRole("button", { name: /^Delete / })
         .click();
-      await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+      await expectSavedWork(page, 0);
     }
     await context.unroute("**/api/v1/**");
     await page.evaluate(() => dispatchEvent(new Event("online")));
-    await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+    await expectSavedWork(page, 0);
     await expect(page.getByTestId("register-total")).toHaveText(
       action === "delete" ? "100.00" : "97.00",
     );
@@ -117,6 +134,14 @@ try {
       opening_balance: 10000,
       opening_date: "2026-01-01",
     });
+    // Reverse key order: IDB's UUID ordering must never select an older local edit.
+    await context.addInitScript(() => {
+      let serial = Number(sessionStorage.getItem("test-uuid-serial") ?? 999999);
+      crypto.randomUUID = () => {
+        sessionStorage.setItem("test-uuid-serial", String(--serial));
+        return `f0000000-0000-4000-8000-${String(serial).padStart(12, "0")}`;
+      };
+    });
     await page.goto(server.url);
     await page.evaluate(
       ({ budget, account }) =>
@@ -134,19 +159,20 @@ try {
       .getByRole("button", { name: "Add transaction", exact: true })
       .click();
     await page.getByLabel("Amount", { exact: true }).fill("1");
-    await page.getByLabel("Notes", { exact: true }).fill("Original expense");
     await page
       .getByRole("button", { name: "Save transaction", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "Edit pending expense", exact: true })
+      .locator(".register-table tr[data-transaction-id]")
+      .filter({ hasText: /-[123]\.00/ })
+      .first()
       .click();
     await expect(
       page.getByRole("radio", { name: "Income", exact: true }),
     ).toBeDisabled();
     await expect(
-      page.getByLabel("Payee", { exact: true }).locator('option[value="new"]'),
-    ).toBeDisabled();
+      page.getByRole("combobox", { name: "Payee", exact: true }),
+    ).toBeVisible();
     await page.getByLabel("Amount", { exact: true }).fill("2");
     let stage = "first",
       committedSecond = false;
@@ -188,17 +214,14 @@ try {
     await page
       .getByRole("button", { name: "Save transaction", exact: true })
       .click();
-    await expect(page.locator(".pending-expense")).toHaveCount(2);
+    await expectSavedWork(page, 2);
     await page
-      .locator(".pending-expense")
+      .locator(".register-table tr[data-transaction-id]")
       .filter({ hasText: "-2.00" })
-      .getByRole("button", { name: "Edit pending expense", exact: true })
       .click();
     await page.getByLabel("Amount", { exact: true }).fill("1");
     if (mode === "mixed")
-      await page
-        .getByLabel("Notes", { exact: true })
-        .fill("Changed note with reverted amount");
+      await page.getByLabel("Date", { exact: true }).fill("02/03/2026");
     if (mode === "claimed") {
       stage = "second";
       await page.evaluate(() => dispatchEvent(new Event("online")));
@@ -232,11 +255,10 @@ try {
       await page.reload();
     }
     await expect(page.locator(".transaction-form")).toHaveCount(0);
-    if (["revert", "handoff"].includes(mode))
-      await expect(page.locator(".pending-expense")).toHaveCount(1);
+    if (["revert", "handoff"].includes(mode)) await expectSavedWork(page, 1);
     stage = "deliver";
     await page.evaluate(() => dispatchEvent(new Event("online")));
-    await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+    await expectSavedWork(page, 0);
     await expect(page.getByTestId("register-total")).toHaveText(
       mode === "cancel" ? "98.00" : "99.00",
     );
@@ -251,10 +273,10 @@ try {
         "POST",
         "PATCH",
       ]);
-      expect(rows[0].notes).toBe("Changed note with reverted amount");
+      expect(rows[0].date).toBe("2026-02-03");
       expect(
         sent.filter((r) => r.method === "PATCH").map((r) => r.body),
-      ).toEqual([{ notes: "Changed note with reverted amount" }]);
+      ).toEqual([{ date: "2026-02-03" }]);
     }
     if (["revert", "handoff"].includes(mode))
       expect(sent.filter((r) => r.method === "PATCH")).toHaveLength(0);

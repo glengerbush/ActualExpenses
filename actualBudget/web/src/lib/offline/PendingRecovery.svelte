@@ -81,11 +81,6 @@
       "Saved work remains available here even when its budget was deleted or is missing from the server.",
     )}
   </p>
-  <p class="hint">
-    {t(
-      "Amounts are hidden in this view across budgets. Show an individual amount to review it, including when its budget is unavailable.",
-    )}
-  </p>
   {#if error}<div role="alert">
       <p class="error">{error}</p>
       <button onclick={() => void refresh()}

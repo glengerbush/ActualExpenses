@@ -74,7 +74,7 @@ try {
   const transactions = await call(root + "/transactions");
   expect(transactions).toHaveLength(2);
   const repeated = transactions.find((t) => t.id !== id);
-  expect(repeated.notes).toBe("Daily coffee");
+  expect(repeated.notes).toBe("");
   expect(repeated.amount).toBe(-1200);
   schedules = await call(root + "/schedules");
   await call(root + "/schedules/commands", {
@@ -152,22 +152,15 @@ try {
   await expect(
     page.getByRole("button", { name: "Schedules", exact: true }),
   ).toHaveCount(0);
-  await page
-    .locator(".register-table tbody tr")
-    .filter({ hasText: "One-time payment" })
-    .click();
+  await page.locator(`[data-transaction-id="${oneOff}"]`).click();
   await expect(
     page.getByRole("switch", { name: "Recurring", exact: true }),
   ).not.toBeChecked();
-  await page
-    .getByLabel("Notes", { exact: true })
-    .fill("One-time payment edited");
+  await page.getByLabel("Amount", { exact: true }).fill("1.01");
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.locator(".register-table")).toContainText(
-    "One-time payment edited",
-  );
+  await expect(page.locator(".register-table")).toContainText("1.01");
   expect((await call(root + "/transactions/" + oneOff)).recurrence.config).toBe(
     "2030-12-01",
   );
@@ -181,7 +174,7 @@ try {
     page.getByRole("combobox", { name: "Frequency", exact: true }),
   ).toHaveCount(0);
   await page.getByLabel("Amount", { exact: true }).fill("25");
-  await page.getByLabel("Notes", { exact: true }).fill("Monthly membership");
+  await expect(page.getByLabel("Notes", { exact: true })).toHaveCount(0);
   await page.getByRole("switch", { name: "Recurring", exact: true }).check();
   await expect(
     page.getByRole("combobox", { name: "Frequency", exact: true }),
@@ -199,7 +192,7 @@ try {
     .click();
   let row = page
     .locator(".register-table tbody tr")
-    .filter({ hasText: "Monthly membership" });
+    .filter({ hasText: "25.00" });
   await expect(row).toBeVisible();
   await row.click();
   await expect(
@@ -227,7 +220,7 @@ try {
   ).not.toBeChecked();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   const membership = (await call(root + "/transactions")).find(
-    (t) => t.notes === "Monthly membership",
+    (t) => t.amount === -2500,
   );
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect
@@ -254,32 +247,27 @@ try {
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("3");
-  await page.getByLabel("Notes", { exact: true }).fill("Offline recurring");
+
   await page.getByRole("switch", { name: "Recurring", exact: true }).check();
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
   await expect(
-    page
-      .locator(".register-table")
-      .getByText("Offline recurring", { exact: true }),
+    page.locator(".register-table").getByText("-3.00", { exact: true }),
   ).toBeVisible();
   await page.reload();
-  await expect(page.locator(".register-table")).toContainText(
-    "Offline recurring",
-  );
+  await expect(page.locator(".register-table")).toContainText("3.00");
   await page.unroute("**/api/v1/**");
   await page.evaluate(() => window.dispatchEvent(new Event("online")));
   await expect
     .poll(
       async () =>
-        (await call(root + "/transactions")).filter(
-          (t) => t.notes === "Offline recurring",
-        ).length,
+        (await call(root + "/transactions")).filter((t) => t.amount === -300)
+          .length,
     )
     .toBe(1);
   const offline = (await call(root + "/transactions")).find(
-    (t) => t.notes === "Offline recurring",
+    (t) => t.amount === -300,
   );
   expect(offline.recurrence.enabled).toBe(true);
   expect(errors).toEqual([]);

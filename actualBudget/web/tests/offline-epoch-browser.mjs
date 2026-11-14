@@ -1,3 +1,4 @@
+import { savedWork, expectSavedWork, openSavedWork } from "./saved-work-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
@@ -60,14 +61,9 @@ try {
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("3.21");
   await page
-    .getByLabel("Notes", { exact: true })
-    .fill("Old generation expense");
-  await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText(
-    "Old generation expense",
-  );
+  await expectSavedWork(page, 1);
   const restored = await write(root + `/backups/${point.id}/restore`, {
     confirm_name: "Outbox generation",
   });
@@ -85,29 +81,25 @@ try {
     await route.continue();
   });
   await page.evaluate(() => dispatchEvent(new Event("online")));
-  await expect(page.getByTestId("pending-expenses")).toContainText(
+  await expect(page.getByTestId("sync-issues")).toContainText(
     "This budget was restored",
   );
   expect(attempts[0].epoch).not.toBe(restored.budget.epoch);
   await page.reload();
-  await expect(page.getByTestId("pending-expenses")).toContainText(
-    "Old generation expense",
-  );
-  await page
-    .getByRole("button", { name: "Retry pending expense", exact: true })
-    .click();
+  await expect(page.getByTestId("sync-issues")).toContainText("-3.21");
+  await page.getByRole("button", { name: "Retry sync", exact: true }).click();
   await expect.poll(() => attempts.length).toBe(2);
   expect(attempts[1]).toEqual(attempts[0]);
   await expect(
     page.getByRole("button", {
-      name: "Cancel pending change safely",
+      name: "Cancel saved change safely",
       exact: true,
     }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Cancel pending change safely", exact: true })
+    .getByRole("button", { name: "Cancel saved change safely", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+  await expectSavedWork(page, 0);
   expect(attempts.at(-1).cancel).toBe("true");
   expect(attempts.at(-1).epoch).toBe(attempts[0].epoch);
   const old = JSON.parse(attempts[0].body);
@@ -119,7 +111,6 @@ try {
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("3.21");
-  await page.getByLabel("Notes", { exact: true }).fill("Reviewed replacement");
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
@@ -134,7 +125,6 @@ try {
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("1");
-  await page.getByLabel("Notes", { exact: true }).fill("Open before restore");
   await write(
     root + `/backups/${point.id}/restore`,
     { confirm_name: "Outbox generation" },
@@ -143,7 +133,7 @@ try {
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText(
+  await expect(page.getByTestId("sync-issues")).toContainText(
     "This budget was restored",
   );
   expect(attempts.at(-1).epoch).toBe(restored.budget.epoch);
@@ -151,22 +141,19 @@ try {
     "PASS form-open generation captured before restore; submit never silently rebases old intent",
   );
   await page
-    .getByRole("button", { name: "Cancel pending change safely", exact: true })
+    .getByRole("button", { name: "Cancel saved change safely", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+  await expectSavedWork(page, 0);
   await context.route("**/api/v1/**", (route) => route.abort());
   await page.evaluate(() => dispatchEvent(new Event("offline")));
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("2");
-  await page.getByLabel("Notes", { exact: true }).fill("Retain after deletion");
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText(
-    "Retain after deletion",
-  );
+  await expectSavedWork(page, 1);
   const deletionEpoch = (
     await (await fetch(api + "/api/v1" + root + "/checkpoint")).json()
   ).data.epoch;
@@ -178,16 +165,12 @@ try {
   );
   await context.unroute("**/api/v1/**");
   await page.evaluate(() => dispatchEvent(new Event("online")));
-  await expect(page.getByTestId("pending-expenses")).toContainText(/deleted/i);
+  await expect(page.getByTestId("sync-issues")).toContainText(/deleted/i);
   const deletedAttempt = attempts.at(-1);
   await page.getByRole("button", { name: "All budgets", exact: true }).click();
   await page.reload();
-  await page
-    .getByRole("button", { name: "Review pending expenses", exact: true })
-    .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText(
-    "Retain after deletion",
-  );
+  await openSavedWork(page);
+  await expectSavedWork(page, 1);
   await mkdir("test-results", { recursive: true });
   await page.setViewportSize({ width: 320, height: 740 });
   await page.evaluate(() => (document.documentElement.style.fontSize = "200%"));
@@ -198,7 +181,7 @@ try {
   ).toBe(true);
   await page
     .getByRole("heading", {
-      name: "Pending expenses on this device",
+      name: "Saved changes on this device",
       exact: true,
     })
     .scrollIntoViewIfNeeded();
@@ -206,16 +189,16 @@ try {
     path: "test-results/offline-global-recovery-heading-200.png",
   });
   await page
-    .getByRole("button", { name: "Cancel pending change safely", exact: true })
+    .getByRole("button", { name: "Cancel saved change safely", exact: true })
     .scrollIntoViewIfNeeded();
   await page.screenshot({
     path: "test-results/offline-global-recovery-actions-200.png",
   });
   await page
-    .getByRole("button", { name: "Cancel pending change safely", exact: true })
+    .getByRole("button", { name: "Cancel saved change safely", exact: true })
     .click();
   await expect(
-    page.getByText("No pending expenses on this device.", { exact: true }),
+    page.getByText("No saved expenses on this device.", { exact: true }),
   ).toBeVisible();
   const cancellation = attempts.at(-1);
   expect(cancellation.key).toBe(deletedAttempt.key);

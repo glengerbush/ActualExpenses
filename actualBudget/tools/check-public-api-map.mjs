@@ -45,12 +45,7 @@ assert.deepEqual(
   "Every18 declared source resource has explicit profile/feature mapping",
 );
 for (const row of mapping.operations)
-  assert.ok(
-    row.translation &&
-      (row.routes.length ||
-        (row.status === "removed" &&
-          JSON.stringify(row.sdk) === '["runBankSync"]')),
-  );
+  assert.ok(row.translation && (row.routes.length || row.status === "removed"));
 console.log(
   "PASS67 SDK functions +18 query resources explicitly mapped with pinned source hash",
 );
@@ -64,11 +59,24 @@ if (!process.argv.includes("--static")) {
         .data;
     for (const route of [
       ...mapping.operations.flatMap((row) => row.routes),
-      ...mapping.query_resources.map((row) => row.route),
+      ...mapping.query_resources
+        .filter((row) => row.status !== "removed")
+        .map((row) => row.route),
     ])
       assert.ok(
         contract.paths[route.path]?.[route.method.toLowerCase()],
         route.method + " " + route.path + " has a served contract",
+      );
+    for (const route of [
+      ...mapping.operations.flatMap((row) => row.retired_routes ?? []),
+      ...mapping.query_resources
+        .filter((row) => row.status === "removed")
+        .map((row) => row.route),
+    ])
+      assert.equal(
+        contract.paths[route.path],
+        undefined,
+        "Retired SDK surface stays absent: " + route.path,
       );
     for (const resource of mapping.query_resources)
       if (resource.query_profile)

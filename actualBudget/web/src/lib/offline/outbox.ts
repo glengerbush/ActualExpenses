@@ -87,7 +87,34 @@ function validate(value: unknown): asserts value is OutboxEntry {
 async function all(tx: IDBTransaction): Promise<OutboxEntry[]> {
   const rows = await result<unknown[]>(tx.objectStore("operations").getAll());
   rows.forEach(validate);
-  return rows as OutboxEntry[];
+  // IndexedDB returns primary-key order, which says nothing about local intent.
+  // A dependent edit always follows its prerequisite, even after clock correction.
+  const pending = rows as OutboxEntry[];
+  pending.sort(
+    (a, b) =>
+      (a.pending.edit_clock ?? a.createdAt).localeCompare(
+        b.pending.edit_clock ?? b.createdAt,
+      ) || a.key.localeCompare(b.key),
+  );
+  const byKey = new Map(pending.map((entry) => [entry.key, entry]));
+  const ordered: OutboxEntry[] = [];
+  const visited = new Set<string>();
+  const visiting = new Set<string>();
+  function visit(entry: OutboxEntry) {
+    if (visited.has(entry.key)) return;
+    if (visiting.has(entry.key))
+      throw new OfflineStateError(
+        "Saved pending work has circular dependencies. It has been preserved; no request was sent.",
+      );
+    visiting.add(entry.key);
+    const parent = entry.dependsOn && byKey.get(entry.dependsOn);
+    if (parent) visit(parent);
+    visiting.delete(entry.key);
+    visited.add(entry.key);
+    ordered.push(entry);
+  }
+  pending.forEach(visit);
+  return ordered;
 }
 export function entries(budget?: string): Promise<OutboxEntry[]> {
   return transaction(["operations"], "readonly", async (tx) =>

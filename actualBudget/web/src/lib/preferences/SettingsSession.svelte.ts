@@ -40,6 +40,51 @@ function changesBetween(
   }
   return changes;
 }
+function savedChangesMatch(draft: PreferenceDraft): boolean {
+  const changes = changesBetween(draft.base, draft.values);
+  const beforeValues = draft.base as unknown as Record<string, unknown>;
+  const afterValues = draft.values as unknown as Record<string, unknown>;
+  const retiredScalars: Record<string, (value: unknown) => boolean> = {
+    privacy_mode: (value) => typeof value === "boolean",
+    currency_code: (value) =>
+      typeof value === "string" && /^(?:[A-Z]{3})?$/.test(value),
+    currency_symbol_position: (value) =>
+      value === "before" || value === "after",
+    currency_space: (value) => typeof value === "boolean",
+  };
+  for (const [name, valid] of Object.entries(retiredScalars)) {
+    if (beforeValues[name] === afterValues[name]) continue;
+    if (!valid(beforeValues[name]) || !valid(afterValues[name])) return false;
+    changes[name] = afterValues[name];
+  }
+  // Released clients persisted per-flag experimental changes. Validate their
+  // original intent for receipt replay, without allowing new retired settings.
+  const base = (draft.base as unknown as Record<string, unknown>).experimental;
+  const values = (draft.values as unknown as Record<string, unknown>)
+    .experimental;
+  if (
+    base &&
+    values &&
+    typeof base === "object" &&
+    typeof values === "object" &&
+    !Array.isArray(base) &&
+    !Array.isArray(values)
+  ) {
+    const before = base as Record<string, unknown>;
+    const after = values as Record<string, unknown>;
+    const flags: Record<string, boolean> = {};
+    for (const name of new Set([
+      ...Object.keys(before),
+      ...Object.keys(after),
+    ])) {
+      if (typeof before[name] !== "boolean" || typeof after[name] !== "boolean")
+        return false;
+      if (before[name] !== after[name]) flags[name] = after[name] as boolean;
+    }
+    if (Object.keys(flags).length) changes.experimental = flags;
+  }
+  return equal(draft.pending?.changes, changes);
+}
 function read(budgetId: string): PreferenceDraft | null {
   let raw: string | null;
   try {
@@ -70,9 +115,7 @@ function read(budgetId: string): PreferenceDraft | null {
     !validShared(d.base) ||
     !validShared(d.values) ||
     (d.pending !== null &&
-      (!d.pending ||
-        d.pending.key !== d.draft_id ||
-        !equal(d.pending.changes, changesBetween(d.base, d.values))))
+      (!d.pending || d.pending.key !== d.draft_id || !savedChangesMatch(d)))
   )
     throw new Error(
       "Saved preference changes could not be validated and have been kept unchanged.",
@@ -208,7 +251,7 @@ export class SettingsSession {
           "Reconnect before changing shared settings. Your changes are saved on this device.",
         );
       const changes = changesBetween(this.draft.base, this.draft.values);
-      if (!Object.keys(changes).length) {
+      if (!this.draft.pending && !Object.keys(changes).length) {
         this.status = "No changes to save.";
         return;
       }

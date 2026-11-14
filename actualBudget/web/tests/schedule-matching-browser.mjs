@@ -57,17 +57,7 @@ try {
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto(server.url);
-  await page.evaluate(
-    ({ budget, account }) =>
-      localStorage.setItem(
-        "actualBudget.selection",
-        JSON.stringify({ budgetId: budget, accountId: account }),
-      ),
-    { budget, account },
-  );
-  await page.reload();
-  await page.getByRole("button", { name: "Schedules", exact: true }).click();
+  await page.goto(`${server.url}/?budget=${budget}&view=schedules`);
   await page
     .getByRole("button", { name: "Find recurring payments", exact: true })
     .click();
@@ -168,21 +158,28 @@ try {
     .getByRole("button", { name: "Match payments", exact: true })
     .click();
   await expect(matches.getByRole("checkbox")).toHaveCount(30);
-  const first = matches.getByRole("checkbox", { name: /Extra/ }).first();
-  const firstLabel = await first.getAttribute("aria-label");
+  const first = matches
+    .locator("li")
+    .filter({ hasNotText: "Already linked" })
+    .getByRole("checkbox")
+    .first();
+
   await first.check();
   await matches
     .getByRole("button", { name: "Next payments", exact: true })
     .click();
   await expect(matches.getByRole("checkbox")).toHaveCount(11);
-  await matches.getByRole("checkbox", { name: /Extra/ }).first().check();
+  await matches
+    .locator("li")
+    .filter({ hasNotText: "Already linked" })
+    .getByRole("checkbox")
+    .first()
+    .check();
   await expect(matches).toContainText("2 selected");
   await matches
     .getByRole("button", { name: "Previous payments", exact: true })
     .click();
-  await expect(
-    matches.getByRole("checkbox", { name: firstLabel, exact: true }),
-  ).toBeChecked();
+  await expect(matches.locator("input[type=checkbox]:checked")).toBeChecked();
   await mkdir("test-results/schedule-matching", { recursive: true });
   await matches.getByRole("heading").scrollIntoViewIfNeeded();
   await page.screenshot({
@@ -248,7 +245,7 @@ try {
     exact: true,
   });
   await expect(linked.getByRole("checkbox")).toHaveCount(5);
-  await linked.getByRole("checkbox", { name: /Extra/ }).first().check();
+  await linked.locator("input[type=checkbox]:not(:disabled)").first().check();
   await linked
     .getByRole("button", { name: "Review selected unlinks", exact: true })
     .click();
@@ -272,7 +269,12 @@ try {
     .getByRole("button", { name: "Match payments", exact: true })
     .click();
   await expect(matches.getByRole("checkbox")).toHaveCount(30);
-  await matches.getByRole("checkbox", { name: /Extra/ }).first().check();
+  await matches
+    .locator("li")
+    .filter({ hasNotText: "Already linked" })
+    .getByRole("checkbox")
+    .first()
+    .check();
   await call(root + "/categories", {
     id: randomUUID(),
     name: "Concurrent change",

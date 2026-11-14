@@ -10,7 +10,7 @@ async function call(path,body,headers={}){const r=await fetch(api+path,{method:b
 function shape(rows,payees,categories,source){
  const names=new Map(payees.map(row=>[row.id,row.name])),cats=new Map(categories.map(row=>[row.id,row.name]));
  const flat=rows.flatMap(row=>[row,...(source?row.subtransactions??[]:row.children??[])]);
- return flat.map(row=>({date:row.date,amount:row.amount,notes:row.notes??'',cleared:!!row.cleared,reconciled:!!row.reconciled,is_parent:!!row.is_parent,parent:!!row.parent_id,payee:names.get(row[source?'payee':'payee_id'])??null,category:cats.get(row[source?'category':'category_id'])??null,imported_payee:row.imported_payee??null})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
+ return flat.map(row=>({date:row.date,amount:row.amount,notes:source?'':row.notes??'',cleared:source?true:!!row.cleared,reconciled:source?false:!!row.reconciled,is_parent:!!row.is_parent,parent:!!row.parent_id,payee:names.get(row[source?'payee':'payee_id'])??null,category:cats.get(row[source?'category':'category_id'])??null,imported_payee:row.imported_payee??null})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
 }
 try{for(const item of fixture.cases){
  const bytes=await readFile(new URL('../tests/fixtures/'+item.archive.filename,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),item.archive.sha256);

@@ -48,15 +48,6 @@ try {
   await page.getByRole("button", { name: "Budget", exact: true }).click();
   await page.getByLabel(/Months displayed/).selectOption("1");
   await expect(page.locator(".budget-month")).toHaveCount(1);
-  const editCategory = async (name) => {
-    const row = page.locator(".budget-category").filter({ hasText: name });
-    await row
-      .getByRole("button", { name: new RegExp(`^Edit ${name} for `) })
-      .click();
-    await page
-      .getByRole("button", { name: "Category settings", exact: true })
-      .click();
-  };
   await page.getByRole("button", { name: "Add group", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Everyday");
   await page.getByLabel("Group color", { exact: true }).fill("#397c8c");
@@ -97,7 +88,7 @@ try {
   await expect(page.getByLabel("Group", { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(
-    page.locator(".budget-category").filter({ hasText: "Groceries" }),
+    page.getByRole("textbox", { name: "Category name Groceries", exact: true }),
   ).toBeEnabled();
   let category = (await call(root + "/categories")).find(
     (c) => c.name === "Groceries",
@@ -106,24 +97,21 @@ try {
   expect(category.is_income).toBe(false);
   expect(category.color).toBeNull();
   expect(category.resolved_color.toLowerCase()).toBe(shade);
-  await editCategory("Groceries");
-  await page.getByLabel("Category shade", { exact: true }).fill("#cc2244");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(
-    page.locator(".budget-category").filter({ hasText: "Groceries" }),
-  ).toBeEnabled();
-  await editCategory("Groceries");
+  const color = page.getByLabel("Color for Groceries", { exact: true });
+  await color.fill("#cc2244");
+  await expect
+    .poll(async () => (await call(root + "/categories/" + category.id)).color)
+    .toBe("#cc2244");
   await page
-    .getByRole("button", { name: "Use automatic shade", exact: true })
+    .getByRole("button", {
+      name: "Use automatic shade for Groceries",
+      exact: true,
+    })
     .click();
-  await expect(page.getByLabel("Category shade", { exact: true })).toHaveValue(
-    shade,
-  );
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(
-    page.locator(".budget-category").filter({ hasText: "Groceries" }),
-  ).toBeEnabled();
-  expect((await call(root + "/categories/" + category.id)).color).toBeNull();
+  await expect
+    .poll(async () => (await call(root + "/categories/" + category.id)).color)
+    .toBeNull();
+  await expect(color).toHaveValue(shade);
   await page.getByRole("button", { name: "Add group", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Income");
   await page
@@ -139,7 +127,7 @@ try {
   await page.getByLabel("Name", { exact: true }).fill("Salary");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(
-    page.locator(".budget-category").filter({ hasText: "Salary" }),
+    page.getByRole("textbox", { name: "Category name Salary", exact: true }),
   ).toBeEnabled();
   expect(
     (await call(root + "/categories")).find((c) => c.name === "Salary")

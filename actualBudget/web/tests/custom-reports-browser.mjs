@@ -89,7 +89,7 @@ try {
     await api(`/budgets/${budget}/reporting`)
   ).data.documents.find((d) => d.kind === "custom_report" && !d.tombstone);
   await page
-    .getByRole("button", { name: "Close reports", exact: true })
+    .getByRole("button", { name: "Transaction history", exact: true })
     .click();
   await page.getByRole("button", { name: "Settings", exact: true }).click(); // Fault injection: conflicting downloaded keys must fail visibly, not overwrite a message.
   await context.route("**/de-*.json", (route) =>
@@ -110,7 +110,9 @@ try {
   await context.unroute("**/de-*.json");
   await page.getByRole("button", { name: "Retry", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "de");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Dashboards and reports", exact: true })
     .click();
@@ -164,14 +166,16 @@ try {
     fullPage: true,
   });
   await page
-    .getByRole("button", { name: "Close reports", exact: true })
+    .getByRole("button", { name: "Transaction history", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Einstellungen", exact: true })
     .click();
   await page.locator("#language").selectOption("en");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Dashboards and reports", exact: true })
     .click();
@@ -291,10 +295,65 @@ try {
     page.getByRole("option", { name: "Household custom report", exact: true }),
   ).toHaveCount(1);
   await expect(page.getByLabel("Report name", { exact: true })).toBeEnabled();
+  // Hold the old editor's draft read after its transaction captured the value.
+  // Navigation must prevent that unmounted loader from persisting stale state.
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem("held-report-read-once")) return;
+    sessionStorage.setItem("held-report-read-once", "true");
+    const get = IDBObjectStore.prototype.get;
+    let reads = 0;
+    IDBObjectStore.prototype.get = function (key) {
+      const request = get.call(this, key);
+      if (String(key).startsWith("custom-report-draft:") && ++reads === 2) {
+        Object.defineProperty(request, "onsuccess", {
+          set(handler) {
+            request.addEventListener(
+              "success",
+              (event) => {
+                window.heldReportRead = true;
+                window.releaseReportRead = () => handler.call(request, event);
+              },
+              { once: true },
+            );
+          },
+        });
+      }
+      return request;
+    };
+  });
   await page.reload();
+  await page.waitForFunction(() => window.heldReportRead);
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Dashboards and reports", exact: true })
+    .click();
   await expect(page.getByLabel("Report name", { exact: true })).toHaveValue(
     "Household custom report",
   );
+  async function savedCustomWork() {
+    return page.evaluate(
+      (budget) =>
+        new Promise((resolve, reject) => {
+          const opening = indexedDB.open("actualBudget.offline.v1", 1);
+          opening.onerror = () => reject(opening.error);
+          opening.onsuccess = () => {
+            const db = opening.result,
+              tx = db.transaction("cache"),
+              store = tx.objectStore("cache");
+            const draft = store.get(`custom-report-draft:${budget}`),
+              operation = store.get(`reporting-operation:${budget}`);
+            tx.oncomplete = () => {
+              db.close();
+              resolve({ draft: draft.result, operation: operation.result });
+            };
+            tx.onerror = () => reject(tx.error);
+          };
+        }),
+      budget,
+    );
+  }
   await page
     .getByLabel("Report name", { exact: true })
     .fill("Interrupted custom report");
@@ -306,6 +365,14 @@ try {
       exact: true,
     }),
   ).toBeVisible();
+  const savedBeforeNavigation = await savedCustomWork();
+  expect(savedBeforeNavigation.draft.document.config.name).toBe(
+    "Interrupted custom report",
+  );
+  expect(savedBeforeNavigation.operation.body.writes[0].config.name).toBe(
+    "Interrupted custom report",
+  );
+  await page.evaluate(() => window.releaseReportRead());
   await page
     .getByRole("button", { name: "Cancel saved reporting change", exact: true })
     .click();
@@ -313,10 +380,12 @@ try {
   await page.reload();
   await expect(page.getByText(/Cancellation is pending/)).toBeVisible();
   await page
-    .getByRole("button", { name: "Close reports", exact: true })
+    .getByRole("button", { name: "Transaction history", exact: true })
     .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
-    .getByRole("button", { name: "Recovery tools", exact: true })
+    .getByRole("navigation", { name: "Settings sections" })
+    .getByRole("button", { name: "Recovery", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Reset downloaded data", exact: true })
@@ -328,6 +397,12 @@ try {
     .getByRole("button", { name: "Dashboards and reports", exact: true })
     .click();
   await expect(page.getByText(/Cancellation is pending/)).toBeVisible();
+  const recoveredWork = await savedCustomWork();
+  expect(recoveredWork.draft).toEqual(savedBeforeNavigation.draft);
+  expect(recoveredWork.operation.body).toEqual(
+    savedBeforeNavigation.operation.body,
+  );
+  expect(recoveredWork.operation.key).toBe(savedBeforeNavigation.operation.key);
   await expect(page.getByLabel("Report name", { exact: true })).toHaveValue(
     "Interrupted custom report",
   );
@@ -397,13 +472,15 @@ try {
     .getByRole("button", { name: "Reset to saved", exact: true })
     .click();
   await page
-    .getByRole("button", { name: "Close reports", exact: true })
+    .getByRole("button", { name: "Transaction history", exact: true })
     .click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
     .getByRole("combobox", { name: "Theme", exact: true })
     .selectOption("dark");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Dashboards and reports", exact: true })
     .click();

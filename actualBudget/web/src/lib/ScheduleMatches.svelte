@@ -131,7 +131,7 @@
     <button onclick={onclose}>Close payment matches</button>
   </header>
   <p>
-    Review exact dates, amounts and status before selecting. Linking never
+    Review exact dates, amounts and payees before selecting. Linking never
     merges or deletes payments. A paired leg shares its link with its
     counterpart; split allocations keep independent links.
   </p>
@@ -139,14 +139,14 @@
   {#if page}<p>
       {page.total_count}
       {page.total_count === 1 ? "payment" : "payments"} · {selected.length} selected
-      (maximum 500). Reconciled entries require unlocking before their graph can change.
+      (maximum 500).
     </p>
     <ul>
       {#each page.transactions as row (row.id)}<li>
           <label class="select"
             ><input
               type="checkbox"
-              aria-label={`Select payment ${row.date} ${row.notes || row.payee_name || row.id}`}
+              aria-label={`Select payment ${row.date} ${row.payee_name || row.id}`}
               checked={selectedIds.has(row.id)}
               disabled={busy ||
                 (selected.length >= 500 && !selectedIds.has(row.id))}
@@ -155,7 +155,7 @@
               ><strong>{row.date} · {formatAmount(row.amount)}</strong><span
                 >{row.account_name} · {row.payee_name ?? "No payee"} · {row.category_name ??
                   "No category"}</span
-              ><span>{row.notes || "No notes"}</span><span
+              ><span
                 >{row.is_parent
                   ? " · Split parent"
                   : row.parent_id
@@ -171,8 +171,8 @@
                 {#each row.children as child (child.id)}<li>
                     {formatAmount(child.amount)} · {child.payee_name ??
                       payees.find((p) => p.id === child.payee_id)?.name ??
-                      "No payee"} · {child.category_name ?? "No category"} · {child.notes ||
-                      "No notes"}{child.transfer_id
+                      "No payee"} · {child.category_name ??
+                      "No category"}{child.transfer_id
                       ? " · Transfer allocation"
                       : ""}
                   </li>{/each}

@@ -51,6 +51,7 @@ try {
     off_budget: false,
   });
   await page.reload();
+  await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: /Navigation fixture.*Open/ }).click();
   await expect(
     page.getByRole("heading", { name: "Transaction history", exact: true }),
@@ -64,7 +65,7 @@ try {
     .click();
   const amountInput = page.getByLabel("Amount", { exact: true });
   await amountInput.fill("345.67");
-  await page.getByLabel("Notes", { exact: true }).focus();
+  await page.getByLabel("Date", { exact: true }).focus();
   await page.mouse.move(0, 0);
   await expect(amountInput).toHaveValue("345.67");
   await expect(amountInput).not.toHaveCSS(
@@ -86,6 +87,7 @@ try {
   for (const route of held) await route.continue();
   await page.unroute(`**/api/v1/budgets/${id}/checkpoint`);
   await page.reload();
+  await page.waitForLoadState("networkidle");
   await expect(page.getByTestId("register-total")).toHaveText("1,234.56");
 
   await page.keyboard.press("Control+k");
@@ -117,6 +119,7 @@ try {
     page.getByRole("button", { name: "Privacy mode", exact: true }),
   ).toHaveCount(0);
   await page.reload();
+  await page.waitForLoadState("networkidle");
   await expect(
     page.getByRole("heading", { name: "Settings", exact: true }),
   ).toBeVisible();
@@ -146,12 +149,14 @@ try {
     page.getByRole("status").filter({ hasText: "Shared preferences saved." }),
   ).toBeVisible();
   await page.reload();
+  await page.waitForLoadState("networkidle");
   await expect(
     page.getByRole("heading", { name: "Settings", exact: true }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Search commands", exact: true })
     .click();
+  await expect(search).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(
     page.getByRole("button", { name: "Search commands", exact: true }),
@@ -179,6 +184,7 @@ try {
     page.getByRole("button", { name: "Dismiss release notice" }),
   ).toHaveCount(0);
   await page.reload();
+  await page.waitForLoadState("networkidle");
   await page
     .getByRole("button", { name: "Help and releases", exact: true })
     .click();
@@ -189,6 +195,7 @@ try {
   await page.getByRole("button", { name: "Close help", exact: true }).click();
   await page.getByRole("button", { name: "Dismiss release notice" }).click();
   await page.reload();
+  await page.waitForLoadState("networkidle");
   await expect(
     page.getByRole("button", { name: "Dismiss release notice" }),
   ).toHaveCount(0);
@@ -250,7 +257,7 @@ try {
     opening_date: "2026-11-09",
     off_budget: false,
   });
-  await page.getByRole("button", { name: "All budgets", exact: true }).click();
+  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
   await page
     .getByRole("button", { name: /Other recovery budget.*Open/ })
     .click();
@@ -260,20 +267,24 @@ try {
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
   ).toHaveCount(0);
-  async function pending(amount, notes) {
+  async function pending(amount) {
     await page
       .getByRole("button", { name: "Add transaction", exact: true })
       .click();
     await page.getByLabel("Amount", { exact: true }).fill(amount);
-    await page.getByLabel("Notes", { exact: true }).fill(notes);
     await page
       .getByRole("button", { name: "Save transaction", exact: true })
       .click();
-    await expect(page.getByTestId("pending-expenses")).toContainText(notes);
+    await expect(
+      page.getByRole("row", { name: new RegExp(`Edit -${amount}`) }),
+    ).toBeVisible();
   }
+  await expect(
+    page.getByRole("button", { name: "Refresh", exact: true }),
+  ).toBeEnabled();
   await context.setOffline(true);
-  await pending("4.56", "Other budget pending");
-  await page.getByRole("button", { name: "All budgets", exact: true }).click();
+  await pending("4.56");
+  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
   await page.getByRole("button", { name: /Navigation fixture.*Open/ }).click();
   await page
     .getByRole("button", { name: "Transaction history", exact: true })
@@ -281,26 +292,28 @@ try {
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
   ).toHaveCount(0);
-  await pending("12.34", "First budget pending");
-  await page.getByRole("button", { name: "All budgets", exact: true }).click();
+  await pending("12.34");
+  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
   await expect(
     page.getByRole("heading", { name: "Your budgets", exact: true }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
-    .getByRole("button", { name: "Review pending expenses", exact: true })
+    .getByRole("button", { name: "Troubleshoot saved changes", exact: true })
     .click();
   const recovery = page.getByTestId("pending-expenses");
   await expect(recovery.locator("article")).toHaveCount(2);
-  await expect(recovery).toContainText("First budget pending");
-  await expect(recovery).toContainText("Other budget pending");
-  await expect(recovery).toContainText("-12.34");
-  await expect(recovery).toContainText("-4.56");
   await expect(
     recovery.getByRole("button", { name: "Show amount", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await expect(recovery).toContainText("-12.34");
+  await expect(recovery).toContainText("-4.56");
+  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
-    .getByRole("button", { name: "Review pending expenses", exact: true })
+    .getByRole("button", { name: "Troubleshoot saved changes", exact: true })
     .click();
   await expect(recovery).toContainText("-12.34");
   await expect(recovery).toContainText("-4.56");

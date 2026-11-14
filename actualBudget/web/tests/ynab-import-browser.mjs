@@ -38,13 +38,11 @@ try {
     page.setDefaultTimeout(10000);
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(server.url);
-    await page
-      .getByRole("button", { name: "Import YNAB budget", exact: true })
-      .click();
+    await page.getByRole("button", { name: "Import", exact: true }).click();
+    await page.getByLabel("Budget file format").selectOption(kind);
     await expect(
       page.getByRole("heading", { name: "Import YNAB budget", exact: true }),
     ).toBeVisible();
-    await page.getByLabel("Budget file format").selectOption(kind);
     const name = kind === "nynab" ? "nynab-demo.json" : "ynab4-demo.zip",
       bytes = isolatedImportBytes(
         await readFile(
@@ -121,9 +119,7 @@ try {
     );
     assert.equal(attempts.length, 1);
     await page.reload();
-    await page
-      .getByRole("button", { name: "Import YNAB budget", exact: true })
-      .click();
+    await page.getByRole("button", { name: "Import", exact: true }).click();
     await expect(page.getByText(name, { exact: true })).toBeVisible();
     await page
       .getByRole("button", { name: "Retry saved upload", exact: true })
@@ -203,7 +199,7 @@ try {
       .getByRole("button", { name: "Activate imported budget", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "Retry saved activation", exact: true }),
+      page.getByRole("button", { name: "Retry saved import", exact: true }),
     ).toBeEnabled();
     assert.ok(
       (await read("/budgets")).some((b) => b.id === activationFirst.id),
@@ -213,11 +209,9 @@ try {
       "/budgets/" + activationFirst.id + "/transactions?limit=1000",
     );
     await page.reload();
+    await page.getByRole("button", { name: "Import", exact: true }).click();
     await page
-      .getByRole("button", { name: "Import YNAB budget", exact: true })
-      .click();
-    await page
-      .getByRole("button", { name: "Retry saved activation", exact: true })
+      .getByRole("button", { name: "Retry saved import", exact: true })
       .click();
     await expect(
       page.getByRole("heading", { name: "Import YNAB budget", exact: true }),

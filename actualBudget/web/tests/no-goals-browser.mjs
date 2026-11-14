@@ -38,8 +38,7 @@ try {
   const financial = await call(root + "/transactions");
   const plan = await call(root + "/budget?month=2026-11");
   const prefs = await call(root + "/preferences");
-  expect(prefs.experimental).not.toHaveProperty("goalTemplatesEnabled");
-  expect(prefs.experimental).not.toHaveProperty("goalTemplatesUIEnabled");
+  expect(prefs).not.toHaveProperty("experimental");
   expect(
     (
       await req(

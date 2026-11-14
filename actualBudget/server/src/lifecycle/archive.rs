@@ -1102,6 +1102,19 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
             Some(archive.state.budget["id"].as_str().unwrap()),
         )?;
     }
+    // Retired reconciliation state must not return through a native archive.
+    // Validate historical timestamps before normalizing; receipts and source bytes stay intact.
+    let accounts = &archive.state.tables["accounts"];
+    if let Some(index) = accounts.columns.iter().position(|c| c == "last_reconciled") {
+        for row in &accounts.rows {
+            crate::reconciliation::source_timestamp(&row[index]).map_err(|e| invalid(e.message))?;
+        }
+    }
+    db.execute(
+        "UPDATE accounts SET last_reconciled=NULL WHERE budget_id=?1",
+        [archive.state.budget["id"].as_str().unwrap()],
+    )?;
+    crate::rules::normalize_retired_notes(db, archive.state.budget["id"].as_str())?;
     crate::budgeting::normalize(db, archive.state.budget["id"].as_str())?;
     Ok(())
 }

@@ -78,9 +78,9 @@ try {
         }
       : {};
     await call(root + "/" + kind, body, 201, createHeaders);
-    assert.equal(
-      (await call(root + "/notes/read", { id })).data.note,
-      "",
+    assert.deepEqual(
+      (await call(root + "/notes/read", { id })).data,
+      kind === "accounts" ? { id, note: "" } : null,
       "Explicit clear resolves the collision without hidden prose",
     );
     if (process.argv.includes("--budget-metadata")) {
@@ -93,7 +93,7 @@ try {
           notes: "Stale pending annotation",
           snapshot: (await call(root + "/checkpoint")).data.snapshot,
         },
-        409,
+        400,
         { ...headers, "X-Actual-Edit-Clock": original.edit_clock },
       );
     } else if (process.argv.includes("--history")) {
@@ -104,29 +104,47 @@ try {
       await call(
         root + "/history/undo",
         { action_id: state.undo.id },
-        409,
+        kind === "accounts" ? 409 : 200,
         headers,
       );
-      assert.deepEqual(
-        (await call(root + "/history", undefined, 200, headers)).data,
-        state,
-      );
-      assert.deepEqual((await call(root + "/checkpoint")).data, checkpoint);
+      if (kind === "accounts") {
+        assert.deepEqual(
+          (await call(root + "/history", undefined, 200, headers)).data,
+          state,
+        );
+        assert.deepEqual((await call(root + "/checkpoint")).data, checkpoint);
+      } else {
+        assert.equal(
+          (await call(root + "/notes/read", { id })).data,
+          null,
+          "Retired identity remains absent when old note history is replayed",
+        );
+        const redo = (await call(root + "/history", undefined, 200, headers))
+          .data.redo;
+        await call(
+          root + "/history/redo",
+          { action_id: redo.id },
+          200,
+          headers,
+        );
+      }
       assert.deepEqual(await call(root + "/" + kind), current);
     } else if (process.argv.includes("--metadata")) {
       const patch = await call(
         root + "/" + kind + "/" + id,
         { notes: "Stale pending annotation" },
-        200,
+        kind === "accounts" ? 200 : 400,
         { ...headers, "X-Actual-Edit-Clock": original.edit_clock },
         "PATCH",
       );
-      assert.equal(
-        patch.data.notes,
-        "",
-        "Retained clear wins over older domain metadata intent",
-      );
-      assert.ok(patch.conflicts.some((c) => c.field === "notes"));
+      if (kind === "accounts")
+        assert.equal(
+          patch.data.notes,
+          kind === "accounts" ? "" : undefined,
+          "Retained clear wins over older domain metadata intent",
+        );
+      if (kind === "accounts")
+        assert.ok(patch.conflicts.some((c) => c.field === "notes"));
     } else {
       await call(
         root + "/notes/commands",
@@ -135,11 +153,14 @@ try {
           note: "Stale pending annotation",
           snapshot: (await call(root + "/checkpoint")).data.snapshot,
         },
-        409,
+        kind === "accounts" ? 409 : 400,
         { ...headers, "X-Actual-Edit-Clock": original.edit_clock },
       );
     }
-    assert.equal((await call(root + "/notes/read", { id })).data.note, "");
+    assert.deepEqual(
+      (await call(root + "/notes/read", { id })).data,
+      kind === "accounts" ? { id, note: "" } : null,
+    );
   }
   console.log(
     "PASS replacement explicit domain IDs refuse retained standalone prose; explicit clear permits creation",

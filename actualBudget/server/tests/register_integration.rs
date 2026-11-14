@@ -143,7 +143,29 @@ fn pinned_grouped_predicates_include_null_and_match_one_complete_child() {
     let (root, fixture) = setup(&server);
     let path = format!("{root}/transactions");
     for case in fixture["cases"].as_array().unwrap() {
-        let result = read(&server, &path, Some(&case["query"]));
+        let mut query = case["query"].clone();
+        if case["name"].as_str().unwrap().contains("tags") {
+            let response = server
+                .client
+                .get(format!("{}{path}", server.url))
+                .query(&[("query", query.to_string())])
+                .send()
+                .unwrap();
+            assert_eq!(response.status(), 400);
+            continue;
+        }
+        // Keep the same parent/child conjunction using a retained amount field.
+        if case["name"] == "parent and child AND fails" {
+            query["filter"]["conditions"][0] = json!({"field":"amount","op":"eq","value":-300});
+        }
+        if query["search"] == "Second allocation" {
+            query["search"] = json!("Second category");
+            query["filter"]["conditions"]
+                .as_array_mut()
+                .unwrap()
+                .push(json!({"field":"amount","op":"eq","value":-200}));
+        }
+        let result = read(&server, &path, Some(&query));
         let mut ids: Vec<_> = result["data"]
             .as_array()
             .unwrap()
@@ -205,14 +227,20 @@ fn pages_hydrate_complete_versioned_children_and_legacy_filters_intersect_or() {
     let query = json!({"filter":{"op":"or","conditions":[{"field":"category","op":"eq","value":"12140000-0000-4000-8000-000000000003"},{"field":"amount","op":"eq","value":-60}]}});
     let result = read(
         &server,
-        &format!("{path}?payee_id=12140000-0000-4000-8000-000000000006&tag=Second"),
+        &format!("{path}?payee_id=12140000-0000-4000-8000-000000000006"),
         Some(&query),
     );
     assert_eq!(result["filtered_count"], 1, "{result}");
     assert_eq!(result["filtered_balances"]["total"], -60);
     assert_eq!(result["balances"]["total"], -450);
     assert!(result["data"][0]["running_balance"].is_null());
-    let result = read(&server, &format!("{path}?tag=Second"), None);
+    let result = read(
+        &server,
+        &path,
+        Some(
+            &json!({"filter":{"conditions":[{"field":"category","op":"eq","value":"12140000-0000-4000-8000-000000000004"}]}}),
+        ),
+    );
     assert_eq!(result["filtered_count"], 2);
     assert_eq!(result["filtered_balances"]["total"], -360);
     let first = read(&server, &format!("{path}?limit=1"), None);
@@ -267,7 +295,7 @@ fn merged_alias_filters_and_dense_split_pages_preserve_parent_identity() {
             json!({"id":id,"account_id":ACCOUNT,"amount":-100,"date":"2026-01-03","notes":"Dense parent"}),
         );
         let view = read(&server, &format!("{path}/{id}/splits"), None);
-        let children:Vec<_>=(0..100).map(|i|json!({"id":uuid::Uuid::new_v4().to_string(),"amount":-1,"notes":format!("Allocation {i}")})).collect();
+        let children:Vec<_>=(0..100).map(|i|json!({"id":uuid::Uuid::new_v4().to_string(),"amount":-1,"category_id": if i == 99 {Some("12140000-0000-4000-8000-000000000003")} else {None}})).collect();
         write(
             &server,
             &format!("{path}/{id}/splits"),
@@ -292,7 +320,13 @@ fn merged_alias_filters_and_dense_split_pages_preserve_parent_identity() {
         }
     }
     assert_eq!(child_count, 1202);
-    let filtered = read(&server, &path, Some(&json!({"search":"Allocation 99"})));
+    let filtered = read(
+        &server,
+        &path,
+        Some(
+            &json!({"filter":{"conditions":[{"field":"category","op":"eq","value":"12140000-0000-4000-8000-000000000003"},{"field":"amount","op":"eq","value":-1}]}}),
+        ),
+    );
     assert_eq!(filtered["filtered_count"], 12);
     assert_eq!(filtered["filtered_balances"]["total"], -1200);
 }

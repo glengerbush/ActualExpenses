@@ -22,68 +22,69 @@ async function call(path, body, status = 200, headers = {}) {
   return r.json();
 }
 try {
-  const b = (
-      await call(
-        "/budgets",
-        {
-          id: randomUUID(),
-          name: "Month annotation lifecycle",
-          budget_type: "envelope",
-        },
-        201,
-      )
-    ).data,
-    root = "/budgets/" + b.id,
+  const budget = (
+    await call(
+      "/budgets",
+      {
+        id: randomUUID(),
+        name: "Month allocation lifecycle",
+        budget_type: "tracking",
+      },
+      201,
+    )
+  ).data;
+  const root = "/budgets/" + budget.id,
     month = "2026-11",
     id = "budget-" + month,
-    headers = {
-      "X-Actual-Budget-Epoch": (await call(root)).data.epoch,
-      "X-Actual-History-Owner": randomUUID(),
-    };
+    category = randomUUID();
+  const headers = {
+    "X-Actual-Budget-Epoch": (await call(root)).data.epoch,
+    "X-Actual-History-Owner": randomUUID(),
+  };
   await call(
-    root + "/notes/commands",
-    {
-      id,
-      note: "Undo this annotation",
-      snapshot: (await call(root + "/checkpoint")).data.snapshot,
-    },
-    200,
-    headers,
+    root + "/categories",
+    { id: category, name: "Food", is_income: false },
+    201,
   );
-  const action = (await call(root + "/history", undefined, 200, headers)).data
-    .undo;
-  await call(root + "/history/undo", { action_id: action.id }, 200, headers);
-  assert.equal((await call(root + "/notes/read", { id })).data, null);
   for (let i = 0; i < 2; i++) {
-    const cursor = (await call(root + "/checkpoint")).data.snapshot,
-      result = await call(
-        root + "/budget",
-        { action: "reset_hold", month, snapshot: cursor },
-        200,
-        headers,
-      );
-    assert.equal(
-      result.data.months[month].notes,
-      "",
-      "Financial month revival cannot resurrect undone note text",
+    const cp = (await call(root + "/checkpoint")).data,
+      history = (await call(root + "/history", undefined, 200, headers)).data;
+    await call(
+      root + "/notes/commands",
+      { id, note: "Retired annotation", snapshot: cp.snapshot },
+      400,
+      headers,
     );
-    assert.equal(result.data.months[month].summary.buffered, 0);
+    assert.deepEqual((await call(root + "/checkpoint")).data, cp);
+    assert.deepEqual(
+      (await call(root + "/history", undefined, 200, headers)).data,
+      history,
+    );
+    const result = await call(
+      root + "/budget",
+      { action: "set", month, category, amount: 100, snapshot: cp.snapshot },
+      200,
+      headers,
+    );
+    assert.equal(
+      result.data.months[month].categories.find((row) => row.id === category)
+        .budgeted,
+      100,
+    );
     assert.equal((await call(root + "/notes/read", { id })).data, null);
-    const changes = (
-      await call(root + "/changes?cursor=" + encodeURIComponent(cursor))
-    ).data;
+    const undo = (await call(root + "/history", undefined, 200, headers)).data
+      .undo;
+    await call(root + "/history/undo", { action_id: undo.id }, 200, headers);
     assert.equal(
-      changes.find((c) => c.entity === "budget_months").data.notes,
-      "",
+      (await call(root + "/budget?month=" + month)).data.months[
+        month
+      ].categories.find((row) => row.id === category).budgeted,
+      0,
     );
-    if (i === 0) {
-      const hold = (await call(root + "/history", undefined, 200, headers)).data
-        .undo;
-      await call(root + "/history/undo", { action_id: hold.id }, 200, headers);
-    }
+    assert.equal((await call(root + "/notes/read", { id })).data, null);
   }
   console.log(
-    "PASS financial month revive/undo/revive preserves absent annotation, buffered values and feed projection",
+    "PASS allocation revival and inverse preserve financial values without reviving retired month annotations",
   );
 } finally {
   await server.stop();

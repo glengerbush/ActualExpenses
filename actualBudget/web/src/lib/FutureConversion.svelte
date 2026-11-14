@@ -163,7 +163,7 @@
           throw new Error("Review a future date before converting.");
         if (intent.preview.protected_count)
           throw new Error(
-            "Unlock the complete affected graph, then close and reopen conversion to review its current state.",
+            "Review the captured conversion again to refresh this saved preview.",
           );
         for (const row of intent.preview.affected_transactions)
           observeVersions(row.field_versions);
@@ -264,10 +264,6 @@
           <dt>{t("Category")}</dt>
           <dd>{sourceName(row, "category")}</dd>
         </div>
-        <div>
-          <dt>{t("Notes")}</dt>
-          <dd>{row.notes || "No notes"}</dd>
-        </div>
       </dl>
       {#if intent.source.transfer_account_id}<p>
           Transfer destination: {accounts.find(
@@ -285,8 +281,8 @@
         remains available.
       </p>
       {#if p.protected_count}<p role="alert">
-          {p.protected_count} affected entries are reconciled. Unlock and review the
-          complete graph before converting.
+          This saved preview includes {p.protected_count} protected entries. Review
+          the captured conversion again before confirming.
         </p>{/if}
       {#if p.affected_transactions.length}<h3>Existing entries replaced</h3>
         <ul>
@@ -297,7 +293,7 @@
                 )} · {old.account_name}</strong
               ><span
                 >{old.payee_name ?? "No payee"} · {old.category_name ??
-                  "No category"} · {old.notes || "No notes"}</span
+                  "No category"}</span
               ><span
                 >{old.is_parent
                   ? " · Split parent"

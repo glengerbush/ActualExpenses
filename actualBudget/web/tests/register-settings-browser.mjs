@@ -38,7 +38,7 @@ try {
       account_id: account,
       date: "2026-01-02",
       amount,
-      notes,
+      new_payee: { id: randomUUID(), name: notes },
       cleared,
     });
   browser = await chromium.launch({
@@ -79,14 +79,20 @@ try {
     .locator(".register-table")
     .getByRole("button", { name: "Amount", exact: true })
     .click();
-  await page.getByLabel("Show Notes column", { exact: true }).uncheck();
+  await page.getByRole("button", { name: "Columns", exact: true }).click();
+  await page
+    .getByLabel("Show Running balance column", { exact: true })
+    .uncheck();
   await page.getByRole("button", { name: "Apply filters and columns" }).click();
   await expect(page.locator(".register-table tbody tr").first()).toContainText(
     "-12.50",
   );
   await expect(
-    page.getByRole("columnheader", { name: "Notes", exact: true }),
+    page.getByRole("columnheader", { name: "Running balance", exact: true }),
   ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Saved filters", exact: true })
+    .click();
   await page.getByLabel("Filter name", { exact: true }).fill("Coffee review");
   await page.getByRole("button", { name: "Save filter", exact: true }).click();
   await expect(
@@ -107,8 +113,13 @@ try {
   await page.keyboard.press("Home");
   await expect(edits.first()).toBeFocused();
   await page.locator('summary[aria-label="Filters and columns"]').click();
-  await page.getByLabel("Hide cleared transactions", { exact: true }).check();
-  await page.getByRole("button", { name: "Apply filters and columns" }).click();
+  await expect(
+    page.getByLabel("Hide cleared transactions", { exact: true }),
+  ).toHaveCount(0);
+  await page.getByLabel("Search transactions").fill("Coffee beans");
+  await page
+    .getByRole("button", { name: "Find transactions", exact: true })
+    .click();
   await expect(page.getByTestId("filtered-totals")).toContainText(
     "1 matching transactions",
   );
@@ -156,17 +167,19 @@ try {
   await stale.getByRole("button", { name: "Save view", exact: true }).click();
   await expect(stale.getByRole("alert")).toContainText("another tab");
   await stale.getByRole("button", { name: "Reload register settings" }).click();
-  await expect(
-    stale.getByLabel("Hide cleared transactions", { exact: true }),
-  ).not.toBeChecked();
+  await expect(stale.getByLabel("Search transactions")).toHaveValue("Coffee");
   await stale.close();
   await page.locator('summary[aria-label="Filters and columns"]').click();
+  await page
+    .getByRole("button", { name: "Saved filters", exact: true })
+    .click();
   await page
     .getByRole("combobox", { name: /^Saved filter/ })
     .selectOption({ label: "Coffee review" });
   await expect(page.getByTestId("filtered-totals")).toContainText(
     "2 matching transactions",
   );
+  await page.getByRole("button", { name: "Conditions", exact: true }).click();
   await page
     .getByRole("button", { name: "Add condition", exact: true })
     .click();

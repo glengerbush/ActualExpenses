@@ -344,18 +344,6 @@ fn install_functions(db: &Connection) -> Result<crate::register_regex::Budget, E
         FunctionFlags::SQLITE_UTF8 | FunctionFlags::SQLITE_DETERMINISTIC,
         |ctx| Ok(ctx.get::<String>(0)?.to_lowercase()),
     )?;
-    db.create_scalar_function(
-        "register_has_tag",
-        2,
-        FunctionFlags::SQLITE_UTF8 | FunctionFlags::SQLITE_DETERMINISTIC,
-        |ctx| {
-            let notes = ctx.get::<String>(0)?;
-            let tag = ctx.get::<String>(1)?;
-            Ok(crate::payees_tags::tags_in(&notes)
-                .iter()
-                .any(|(_, _, value)| *value == tag))
-        },
-    )?;
     crate::register_regex::install(db)
 }
 
@@ -697,7 +685,6 @@ fn list_inner(
         account,
         as_of,
         payee,
-        tag,
     } = filters;
     store::require_budget(db, budget)?;
     if let Some(account) = account {
@@ -713,7 +700,6 @@ fn list_inner(
     }
     if as_of.is_none()
         && payee.is_none()
-        && tag.is_none()
         && query.search.is_empty()
         && query.filter.conditions.is_empty()
         && !query.hide_cleared
@@ -748,10 +734,6 @@ fn list_inner(
         let payee = crate::payees_tags::canonical(db, budget, payee)?;
         let p = bind(&mut values, SqlValue::Text(payee));
         filter = format!("({filter}) AND t.payee_id={p}");
-    }
-    if let Some(tag) = tag {
-        let p = bind(&mut values, SqlValue::Text(tag.to_owned()));
-        filter = format!("({filter}) AND register_has_tag(t.notes,{p})");
     }
     let child_filter = filter
         .replace("y.", "child_destination.")
@@ -811,7 +793,7 @@ fn list_inner(
         .iter()
         .map(|id| {
             let mut row = hydrated.remove(id).unwrap();
-            if payee.is_some() || tag.is_some() {
+            if payee.is_some() {
                 row["running_balance"] = Value::Null;
             } else {
                 set_running(&mut row, running[id]);

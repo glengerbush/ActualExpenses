@@ -18,7 +18,9 @@ export function groupColor(id: string): string {
   ][Number(hash(id) % 8n)];
 }
 export function categoryShade(base: string, id: string): string {
-  const shift = [-0.5, -0.3, -0.1, 0.15, 0.35, 0.55, 0.75][Number(hash(id) % 7n)];
+  const shift = [-0.5, -0.3, -0.1, 0.15, 0.35, 0.55, 0.75][
+    Number(hash(id) % 7n)
+  ];
   return (
     "#" +
     [1, 3, 5]

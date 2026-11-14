@@ -153,10 +153,6 @@ fn prepare(
     let mut actions = vec![];
     if transaction["is_parent"] == true {
         let mut transfer_actions = vec![];
-        if let Some(notes) = transaction["notes"].as_str().filter(|s| !s.is_empty()) {
-            actions
-                .push(json!({"op":"set","field":"notes","value":notes,"options":{"splitIndex":0}}));
-        }
         for (index, child) in transaction["children"]
             .as_array()
             .ok_or_else(|| Error::invalid("A split needs all its allocations"))?
@@ -167,9 +163,6 @@ fn prepare(
             actions.push(json!({"op":"set-split-amount","value":child["amount"],"options":{"splitIndex":index,"method":"fixed-amount"}}));
             if !child["category_id"].is_null() {
                 actions.push(json!({"op":"set","field":"category","value":child["category_id"],"options":{"splitIndex":index}}));
-            }
-            if let Some(notes) = child["notes"].as_str().filter(|s| !s.is_empty()) {
-                actions.push(json!({"op":"set","field":"notes","value":notes,"options":{"splitIndex":index}}));
             }
             // The pinned helper drops this action and loses the reciprocal leg.
             // Preserve the required paired graph; ordinary payee omission stays
@@ -197,9 +190,6 @@ fn prepare(
         };
         if !category.is_null() {
             actions.push(json!({"op":"set","field":"category","value":category}));
-        }
-        if let Some(notes) = transaction["notes"].as_str().filter(|s| !s.is_empty()) {
-            actions.push(json!({"op":"set","field":"notes","value":notes}));
         }
     }
     let mut complete = vec![
@@ -275,7 +265,7 @@ pub fn apply(
         ] {
             if raw[new].is_object() {
                 if entity == "payees" {
-                    crate::payees_tags::create(db, b, entity, &raw[new], clock)?;
+                    crate::payees_tags::create(db, b, &raw[new], clock)?;
                 } else {
                     crate::categories::create_inline_at(db, b, &raw[new], clock)?;
                 }

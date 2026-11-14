@@ -26,6 +26,7 @@ const require = createRequire(
   api = require("@actual-app/api");
 const directory = await mkdtemp(tmpdir() + "/custom-reports-oracle-"),
   check = process.argv.includes("--check"),
+  currentCategories = process.argv.includes("--current-categories"),
   path = new URL(
     process.argv.includes("--named")
       ? "../tests/fixtures/custom-report-named-source-26.10.json"
@@ -35,6 +36,11 @@ const directory = await mkdtemp(tmpdir() + "/custom-reports-oracle-"),
           ? "../tests/fixtures/custom-report-dates-source-26.10.json"
           : "../tests/fixtures/custom-reports-source-26.10.json",
     import.meta.url,
+  );
+if (currentCategories)
+  path.pathname = path.pathname.replace(
+    "-source-26.10.json",
+    "-visible-source-26.10.json",
   );
 try {
   const original = JSON.parse(
@@ -52,6 +58,36 @@ try {
   );
   const engine = await api.init({ dataDir: directory });
   await api.importBudget(bytes, { filename: "historical-source.zip" });
+  if (currentCategories) {
+    // Current imports expose every retained category. Apply exactly that policy
+    // through pinned Actual APIs before invoking its unchanged financial oracle.
+    const transactions = () =>
+      api.aqlQuery(
+        api
+          .q("transactions")
+          .select("*")
+          .options({ splits: "all" })
+          .orderBy("id"),
+      );
+    const before = (await transactions()).data;
+    for (const category of await api.getCategories())
+      if (category.hidden)
+        await api.updateCategory(category.id, {
+          name: category.name,
+          hidden: false,
+        });
+    for (const group of await api.getCategoryGroups())
+      if (group.hidden)
+        await api.updateCategoryGroup(group.id, {
+          name: group.name,
+          hidden: false,
+        });
+    assert.deepEqual(
+      (await transactions()).data,
+      before,
+      "Visibility normalization never modifies financial rows",
+    );
+  }
   const categories = await engine.send("get-categories"),
     accounts = await api.getAccounts(),
     payees = await api.getPayees(),
@@ -179,6 +215,12 @@ try {
   const output = {
     oracle:
       "Unchanged pinned26.10 custom spreadsheet +real AQL +get-categories internal DTOs",
+    ...(currentCategories
+      ? {
+          normalization:
+            "All retained categories and groups visible; financial rows unchanged",
+        }
+      : {}),
     clock,
     source_archive: "reports-source-26.10.zip",
     source_sha256: original.archive_sha256,
@@ -194,7 +236,7 @@ try {
       flag: "wx",
     });
   console.log(
-    `PASS ${cases.length} pinned custom report financial cases; frontend category group/order/hidden metadata intact`,
+    `PASS ${cases.length} pinned custom report financial cases; ${currentCategories ? "visible category policy" : "historical category policy"}`,
   );
 } finally {
   await api.shutdown();

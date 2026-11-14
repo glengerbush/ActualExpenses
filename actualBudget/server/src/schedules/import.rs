@@ -40,7 +40,12 @@ pub fn convert(source: &Value, rules: &Value) -> Result<Value, Error> {
             .as_str()
             .ok_or_else(|| Error::invalid("Source schedule rule required"))?;
         crate::models::validate_id(rule)?;
-        let dead = flag(row, "tombstone")?;
+        let retired_rule = rules["rules"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .any(|r| r["rule"]["id"] == rule && r["retired"] == true);
+        let dead = flag(row, "tombstone")? || retired_rule;
         if !dead
             && !rules["rules"]
                 .as_array()

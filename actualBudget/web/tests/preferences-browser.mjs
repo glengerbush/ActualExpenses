@@ -50,36 +50,36 @@ try {
   );
   const amounts = [...new Set(fixture.cases.map((c) => c.amount))];
   const destination = (await api(`/budgets/${budget}/ledger`, {})).data.id;
-  for (const amount of amounts)
+  const transactionIds = new Map();
+  for (const amount of amounts) {
+    const id = randomUUID();
+    transactionIds.set(amount, id);
     await api(`/budgets/${budget}/transactions`, {
-      id: randomUUID(),
+      id,
       account_id: destination,
       amount,
-      notes: `Amount ${amount}`,
       date: "2026-11-08",
     });
-  await page.evaluate(
-    (budget) =>
-      localStorage.setItem(
-        "actualBudget.selection",
-        JSON.stringify({ budgetId: budget }),
-      ),
-    budget,
-  );
-  for (const sample of fixture.cases.filter((c) => c.amount === 0)) {
+  }
+  await page.reload();
+  await page.waitForLoadState("networkidle");
+  await page
+    .getByRole("button", { name: "Preference oracle Open", exact: true })
+    .click();
+  await expect(page.getByTestId("register-total")).toBeVisible();
+  for (const sample of fixture.cases.filter(
+    (c) => c.amount === 0 && c.decimal_places === 2,
+  )) {
     await api(
       `/budgets/${budget}/preferences`,
       {
         number_format: sample.number_format,
         hide_fraction: sample.hide_fraction,
-        currency_code: sample.decimal_places === 0 ? "JPY" : "",
-        experimental: { currency: sample.decimal_places === 0 },
-        currency_symbol_position: "after",
-        currency_space: false,
       },
       "PATCH",
     );
     await page.reload();
+    await page.waitForLoadState("networkidle");
     await expect(
       page.getByRole("heading", { name: "Transaction history", exact: true }),
     ).toBeVisible();
@@ -89,72 +89,25 @@ try {
         c.hide_fraction === sample.hide_fraction &&
         c.decimal_places === sample.decimal_places,
     )) {
-      const row = page.locator("tbody tr").filter({
-        has: page.getByText(`Amount ${expected.amount}`, { exact: true }),
-      });
+      const row = page.locator(
+        `[data-transaction-id="${transactionIds.get(expected.amount)}"]`,
+      );
       await expect(row.locator("td.amount").first()).toHaveText(
-        expected.expected + (sample.decimal_places === 0 ? "¥" : ""),
+        (expected.amount > 0 ? "+" : "") + expected.expected,
       );
     }
   }
   console.log(
-    "PASS 220 pinned Actual format results, including negative half ties and JPY",
+    "PASS retained pinned Actual number formats and negative half ties",
   );
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(page.locator("#currency")).toHaveCount(0);
-  await page.getByText("Experimental features", { exact: true }).click();
+  await expect(
+    page.getByText("Experimental features", { exact: true }),
+  ).toHaveCount(0);
   await expect(
     page.getByLabel("Currency display", { exact: true }),
-  ).not.toBeChecked();
-  await page.getByLabel("Currency display", { exact: true }).check();
-  await page.locator("#currency").selectOption("JPY");
-  await page.getByRole("button", { name: "Save shared preferences" }).click();
-  await expect(
-    page.getByRole("status").filter({ hasText: "Shared preferences saved." }),
-  ).toHaveText("Shared preferences saved.");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
-  await expect(
-    page
-      .locator("tbody tr")
-      .filter({
-        has: page.getByText("Amount 150", { exact: true }),
-      })
-      .locator("td.amount")
-      .first(),
-  ).toHaveText("\u202a¥\u202c150");
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByText("Experimental features", { exact: true }).click();
-  await page.getByLabel("Currency display", { exact: true }).uncheck();
-  await expect(page.locator("#currency")).toHaveCount(0);
-  await page.getByRole("button", { name: "Save shared preferences" }).click();
-  await expect(
-    page.getByRole("status").filter({ hasText: "Shared preferences saved." }),
-  ).toHaveText("Shared preferences saved.");
-  expect(
-    (await api(`/budgets/${budget}/preferences`, undefined, "GET")).data
-      .currency_code,
-  ).toBe("");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
-  await expect(
-    page
-      .locator("tbody tr")
-      .filter({
-        has: page.getByText("Amount 150", { exact: true }),
-      })
-      .locator("td.amount")
-      .first(),
-  ).toHaveText("2");
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByText("Experimental features", { exact: true }).click();
-  await page.getByLabel("Currency display", { exact: true }).check();
-  await expect(page.locator("#currency")).toHaveValue("");
-  await page.getByRole("button", { name: "Save shared preferences" }).click();
-  await expect(
-    page.getByRole("status").filter({ hasText: "Shared preferences saved." }),
-  ).toHaveText("Shared preferences saved.");
-  console.log(
-    "PASS currency default-off, explicit opt-in/JPY, disable clears code and restores two-decimal units",
-  );
+  ).toHaveCount(0);
   for (const theme of ["dark", "midnight", "light"]) {
     await page.locator("#theme").selectOption(theme);
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
@@ -183,7 +136,6 @@ try {
   ).toHaveCount(0);
   await page.locator("#language").selectOption("en");
   await expect(page.locator("#settings-title")).toHaveText("Settings");
-  await page.locator("#currency").selectOption("");
   await page.locator("#number-format").selectOption("dot-comma");
   await page.locator("#date-format").selectOption("dd/MM/yyyy");
   await page.locator("#week-start").selectOption("1");
@@ -192,7 +144,9 @@ try {
   await expect(
     page.getByRole("status").filter({ hasText: "Shared preferences saved." }),
   ).toHaveText("Shared preferences saved.");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
@@ -201,21 +155,28 @@ try {
     .getByRole("region", { name: "Add transaction", exact: true })
     .getByRole("button", { name: "Choose date", exact: true })
     .click();
-  await expect(page.getByRole("columnheader").first()).toHaveText("Mon");
+  await expect(
+    page.getByRole("grid").getByRole("columnheader").first(),
+  ).toHaveText("Mon");
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("Enter");
   await expect(page.getByLabel("Date", { exact: true })).toHaveValue(
     "09/11/2026",
   );
-  await page.getByLabel("Notes", { exact: true }).fill("Locale entered");
   await page.getByLabel("Amount", { exact: true }).fill("1.234,56");
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.getByText("Locale entered", { exact: true })).toBeVisible();
+  await expect
+    .poll(async () =>
+      (
+        await api(`/budgets/${budget}/transactions`, undefined, "GET")
+      ).data.some((row) => row.amount === -123456 && row.date === "2026-11-09"),
+    )
+    .toBe(true);
   const saved = (
     await api(`/budgets/${budget}/transactions`, undefined, "GET")
-  ).data.find((row) => row.notes === "Locale entered");
+  ).data.find((row) => row.amount === -123456 && row.date === "2026-11-09");
   expect(saved.amount).toBe(-123456);
   console.log(
     "PASS themes/system changes, shipped French catalog, localized entry and week-start keyboard calendar",
@@ -247,6 +208,7 @@ try {
     page.getByRole("button", { name: "Retry saving" }),
   ).toBeVisible();
   await page.reload();
+  await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(page.locator("#number-format")).toHaveValue("space-comma");
   expect(writes.length).toBe(1);
@@ -258,8 +220,11 @@ try {
   expect(writes[1]).toEqual(writes[0]);
   await page.unroute(`**/api/v1/budgets/${budget}/preferences`);
   await page.locator("#date-format").selectOption("dd.MM.yyyy");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await page.reload();
+  await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(page.locator("#date-format")).toHaveValue("dd.MM.yyyy");
   await page.getByRole("button", { name: "Discard changes" }).click();
@@ -269,41 +234,29 @@ try {
   const other = await browser.newContext();
   const second = await other.newPage();
   await second.goto(server.url);
-  await second.evaluate(
-    (budget) =>
-      localStorage.setItem(
-        "actualBudget.selection",
-        JSON.stringify({ budgetId: budget }),
-      ),
-    budget,
-  );
-  await second.reload();
+  await second
+    .getByRole("button", { name: "Preference oracle Open", exact: true })
+    .click();
   await second.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(second.locator("#number-format")).toHaveValue("space-comma");
   await expect(second.locator("#preferred-dark-theme")).toHaveValue("dark");
   await other.close();
-  // A new browser with failed preferences must not guess currency precision.
+  // A new browser with failed preferences must not guess number formatting.
   const unavailable = await browser.newContext();
   const blocked = await unavailable.newPage();
   await blocked.route("**/preferences**", (route) => route.abort());
   await blocked.goto(server.url);
-  await blocked.evaluate(
-    (budget) =>
-      localStorage.setItem(
-        "actualBudget.selection",
-        JSON.stringify({ budgetId: budget }),
-      ),
-    budget,
-  );
-  await blocked.reload();
+  await blocked
+    .getByRole("button", { name: "Preference oracle Open", exact: true })
+    .click();
   await expect(
     blocked.getByRole("heading", {
       name: "Display preferences are unavailable",
     }),
   ).toBeVisible();
   await expect(
-    blocked.getByRole("button", { name: "Add account", exact: true }),
-  ).toHaveCount(0);
+    blocked.getByRole("button", { name: "Add transaction", exact: true }),
+  ).toBeDisabled();
   await unavailable.close();
 
   // Device storage failure must be visible and must not mutate shared settings.

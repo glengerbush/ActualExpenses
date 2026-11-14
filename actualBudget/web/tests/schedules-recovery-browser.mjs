@@ -91,16 +91,7 @@ try {
       await route.abort("failed");
     },
   );
-  await page.goto(server.url);
-  await page.evaluate(
-    ({ budget, account }) =>
-      localStorage.setItem(
-        "actualBudget.selection",
-        JSON.stringify({ budgetId: budget, accountId: account }),
-      ),
-    { budget, account },
-  );
-  await page.reload();
+  await page.goto(`${server.url}/?budget=${budget}&view=transactions`);
   const key = `actualBudget.schedule-system.v1.${budget}`;
   await expect
     .poll(() =>

@@ -137,10 +137,12 @@ try {
   await expect(page.getByText(/Cancellation is pending/)).toBeVisible();
   // Public recovery flow clears downloaded caches; exact pending intent survives.
   await page
-    .getByRole("button", { name: "Close reports", exact: true })
+    .getByRole("button", { name: "Transaction history", exact: true })
     .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
-    .getByRole("button", { name: "Recovery tools", exact: true })
+    .getByRole("navigation", { name: "Settings sections" })
+    .getByRole("button", { name: "Recovery", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Reset downloaded data", exact: true })
@@ -198,13 +200,15 @@ try {
     page.getByRole("button", { name: "Privacy mode", exact: true }),
   ).toHaveCount(0);
   await page
-    .getByRole("button", { name: "Close reports", exact: true })
+    .getByRole("button", { name: "Transaction history", exact: true })
     .click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
     .getByRole("combobox", { name: "Theme", exact: true })
     .selectOption("dark");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Dashboards and reports", exact: true })
     .click();

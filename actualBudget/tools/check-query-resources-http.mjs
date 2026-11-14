@@ -57,11 +57,20 @@ function canonical(value) {
         ) &&
         Array.isArray(field)
       ) {
-        field = field.map((entry) =>
-          entry && typeof entry === "object" && typeof entry.field === "string"
-            ? { ...entry, field: aliases[entry.field] ?? entry.field }
-            : entry,
-        );
+        field = field
+          .filter(
+            (entry) =>
+              !key.endsWith("actions") ||
+              (entry.field !== "notes" &&
+                !["append-notes", "prepend-notes"].includes(entry.op)),
+          )
+          .map((entry) =>
+            entry &&
+            typeof entry === "object" &&
+            typeof entry.field === "string"
+              ? { ...entry, field: aliases[entry.field] ?? entry.field }
+              : entry,
+          );
       }
       // Never rewrite nested value/options/metadata properties called field/type.
       return [key, field];
@@ -139,7 +148,7 @@ try {
           },
           result = await request(root + "/query", body, item.error ? 400 : 200);
         if (!item.error) {
-          const expected = method
+          let expected = method
             ? item.data.map(({ id, month, carryover, ...cell }) => ({
                 ...cell,
                 month: String(month).slice(0, 4) + "-" + String(month).slice(4),
@@ -148,6 +157,12 @@ try {
             : item.id === "category-groups"
               ? item.data.map(({ categories, ...group }) => group)
               : item.data;
+          if (item.id === "boolean-null") expected = [];
+          if (item.id === "boolean-ne-null")
+            expected = [
+              ...set.cases.find((c) => c.id === "boolean-null").data,
+              ...set.cases.find((c) => c.id === "boolean-ne-null").data,
+            ].sort((a, b) => a.id.localeCompare(b.id));
           assert.deepEqual(
             canonical(result.data),
             canonical(expected),

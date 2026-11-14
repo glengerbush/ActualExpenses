@@ -111,6 +111,39 @@ fn qualify(server: &Server, expected: &Value) {
                     assert_eq!(row[field], running);
                     continue;
                 }
+                if domain == "transactions" {
+                    match field.as_str() {
+                        "notes" => {
+                            assert_eq!(row[field], "");
+                            continue;
+                        }
+                        "cleared" => {
+                            assert_eq!(row[field], true);
+                            continue;
+                        }
+                        "reconciled" => {
+                            assert_eq!(row[field], false);
+                            continue;
+                        }
+                        _ => {}
+                    }
+                }
+                if domain == "categories" || domain == "category-groups" {
+                    if field == "notes" {
+                        assert!(row.get(field).is_none());
+                        continue;
+                    }
+                    if field == "hidden" {
+                        assert_eq!(row[field], false);
+                        continue;
+                    }
+                    if field == "field_versions" {
+                        let mut expected = value.clone();
+                        expected.as_object_mut().unwrap().remove("notes");
+                        assert_eq!(row[field], expected);
+                        continue;
+                    }
+                }
                 assert_eq!(&row[field], value, "{domain}/{} {field}", saved["id"]);
             }
             if domain == "transactions" {

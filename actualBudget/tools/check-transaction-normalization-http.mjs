@@ -45,8 +45,8 @@ try{
         assert.equal(preview.rows.length,item.result.transactions.length);
         for(const [index,row] of preview.rows.entries()){
           const expected=item.result.transactions[index],actual=row.transaction;
-          for(const field of ['date','amount','cleared'])assert.deepEqual(actual[field],expected[field],field);
-          assert.equal(actual.notes,expected.notes??'','notes');
+          for(const field of ['date','amount'])assert.deepEqual(actual[field],expected[field],field);
+          assert.equal(actual.notes,'','notes');assert.equal(actual.cleared,true,'Every planned entry is complete');
           assert.equal(actual.category_id,expected.category??null,'exact category association');
           assert.equal(actual.payee_id,payee,'mapped existing payee');
           assert.equal(row.match_id,null,'Empty ledger offers no invented match');

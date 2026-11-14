@@ -62,6 +62,12 @@ try {
   const large = fixture.accounts[1],
     base = `/budgets/${copy.id}`,
     path = `${base}/transactions/${large.parent}/splits`;
+  const editedPayee = (
+    await call(base + "/payees", {
+      id: randomUUID(),
+      name: "Last allocation payee",
+    })
+  ).data;
   browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
     args: [
@@ -93,9 +99,7 @@ try {
     .locator(".budget-list button")
     .filter({ hasText: copyName })
     .click();
-  const largeRow = page
-    .getByRole("row")
-    .filter({ hasText: "Imported 1001 allocations" });
+  const largeRow = page.locator(`tr[data-transaction-id="${large.parent}"]`);
   await (
     await transactionAction(largeRow, { name: "Edit splits", exact: true })
   ).click();
@@ -109,11 +113,11 @@ try {
     page.getByText("Splits 1001–1001 of 1001", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByLabel("Split 1001 notes", { exact: true }),
-  ).toHaveValue("Allocation 1001");
+    page.getByLabel("Split 1001 payee", { exact: true }),
+  ).toHaveValue("");
   await page
-    .getByLabel("Split 1001 notes", { exact: true })
-    .fill("Last imported allocation edited");
+    .getByLabel("Split 1001 payee", { exact: true })
+    .selectOption(editedPayee.id);
   await page
     .getByRole("button", { name: "Previous splits", exact: true })
     .click();
@@ -122,8 +126,8 @@ try {
   ).toBeVisible();
   await page.getByRole("button", { name: "Next splits", exact: true }).click();
   await expect(
-    page.getByLabel("Split 1001 notes", { exact: true }),
-  ).toHaveValue("Last imported allocation edited");
+    page.getByLabel("Split 1001 payee", { exact: true }),
+  ).toHaveValue(editedPayee.id);
   await page.route("**/transactions/*/splits", async (route) => {
     const request = route.request();
     if (request.method() !== "POST") return route.continue();
@@ -199,10 +203,9 @@ try {
   expect(attempts[0].body.length).toBeLessThan(1024);
   expect(JSON.parse(attempts[0].body).changes.upsert).toHaveLength(1);
   let current = await call(path);
-  expect(current.data.children[1000].notes).toBe(
-    "Last imported allocation edited",
-  );
-  expect(current.data.children[0].notes).toBe("Allocation 1");
+  expect(current.data.children[1000].payee_id).toBe(editedPayee.id);
+  expect(current.data.children[0].payee_id).toBeNull();
+  expect(current.data.children.every((child) => child.notes === "")).toBe(true);
   await page.unroute("**/transactions/*/splits");
   await (
     await transactionAction(largeRow, { name: "Edit splits", exact: true })

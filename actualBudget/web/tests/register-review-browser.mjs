@@ -189,11 +189,14 @@ try {
   }
   if (!run || run === "scope") {
     const { budget, context, page } = await setup(true);
+    await page.getByRole("button", { name: "Columns", exact: true }).click();
     await expect(page.getByLabel(/^Account scope/)).toHaveCount(0);
     await expect(
       page.getByLabel("Show Account column", { exact: true }),
     ).toHaveCount(0);
-    await page.getByLabel("Show Notes column", { exact: true }).uncheck();
+    await page
+      .getByLabel("Show Running balance column", { exact: true })
+      .uncheck();
     await page.getByRole("button", { name: "Save view", exact: true }).click();
     await expect(
       page.getByText("Register settings saved.", { exact: true }),
@@ -201,22 +204,26 @@ try {
     expect(
       (await call(`/budgets/${budget}/register-settings`)).settings.views.all
         .columns,
-    ).not.toContain("notes");
+    ).not.toContain("balance");
     await page.reload();
     await page.locator('summary[aria-label="Filters and columns"]').click();
+    await page.getByRole("button", { name: "Columns", exact: true }).click();
     await expect(page.getByLabel(/^Account scope/)).toHaveCount(0);
     await expect(
-      page.getByLabel("Show Notes column", { exact: true }),
+      page.getByLabel("Show Running balance column", { exact: true }),
     ).not.toBeChecked();
-    await page.getByLabel("Show Notes column", { exact: true }).check();
+    await page
+      .getByLabel("Show Running balance column", { exact: true })
+      .check();
     await page.getByRole("button", { name: "Save view", exact: true }).click();
     await expect(
       page.getByText("Register settings saved.", { exact: true }),
     ).toBeVisible();
     await page.reload();
     await page.locator('summary[aria-label="Filters and columns"]').click();
+    await page.getByRole("button", { name: "Columns", exact: true }).click();
     await expect(
-      page.getByLabel("Show Notes column", { exact: true }),
+      page.getByLabel("Show Running balance column", { exact: true }),
     ).toBeChecked();
     await context.close();
     console.log(
@@ -231,7 +238,7 @@ try {
         account_id: account,
         date: "2026-01-02",
         amount: -100,
-        notes,
+        new_payee: { id: randomUUID(), name: notes },
       });
     await page.getByLabel("Search transactions").fill("Safe");
     await page
@@ -244,6 +251,7 @@ try {
     await page
       .getByRole("button", { name: "Add condition", exact: true })
       .click();
+    await page.getByLabel(/^Field 1/).selectOption("payee_name");
     await page.getByLabel(/^Operator 1/).selectOption("matches");
     await page.getByLabel(/^Value\s+1/).fill("^(a+)+$");
     await page
@@ -294,7 +302,7 @@ try {
     await expect(
       page.getByText("Outside exact range", { exact: true }),
     ).toBeVisible();
-    await page.getByLabel("Search transactions").fill("Boundary");
+    await page.getByLabel("Search transactions").fill("2026");
     await page
       .getByRole("button", { name: "Find transactions", exact: true })
       .click();
@@ -353,8 +361,12 @@ try {
     await expect(page.getByLabel("Search transactions")).toBeEnabled();
     await page.locator('summary[aria-label="Filters and columns"]').click();
     await page
+      .getByRole("button", { name: "Saved filters", exact: true })
+      .click();
+    await page
       .getByRole("combobox", { name: /^Saved filter/ })
       .selectOption({ label: "Identity" });
+    await page.getByRole("button", { name: /^Conditions/ }).click();
     await expect(page.getByLabel(/^Field 1/)).toHaveValue("account");
     await expect(
       page.getByLabel(/^Field 1/).locator("option:checked"),
@@ -409,8 +421,12 @@ try {
     await page.reload();
     await page.locator('summary[aria-label="Filters and columns"]').click();
     await page
+      .getByRole("button", { name: "Saved filters", exact: true })
+      .click();
+    await page
       .getByRole("combobox", { name: /^Saved filter/ })
       .selectOption({ label: "Identity" });
+    await page.getByRole("button", { name: /^Conditions/ }).click();
     await page.getByLabel(/^Field 1/).selectOption("category");
     await expect(
       page.getByLabel(/^Field 1/).locator('option[value="account"]'),

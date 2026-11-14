@@ -40,37 +40,47 @@ try {
     opening_balance: 0,
     opening_date: "2026-01-01",
   });
+  const longPayee = randomUUID();
+  await call(`/budgets/${longBudget}/payees`, {
+    id: longPayee,
+    name: "a".repeat(120),
+  });
   for (let n = 0; n < 10; n++)
     await call(`/budgets/${longBudget}/transactions`, {
       id: randomUUID(),
       account_id: longAccount,
       date: "2026-01-02",
       amount: -1,
-      notes: "a".repeat(10000),
+      payee_id: longPayee,
     });
   const prefixStarted = performance.now();
-  const prefixFailure = await call(
+  const prefixBounded = await call(
     `/budgets/${longBudget}/transactions?limit=1&query=` +
       encodeURIComponent(
         JSON.stringify({
           filter: {
             conditions: [
-              { field: "notes", op: "matches", value: "a".repeat(998) + "b" },
+              {
+                field: "payee_name",
+                op: "matches",
+                value: "a".repeat(118) + "b",
+              },
             ],
           },
         }),
       ),
   );
-  expect(prefixFailure.status).toBe(400);
-  expect(prefixFailure.error.code).toBe("regex_work_limit");
-  expect(prefixFailure.data).toBeUndefined();
+  // Names are capped at 120 characters; this prefix scan fits the bounded work.
+  expect(prefixBounded.status).toBe(200);
+  expect(prefixBounded.filtered_count).toBe(0);
+  expect(prefixBounded.data).toEqual([]);
   expect(performance.now() - prefixStarted).toBeLessThan(3000);
   const prefixRecovery = await call(
     `/budgets/${longBudget}/transactions?limit=1&query=` +
       encodeURIComponent(
         JSON.stringify({
           filter: {
-            conditions: [{ field: "notes", op: "matches", value: "a" }],
+            conditions: [{ field: "payee_name", op: "matches", value: "a" }],
           },
         }),
       ),
@@ -78,6 +88,16 @@ try {
   expect(prefixRecovery.status).toBe(200);
   expect(prefixRecovery.filtered_count).toBe(10);
   const root = `/budgets/${budget}/transactions`;
+  const pathologicalPayee = randomUUID(),
+    repeatedPayee = randomUUID();
+  await call(`/budgets/${budget}/payees`, {
+    id: pathologicalPayee,
+    name: "a".repeat(64) + "!",
+  });
+  await call(`/budgets/${budget}/payees`, {
+    id: repeatedPayee,
+    name: "x".repeat(120),
+  });
   expect(
     (
       await call(root, {
@@ -85,7 +105,7 @@ try {
         account_id: account,
         date: "2026-01-02",
         amount: -100,
-        notes: "a".repeat(64) + "!",
+        payee_id: pathologicalPayee,
       })
     ).status,
   ).toBe(201);
@@ -93,7 +113,7 @@ try {
     root +
     "?limit=1&query=" +
     encodeURIComponent(JSON.stringify({ filter: { conditions } }));
-  const pattern = (value) => ({ field: "notes", op: "matches", value });
+  const pattern = (value) => ({ field: "payee_name", op: "matches", value });
   let started = performance.now();
   const exhausted = await call(query([pattern("^(a+)+$")]));
   expect(exhausted.status).toBe(400);
@@ -117,7 +137,7 @@ try {
   const giantRepeat = await call(query([pattern("^a{999999999}$")]));
   expect(giantRepeat.status).toBe(200);
   expect(giantRepeat.filtered_count).toBe(0);
-  for (let n = 0; n < 350; n++) {
+  for (let n = 0; n < 3000; n++) {
     expect(
       (
         await call(root, {
@@ -125,7 +145,7 @@ try {
           account_id: account,
           date: "2026-01-03",
           amount: -1,
-          notes: "x".repeat(10000),
+          payee_id: repeatedPayee,
         })
       ).status,
     ).toBe(201);
@@ -142,8 +162,8 @@ try {
   expect(performance.now() - started).toBeLessThan(10000);
   const after = await call(query([pattern("^x")]));
   expect(after.status).toBe(200);
-  expect(after.filtered_count).toBe(350);
-  expect(after.filtered_balances.total).toBe(-350);
+  expect(after.filtered_count).toBe(3000);
+  expect(after.filtered_balances.total).toBe(-3000);
   expect(after.data).toHaveLength(1);
   console.log(
     "PASS pathological match cancellation, compile bounds, cheap-match request budget, no partial totals, and subsequent valid request",

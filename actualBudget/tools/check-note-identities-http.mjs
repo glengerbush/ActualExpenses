@@ -57,12 +57,17 @@ async function imported(archive) {
     active = (await call("/imports/" + stage.id + "/activate", {}, 201)).data;
   return "/budgets/" + (await cloneImportedTemplate(api, active.id));
 }
+const retired = new Set(
+  source.identities
+    .filter(([kind]) => ["category", "group", "month"].includes(kind))
+    .map(([, id]) => id),
+);
 async function state(root, expected, label) {
   const cp = (await call(root + "/checkpoint")).data;
   for (const entry of expected.reads)
     assert.deepEqual(
       (await call(root + "/notes/read", { id: entry.id })).data,
-      entry.value,
+      retired.has(entry.id) ? null : entry.value,
       label + "/" + entry.kind,
     );
   const rows = await call(root + "/query", {
@@ -75,7 +80,7 @@ async function state(root, expected, label) {
   });
   assert.deepEqual(
     rows.data,
-    expected.rows,
+    expected.rows.filter((row) => !retired.has(row.id)),
     label + " exact source q(notes) identities",
   );
   assert.deepEqual(
@@ -96,7 +101,7 @@ try {
           ...c.change,
           snapshot: (await call(root + "/checkpoint")).data.snapshot,
         },
-        200,
+        retired.has(c.change.id) ? 400 : 200,
         { "X-Actual-Budget-Epoch": epoch },
       );
     await state(root, c.state, c.id);
@@ -109,8 +114,13 @@ try {
     for (const note of ["", "Owned category prose"]) {
       const id = randomUUID();
       await call(
-        root + "/categories",
-        { id, name: "Owned note " + id, is_income: false },
+        root + "/accounts",
+        {
+          id,
+          name: "Owned note " + id,
+          opening_balance: 0,
+          opening_date: "2026-11-09",
+        },
         201,
         owner,
       );

@@ -81,7 +81,7 @@
     cacheKey = (id: string) => `view:custom-report:${budgetId}:${id}`;
   let alive = true;
   async function persist() {
-    if (document)
+    if (alive && document)
       await writeValue(
         customDraftKey(budgetId),
         changed
@@ -181,11 +181,14 @@
     error = "";
     try {
       const response = await loadReporting(budgetId);
+      if (!alive) return;
       registry = response.data;
       settingsCached = response.cached;
       cached = response.cached;
       pending = await readReportOperation(budgetId);
+      if (!alive) return;
       const draft = await readCustomDraft(budgetId);
+      if (!alive) return;
       if (draft) {
         document = draft.document;
         epoch = draft.epoch;
@@ -201,6 +204,7 @@
           registry.documents.find((d) => d.id === document!.id) || null;
       } else {
         const id = initialId || (await readValue<string>(selectionKey()));
+        if (!alive) return;
         const selected = saved.find((d) => d.id === id) || saved[0];
         document = selected ? structuredClone(selected) : newCustomReport();
         original = selected || null;
@@ -214,7 +218,7 @@
     } finally {
       busy = false;
     }
-    if (document && !pending) await preview();
+    if (alive && document && !pending) await preview();
   }
   onMount(() => {
     void load();

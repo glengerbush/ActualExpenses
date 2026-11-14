@@ -160,7 +160,7 @@ try {
   );
   await expect(expense.getByLabel("Date", { exact: true })).toBeFocused();
   await expense.getByLabel("Amount", { exact: true }).fill("15.00");
-  await expense.getByLabel("Notes", { exact: true }).fill("Weekly groceries");
+  await expect(expense.getByLabel("Notes", { exact: true })).toHaveCount(0);
   await expense
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
@@ -168,6 +168,7 @@ try {
   expect((await call(`${root}/transactions/${rows[0]}`)).amount).toBe(-1500);
   await expect(expense).toBeFocused();
   await page.locator('summary[aria-label="Filters and columns"]').click();
+  await page.getByRole("button", { name: "Columns", exact: true }).click();
   await expect(
     page.getByLabel("Show Amount column", { exact: true }),
   ).toBeChecked();
@@ -229,12 +230,12 @@ try {
     page.getByRole("radio", { name: "Income", exact: true }),
   ).toBeChecked();
   await page.getByLabel("Amount", { exact: true }).fill("2.00");
-  await page.getByLabel("Notes", { exact: true }).fill("Toggle income");
+
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
   await expect(
-    table.locator("tr").filter({ hasText: "Toggle income" }).locator(".amount"),
+    table.locator("tr").filter({ hasText: "+2.00" }).locator(".amount"),
   ).toHaveText("+2.00");
   await page
     .getByRole("button", { name: "Add transaction", exact: true })

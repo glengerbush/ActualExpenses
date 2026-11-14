@@ -53,8 +53,16 @@ try {
     { budget, account },
   );
   await page.reload();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Import", exact: true }).click();
   await page
-    .getByRole("button", { name: "Transaction files", exact: true })
+    .getByRole("button", { name: "Transaction file", exact: true })
+    .click();
+  await page
+    .getByRole("button", {
+      name: "Continue to transaction import",
+      exact: true,
+    })
     .click();
   await page.getByLabel("Transaction file").setInputFiles({
     name: "purchases.csv",
@@ -156,7 +164,6 @@ try {
     ["Date", "Date"],
     ["Payee", "Payee"],
     ["Amount", "Amount"],
-    ["Notes", "Notes"],
   ])
     await page
       .getByLabel(`${field} column`, { exact: false })
@@ -166,22 +173,22 @@ try {
   ).toBeEnabled();
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Import and export transactions" }),
+    page.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   await expect(page.getByText("purchases.csv", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Read retained file" }).click();
   await expect(page.getByLabel("Amount column", { exact: false })).toHaveValue(
     "Amount",
   );
-  await expect(page.getByLabel("Notes column", { exact: false })).toHaveValue(
-    "Notes",
+  await expect(page.getByLabel("Notes column", { exact: false })).toHaveCount(
+    0,
   );
   await page.getByRole("button", { name: "Preview selected import" }).click();
   await expect(
     page.getByRole("heading", { name: "Review proposed import" }),
   ).toBeVisible();
   await expect(
-    page.getByText("File after rules: First purchase", { exact: true }),
+    page.getByText("File after rules: -12.50", { exact: true }),
   ).toBeVisible();
   await mkdir(new URL("../test-results/transaction-import/", import.meta.url), {
     recursive: true,
@@ -352,9 +359,12 @@ try {
   await page.evaluate(() => (document.documentElement.style.fontSize = ""));
   await page.emulateMedia({ colorScheme: "light" });
   await page.setViewportSize({ width: 1440, height: 1000 });
-  const first = ledger.data.find((r) => r.notes === "First purchase");
+  const first = ledger.data.find(
+    (r) => r.amount === -1250 && r.date === "2026-11-01",
+  );
+  const duplicate = randomUUID();
   await call(`/budgets/${budget}/transactions`, {
-    id: randomUUID(),
+    id: duplicate,
     account_id: account,
     amount: first.amount,
     date: first.date,
@@ -365,13 +375,14 @@ try {
   });
   await page.getByRole("button", { name: "Close", exact: true }).click();
   await page
-    .locator(".register-table tbody tr")
-    .filter({ hasText: "Duplicate purchased" })
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
+  await page
+    .locator(`tr[data-transaction-id="${duplicate}"]`)
     .getByRole("checkbox")
     .check();
   await page
-    .locator(".register-table tbody tr")
-    .filter({ hasText: "First purchase" })
+    .locator(`tr[data-transaction-id="${first.id}"]`)
     .getByRole("checkbox")
     .check();
   await page.getByRole("button", { name: "Review duplicate merge" }).click();
@@ -379,6 +390,9 @@ try {
     page.getByRole("heading", { name: "Merge two duplicate purchases" }),
   ).toBeVisible();
   await expect(page.getByLabel("Duplicate merge review")).toContainText(
+    "-12.50",
+  );
+  await expect(page.getByLabel("Duplicate merge review")).not.toContainText(
     "Duplicate purchased",
   );
   await page.screenshot({

@@ -1,4 +1,5 @@
 // Consume independently executed ActualQL observations through running HTTP.
+import { cloneImportedTemplate } from "../web/tests/import-template.mjs";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
@@ -23,6 +24,18 @@ async function request(path, body, status = 200, headers = {}) {
   assert.equal(r.status, status, `${path} ${await r.clone().text()}`);
   return r.json();
 }
+function project(value) {
+  if (Array.isArray(value)) return value.map(project);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => key !== "notes")
+      .map(([key, v]) => [
+        key,
+        key === "cleared" ? true : key === "reconciled" ? false : project(v),
+      ]),
+  );
+}
 try {
   const bytes = await readFile(
     new URL("../tests/fixtures/" + fixture.archive.filename, import.meta.url),
@@ -43,8 +56,15 @@ try {
   const stage = (await response.json()).data,
     activated = (await request("/imports/" + stage.id + "/activate", {}, 201))
       .data,
-    root = "/budgets/" + activated.id,
-    before = await request(root + "/transactions?limit=1000"),
+    root = "/budgets/" + (await cloneImportedTemplate(api, activated.id));
+  // Keep the pinned text oracle on the surviving arbitrary-note query surface.
+  for (const row of fixture.cases.find((c) => c.id === "split-all").data)
+    await request(root + "/notes/commands", {
+      id: row.id,
+      note: row.notes,
+      snapshot: (await request(root + "/checkpoint")).data.snapshot,
+    });
+  const before = await request(root + "/transactions?limit=1000"),
     checkpoint = (await request(root + "/checkpoint")).data;
   const failures = [];
   let tested = 0;
@@ -56,23 +76,62 @@ try {
     if (["scalar-functions", "literal-unicode"].includes(item.id)) continue; // Baseline first-key-only and raw literal bugs are retained, not accepted as a native SQL escape.
     tested++;
     try {
-      const q = item.query,
-        body = {
-          version: 1,
-          table: q.table,
-          select: q.selectExpressions,
-          filter: q.filterExpressions,
-          group_by: q.groupExpressions,
-          order_by: q.orderExpressions,
-          calculation: q.calculation,
-          splits: q.tableOptions.splits ?? "inline",
-          include_deleted: q.withDead,
-          validate_refs: q.validateRefs,
-          raw: q.rawMode,
-          limit: q.limit ?? 1000,
-          offset: q.offset ?? 0,
-          snapshot: checkpoint.snapshot,
+      const textCase = [
+        "like-notlike",
+        "regexp",
+        "documented-regex-spelling",
+        "function-lower",
+        "function-prefix",
+        "function-nocase",
+      ].includes(item.id);
+      const q = structuredClone(item.query);
+      if (textCase) {
+        q.table = "notes";
+        Object.assign(
+          q,
+          JSON.parse(
+            JSON.stringify(q)
+              .replaceAll('"notes"', '"note"')
+              .replaceAll('"$notes"', '"$note"'),
+          ),
+        );
+        q.table = "notes";
+        q.filterExpressions.push({
+          id: {
+            $oneof: fixture.cases
+              .find((c) => c.id === "split-inline")
+              .data.map((row) => row.id),
+          },
+        });
+      } else
+        q.selectExpressions = q.selectExpressions.filter(
+          (field) => field !== "notes",
+        );
+      if (item.id === "nested-and-or")
+        q.filterExpressions[0].$and[1].$or[0] = {
+          id: {
+            $oneof: fixture.cases
+              .find((c) => c.id === "split-all")
+              .data.filter((row) => row.cleared)
+              .map((row) => row.id),
+          },
         };
+      const body = {
+        version: 1,
+        table: q.table,
+        select: q.selectExpressions,
+        filter: q.filterExpressions,
+        group_by: q.groupExpressions,
+        order_by: q.orderExpressions,
+        calculation: q.calculation,
+        splits: q.tableOptions.splits ?? "inline",
+        include_deleted: q.withDead,
+        validate_refs: q.validateRefs,
+        raw: q.rawMode,
+        limit: q.limit ?? 1000,
+        offset: q.offset ?? 0,
+        snapshot: checkpoint.snapshot,
+      };
       const result = await request(
         root + "/query",
         body,
@@ -81,7 +140,16 @@ try {
       if (!item.error) {
         assert.deepEqual(
           result.data,
-          item.data,
+          textCase
+            ? item.data.map((row) =>
+                Object.fromEntries(
+                  Object.entries(row).map(([key, value]) => [
+                    key === "notes" ? "note" : key,
+                    value,
+                  ]),
+                ),
+              )
+            : project(item.data),
           item.id + " exact source query output",
         );
         assert.equal(result.snapshot, checkpoint.snapshot);

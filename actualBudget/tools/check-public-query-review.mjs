@@ -51,7 +51,6 @@ try {
         account_id: a.id,
         amount: -20,
         date: "2026-11-09",
-        notes: "Long parent",
       },
       201,
     );
@@ -60,10 +59,15 @@ try {
       children: Array.from({ length: 20 }, () => ({
         id: randomUUID(),
         amount: -1,
-        notes: "🪙".repeat(2500),
       })),
     });
   }
+  for (let i = 0; i < 40; i++)
+    await call(root + "/notes/commands", {
+      id: "large-text-" + i,
+      note: "🪙".repeat(2500),
+      snapshot: (await call(root + "/checkpoint")).data.snapshot,
+    });
   const cp = (await call(root + "/checkpoint")).data,
     ledger = await call(root + "/transactions?limit=1000"),
     base = {
@@ -106,12 +110,13 @@ try {
       root + "/query",
       {
         ...base,
+        table: "notes",
         limit: 1000,
         splits: "grouped",
         select: [
           "id",
           ...Array.from({ length: 32 - 1 }, (_, i) => ({
-            ["notes" + i]: "$notes",
+            ["text" + i]: "$note",
           })),
         ],
       },
@@ -126,11 +131,13 @@ try {
       root + "/query",
       {
         ...base,
+        table: "notes",
+        limit: 1000,
         select: ["id"],
         filter: [
           {
             $and: Array.from({ length: 50 }, () => ({
-              notes: { $transform: "$lower", $ne: "skip" },
+              note: { $transform: "$lower", $ne: "skip" },
             })),
           },
         ],

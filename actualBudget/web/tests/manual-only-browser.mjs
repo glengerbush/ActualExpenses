@@ -103,7 +103,7 @@ try {
   await expect(
     page.getByRole("button", { name: "Transaction history", exact: true }),
   ).toBeVisible();
-  await expect(page.locator("td.amount").first()).toHaveText("123.45");
+  await expect(page.locator("td.amount").first()).toHaveText("+123.45");
   await page.keyboard.press("Control+k");
   await page.getByLabel("Search commands").fill("bank");
   await expect(page.locator("#command-results button")).toHaveCount(0);
@@ -132,8 +132,7 @@ try {
     const base = (
       await (await fetch(`/api/v1/budgets/${budget}/preferences`)).json()
     ).data;
-    base.experimental.enableBanking = false;
-    base.experimental.akahuBankSync = false;
+    base.experimental = { enableBanking: false, akahuBankSync: false };
     const epoch = (
       await (await fetch(`/api/v1/budgets/${budget}/checkpoint`)).json()
     ).data.epoch;
@@ -181,7 +180,9 @@ try {
       budget,
     ),
   ).toBe("dd.MM.yyyy");
-  await page.getByText("Experimental features", { exact: true }).click();
+  await expect(
+    page.getByText("Experimental features", { exact: true }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("checkbox", { name: "Enable Banking", exact: true }),
   ).toHaveCount(0);
@@ -190,8 +191,10 @@ try {
   ).toHaveCount(0);
   await expect(
     page.getByRole("checkbox", { name: "Sankey report", exact: true }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   const directory = new URL("../test-results/manual-only/", import.meta.url);
   await mkdir(directory, { recursive: true });
   await page.screenshot({
@@ -203,15 +206,23 @@ try {
     path: new URL("mobile.png", directory).pathname,
     fullPage: true,
   });
-  await expect(
-    page.getByRole("button", { name: "Transaction files", exact: true }),
-  ).toBeVisible();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
-    .getByRole("button", { name: "Transaction files", exact: true })
+    .getByRole("navigation", { name: "Settings sections" })
+    .getByRole("button", { name: "Import", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Transaction file", exact: true })
+    .click();
+  await page
+    .getByRole("button", {
+      name: "Continue to transaction import",
+      exact: true,
+    })
     .click();
   await expect(
     page.getByRole("heading", {
-      name: "Import and export transactions",
+      name: "Transactions",
       exact: true,
     }),
   ).toBeVisible();

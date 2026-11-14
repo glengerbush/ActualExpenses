@@ -91,6 +91,7 @@ def main():
                 headers = {"Idempotency-Key": "ynab-contract-" + source_kind}
                 staged = check(upload_path, path, "POST", original, headers, 201)
                 assert staged["data"]["report"]["source_format"] == source_kind
+                assert staged["data"]["status"] == "ready", (source_kind, staged["data"]["report"])
                 assert staged["data"]["report"]["checks"]["sqlite_integrity"] is None
                 assert check(upload_path, path, "POST", original, headers, 201) == staged
                 sid = staged["data"]["id"]
@@ -102,7 +103,7 @@ def main():
                 check(upload_path, path, "POST", b"not a budget", {"Idempotency-Key": "ynab-invalid-" + source_kind}, 422)
             budgets = "/api/v1/budgets"
             budget_id, account_id = str(uuid.uuid4()), str(uuid.uuid4())
-            budget = {"id": budget_id, "name": "Contract fixture", "budget_type": "envelope"}
+            budget = {"id": budget_id, "name": "Contract fixture", "budget_type": "tracking"}
             check(budgets, budgets, "POST", budget, {"Idempotency-Key": "budget"}, 201)
             check(budgets, budgets)
             check(budgets, budgets, "POST", {**budget, "name": "Changed"}, {"Idempotency-Key": "budget"}, 409)
@@ -127,14 +128,8 @@ def main():
             assert check(recovery_path, recovery_template)["data"] == recovery
             check(f"{budgets}/{uuid.uuid4()}/accounts", account_template, expected=404)
             check(f"{budgets}/{budget_id}/transactions?account_id={account_id}", budgets + "/{budget}/transactions")
-            reconcile_path = accounts + "/" + account_id + "/reconciliation"
-            reconcile_template = account_template + "/{id}/reconciliation"
-            progress = check(reconcile_path, reconcile_template)["data"]
-            check(reconcile_path, reconcile_template, "POST", {"action":"lock", "statement_balance":12345, "snapshot":progress["snapshot"], "date":"2026-10-15"}, {"Idempotency-Key":"reconcile"})
-            entry = check(f"{budgets}/{budget_id}/transactions?account_id={account_id}", budgets + "/{budget}/transactions")["data"][0]
-            unlock_path = f"{budgets}/{budget_id}/transactions/{entry['id']}/unlock"
-            protection = check(f"{budgets}/{budget_id}/transactions/{entry['id']}/splits", budgets + "/{budget}/transactions/{id}/splits")["reconciliation_token"]
-            check(unlock_path, budgets + "/{budget}/transactions/{id}/unlock", "POST", {"reconciliation_token":protection}, {"Idempotency-Key":"unlock"})
+            for path in [accounts + "/" + account_id + "/reconciliation"]:
+                assert request(base, path)[0] == 404
             register_settings_path=f"{budgets}/{budget_id}/register-settings"
             register_settings_template=budgets+"/{budget}/register-settings"
             register_settings=check(register_settings_path,register_settings_template)["data"]
@@ -178,10 +173,10 @@ def main():
             check(category_groups, category_groups_template, "POST", {"id": category_group, "name": "Category contract"}, {"Idempotency-Key": "category-group"}, 201)
             check(category_groups, category_groups_template)
             check(category_groups + "/" + category_group, category_groups_template + "/{id}")
-            check(category_groups + "/" + category_group, category_groups_template + "/{id}", "PATCH", {"hidden": True}, {"Idempotency-Key": "hide-category-group"})
+            check(category_groups + "/" + category_group, category_groups_template + "/{id}", "PATCH", {"name": "Renamed category group"}, {"Idempotency-Key": "rename-category-group"})
             check(categories, categories_template, "POST", {"id": extra_category, "name": "Merge source", "group_id": category_group, "sort_order": None}, {"Idempotency-Key": "extra-category"}, 201)
             check(categories + "/" + extra_category, categories_template + "/{id}")
-            check(categories + "/" + extra_category, categories_template + "/{id}", "PATCH", {"notes": "**Keep** notes"}, {"Idempotency-Key": "category-notes"})
+            check(categories + "/" + extra_category, categories_template + "/{id}", "PATCH", {"name": "Renamed category"}, {"Idempotency-Key": "category-name"})
             check(categories + "/" + extra_category + "/transactions", categories_template + "/{id}/transactions")
             check(categories + "/" + extra_category, categories_template + "/{id}", "DELETE", {"replacement_id": references["categories"]}, {"Idempotency-Key": "category-merge"})
             check(category_groups + "/" + category_group, category_groups_template + "/{id}", "DELETE", {"replacement_id": None}, {"Idempotency-Key": "category-group-delete"})
@@ -217,7 +212,7 @@ def main():
             preferences = f"{budgets}/{budget_id}/preferences"
             preferences_template = budgets + "/{budget}/preferences"
             check(preferences, preferences_template)
-            check(preferences, preferences_template, "PATCH", {"number_format": "dot-comma", "experimental": {"currency": True}}, {"Idempotency-Key": "preferences"})
+            check(preferences, preferences_template, "PATCH", {"number_format": "dot-comma"}, {"Idempotency-Key": "preferences"})
             check(preferences, preferences_template, "PATCH", {"unknown": True}, {"Idempotency-Key": "invalid-preferences"}, 400)
             conversion = "/api/v1/preferences/convert-actual"
             check(conversion, conversion, "POST", {"synced": {"numberFormat": "space-comma", "flags.customThemes": "true"}, "global": {"theme": "midnight", "language": "fr"}})
@@ -235,9 +230,9 @@ def main():
             changes_template = budgets + "/{budget}/changes"
             check(locations, location_template, "POST", {**location,"id":str(uuid.uuid4())}, {"Idempotency-Key":str(uuid.uuid4())}, 201)
             check(changes_path + "?cursor=" + page["snapshot"], changes_template)
-            check(ordered_path, entry_template, "PATCH", {"notes": "Newer"},
+            check(ordered_path, entry_template, "PATCH", {"date": "2026-10-16"},
                   {"Idempotency-Key": "ordered-new", "X-Actual-Edit-Clock": clock2})
-            check(ordered_path, entry_template, "PATCH", {"notes": "Older", "amount": -10},
+            check(ordered_path, entry_template, "PATCH", {"date": "2026-10-17", "amount": -10},
                   {"Idempotency-Key": "ordered-old", "X-Actual-Edit-Clock": clock1})
             check(ordered_path, entry_template, "DELETE", headers={
                   "Idempotency-Key": "ordered-delete", "X-Actual-Edit-Clock": clock1}, expected=409)
@@ -291,14 +286,9 @@ def main():
             check(imports + "/" + templated["id"] + "/activate", imports + "/{id}/activate", "POST", {},
                   {"Idempotency-Key": "template-activate"}, 201)
 
-            themes = "/api/v1/themes"
-            check(themes + "/catalog", themes + "/catalog")
-            for css in (":root { --color-pageText: #123456; }", "body { color: red; }"):
-                check(themes + "/compile", themes + "/compile", "POST", {"css": css})
-            check(themes + "/compile", themes + "/compile", "POST", {}, expected=400)
-            check(themes + "/convert-actual", themes + "/convert-actual", "POST", {"global": {
-                "installed-custom-theme": "{bad", "custom-css-override": ":root { --color-pageText: #123456; }",
-            }})
+            for path in ["/api/v1/themes/catalog", "/api/v1/themes/compile", "/api/v1/themes/convert-actual"]:
+                assert path not in contract["paths"]
+                assert request(base, path, "POST", {})[0] == 404
             root = f"{budgets}/{budget_id}"
             root_template = budgets + "/{budget}"
             metadata = check(root, root_template)["data"]
@@ -369,9 +359,7 @@ def main():
             check(transfer_root+"/transactions/"+peer,entries_template+"/{id}","PATCH",{"amount":700},{"Idempotency-Key":"combined-pair-patch"})
             check(transfer_root+"/transactions/"+peer,entries_template+"/{id}","PATCH",{"notes":"Queued expense"},{"Idempotency-Key":"expense-only","X-Actual-Expense-Only":"true"},409)
             check(transfer_root+"/transactions/"+peer,entries_template+"/{id}","PATCH",{"cleared":True},{"Idempotency-Key":"clear-protected-peer"})
-            reconciliation=transfer_root+"/accounts/"+cash+"/reconciliation"
-            progress=check(reconciliation,account_template+"/{id}/reconciliation")["data"]
-            check(reconciliation,account_template+"/{id}/reconciliation","POST",{"action":"lock","statement_balance":progress["balances"]["cleared"],"snapshot":progress["snapshot"],"date":"2026-02-28"},{"Idempotency-Key":"lock-protected-peer"})
+            assert request(base, transfer_root+"/accounts/"+cash+"/reconciliation")[0] == 404
             proof=check(split_path,split_template)
             confirmed={"amount":750,"confirm_reconciled":True,"transfer_protection_token":proof["transfer_protection_token"]}
             Draft202012Validator({**contract["components"]["schemas"]["TransactionPatch"],"components":contract["components"]},format_checker=FormatChecker()).validate(confirmed)
@@ -400,20 +388,18 @@ def main():
             check(rr+"/rules",rt,"POST",{**rule,"snapshot":snapshot},{"Idempotency-Key":"create-rule"},201)
             check(rr+"/rules/"+rid,rt+"/{id}")
             snapshot=check(rr+"/rules",rt)["snapshot"]
-            check(rr+"/rules/"+rid,rt+"/{id}","PATCH",{"snapshot":snapshot,"actions":[{"op":"set","field":"category","value":rc},{"op":"append-notes","value":" checked"}]},{"Idempotency-Key":"edit-rule"})
+            check(rr+"/rules/"+rid,rt+"/{id}","PATCH",{"snapshot":snapshot,"actions":[{"op":"set","field":"category","value":rc},{"op":"set","field":"date","value":"2026-01-02"}]},{"Idempotency-Key":"edit-rule"})
             snapshot=check(rr+"/rules",rt)["snapshot"]
             transaction={"id":re,"account_id":ra,"date":"2026-01-01","amount":-100,"payee_id":rp,"notes":"Manual"}
             check(rr+"/rules/preview",rt+"/preview","POST",{"snapshot":snapshot,"transaction":transaction,"manual_entry":True})
             calculated = {**rule, "actions": [
                 {"op":"set","field":"amount","value":0,"options":{"template":"-12.5 pounds"}},
-                {"op":"set","field":"notes","value":"","options":{"formula":"=1/0"}}]}
-            calculation = check(rr+"/rules/preview",rt+"/preview","POST",{
-                "snapshot":snapshot,"transaction":transaction,"rule":calculated})["data"]["transactions"][0]["after"]
-            assert calculation["amount"] == -12.5 and len(calculation["rule_errors"]) == 1
-            split_projection = check(rr+"/rules/preview",rt+"/preview","POST",{
+                {"op":"set","field":"amount","value":0,"options":{"formula":"=1/0"}}]}
+            check(rr+"/rules/preview",rt+"/preview","POST",{
+                "snapshot":snapshot,"transaction":transaction,"rule":calculated}, expected=400)
+            check(rr+"/rules/preview",rt+"/preview","POST",{
                 "snapshot":snapshot,"transaction":transaction,"rule":{**rule,"actions":[
-                    {"op":"set-split-amount","value":None,"options":{"method":"formula","splitIndex":1,"formula":"=parent_amount/200"}}]}})["data"]["transactions"][0]["after"]
-            assert split_projection["error"] == {"type":"SplitTransactionError","version":1,"difference":-50}
+                    {"op":"set-split-amount","value":None,"options":{"method":"formula","splitIndex":1,"formula":"=parent_amount/200"}}]}}, expected=400)
             check(rr+"/rules/transactions",rt+"/transactions","POST",{**transaction,"snapshot":snapshot},{"Idempotency-Key":"automatic-entry"},201)
             snapshot=check(rr+"/rules",rt)["snapshot"]
             check(rr+"/rules/preview",rt+"/preview","POST",{"snapshot":snapshot,"ids":[re]})
@@ -614,7 +600,7 @@ def main():
                 {**conversion_schema, "components": contract["components"]}, format_checker=FormatChecker())
             future_date = (datetime.date.fromisoformat(schedule_today) + datetime.timedelta(days=8)).isoformat()
             future_draft = {"id": str(uuid.uuid4()), "account_id": ra, "amount": -333,
-                            "date": future_date, "notes": "Future contract expense"}
+                            "date": future_date}
             conversion_checkpoint = check(rr + "/checkpoint", budgets + "/{budget}/checkpoint")
             preview_body = {"snapshot": conversion_checkpoint["data"]["snapshot"], "transaction": future_draft,
                             "as_of": schedule_today, "upcoming_length": "7"}
@@ -683,68 +669,12 @@ def main():
             check(upgrade_root + "/companion?account_id=" + legacy["accountId"], budgets + "/{budget}/companion")
             check(upgrade_path, upgrade_template, "POST", handoff,
                   {**headers, "X-Actual-Edit-Clock": "2026-11-08T23:50:10.000Z-0000-bbbbbbbbbbbbbbbb"}, 400)
-            # Isolated template workflow: exercise the served new schemas rather
-            # than asserting their shape without a real response.
-            template_budget, template_category = str(uuid.uuid4()), str(uuid.uuid4())
-            check(budgets, budgets, "POST", {"id": template_budget, "name": "Automation contract"},
-                  {"Idempotency-Key": "template-budget"}, 201)
-            template_root = budgets + "/" + template_budget
-            check(template_root + "/categories", categories_template, "POST",
-                  {"id": template_category, "name": "Reserve", "is_income": False,
-                   "notes": "Original description\n#template 12.34"},
-                  {"Idempotency-Key": "template-category"}, 201)
-            template_path = template_root + "/budget/templates"
-            template_contract = budgets + "/{budget}/budget/templates"
-            current = check(template_path + "?month=2026-11", template_contract)["data"]
-            template_cursor = current["snapshot"]
-            parsed = check(template_path + "/parse", template_contract + "/parse", "POST",
-                           {"notes": "Original description\n#template 12.34"})["data"]
-            check(template_path + "/parse", template_contract + "/parse", "POST",
-                  {"notes": "#template invalid"})
-            check(template_path + "/projection", template_contract + "/projection", "POST",
-                  {"month": "2026-11", "snapshot": current["snapshot"],
-                   "category_id": template_category, "templates": parsed["templates"]})
-            check(template_path + "/preview", template_contract + "/preview", "POST",
-                  {"month": "2026-11", "snapshot": current["snapshot"]})
-            check(template_path + "/preview", template_contract + "/preview", "POST",
-                  {"month": "2026-11"}, expected=400)
-            check(template_path + "/commands", template_contract + "/commands", "POST",
-                  {"action": "configure", "snapshot": current["snapshot"], "category_id": template_category,
-                   "source": "ui", "templates": parsed["templates"]},
-                  {"Idempotency-Key": "template-configure"})
-            current = check(template_path + "?month=2026-11", template_contract)["data"]
-            check(template_path + "/commands", template_contract + "/commands", "POST",
-                  {"action": "apply", "month": "2026-11", "snapshot": current["snapshot"]},
-                  {"Idempotency-Key": "template-apply"})
-            current = check(template_path + "?month=2026-11", template_contract)["data"]
-            check(template_path + "/commands", template_contract + "/commands", "POST",
-                  {"action": "configure", "snapshot": current["snapshot"], "category_id": template_category,
-                   "source": "ui", "templates": parsed["templates"], "cleanup": [{"role": "source", "groupId": None}]},
-                  {"Idempotency-Key": "cleanup-configure"})
-            current = check(template_path + "?month=2026-11", template_contract)["data"]
-            cleanup = {"action": "cleanup", "month": "2026-11", "snapshot": current["snapshot"]}
-            check(template_path + "/preview", template_contract + "/preview", "POST", cleanup)
-            check(template_path + "/commands", template_contract + "/commands", "POST", cleanup,
-                  {"Idempotency-Key": "cleanup-apply"})
-            for target_source in ["notes", "ui"]:
-                current = check(template_path + "?month=2026-11", template_contract)["data"]
-                migration = {"month": "2026-11", "snapshot": current["snapshot"],
-                             "category_id": template_category, "target_source": target_source}
-                proposal = check(template_path + "/migration-preview", template_contract + "/migration-preview",
-                                 "POST", migration)["data"]
-                assert proposal["compatible"], proposal
-                check(template_path + "/commands", template_contract + "/commands", "POST",
-                      {**migration, "action": "migrate"},
-                      {"Idempotency-Key": "migrate-to-" + target_source})
-            check(template_path + "/migration-preview", template_contract + "/migration-preview", "POST",
-                  {"month": "2026-11"}, expected=400)
-            for index, pool_name in enumerate(["Reserve", "reserve"]):
-                current = check(template_path + "?month=2026-11", template_contract)["data"]
-                resolved = check(template_path + "/commands", template_contract + "/commands", "POST",
-                                 {"action": "pool", "snapshot": current["snapshot"], "name": pool_name},
-                                 {"Idempotency-Key": "pool-" + str(index)})["data"]
-                assert resolved["pool"]["name"] == "Reserve"
-            check(template_root + "/changes?cursor=" + template_cursor, budgets + "/{budget}/changes")
+            # Retired envelope/template routes stay unavailable; tracking allocation
+            # contracts and their financial parity remain exercised independently.
+            for suffix in ["/budget/templates", "/budget/templates/parse", "/budget/templates/projection",
+                           "/budget/templates/preview", "/budget/templates/commands", "/budget/templates/migration-preview"]:
+                assert budgets + "/{budget}" + suffix not in contract["paths"]
+                assert request(base, rr + suffix, "POST", {})[0] == 404
             # Isolated import fixture: every expectation crosses the served public contract.
             import_id, import_account = str(uuid.uuid4()), str(uuid.uuid4())
             import_root = budgets + '/' + import_id
@@ -811,7 +741,7 @@ def main():
             export_template = budgets + '/{budget}/transactions/export'
             export_body = {'snapshot': settings['snapshot'], 'account_id': import_account, 'layout': 'standard'}
             exported = binary(import_root + '/transactions/export', export_template, 'text/csv', export_body)
-            assert b'Contract purchase' in exported and b'-12.34' in exported
+            assert b'Contract purchase' not in exported and b'-12.34' in exported
             assert binary(import_root + '/transactions/export', export_template, 'text/csv', {**export_body, 'query': {'search': 'No matching row'}}) == b''
             check(import_root + '/transactions/export', export_template, 'POST', {**export_body, 'layout': 'bad'}, expected=400)
             canceled_body = {**commit, 'snapshot': settings['snapshot']}

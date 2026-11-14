@@ -220,6 +220,8 @@ fn experimental_preferences_are_retired_and_cannot_be_enabled() {
     let path = format!("/api/v1/budgets/{BUDGET}/preferences");
     for (i, change) in [
         json!({"experimental":{"formulaMode":true}}),
+        json!({"experimental":{"enableBanking":true}}),
+        json!({"experimental":{"akahuBankSync":true}}),
         json!({"currency_code":"JPY"}),
         json!({"experimental":null}),
     ]
@@ -295,4 +297,56 @@ fn retired_privacy_is_ignored_on_upgrade_and_import_and_rejected_on_write() {
     let values: Value = server.get(&path).json().unwrap();
     assert!(values["data"].get("privacy_mode").is_none());
     assert_eq!(values["data"]["revision"], 1);
+}
+
+#[test]
+fn committed_retired_preferences_replay_exact_receipts_without_mutating_settings() {
+    let mut server = Server::start();
+    server.budget(BUDGET);
+    let path = format!("/api/v1/budgets/{BUDGET}/preferences");
+    let original = json!({"privacy_mode":true,"experimental":{"enableBanking":true},"currency_code":"JPY","revision":7});
+    let payloads = [
+        json!({"privacy_mode":true}),
+        json!({"experimental":{"enableBanking":true}}),
+        json!({"currency_code":"JPY"}),
+    ];
+    // Restore persisted receipt records from before feature retirement.
+    let db = rusqlite::Connection::open(server._data.path().join("actualbudget.sqlite3")).unwrap();
+    for (i, payload) in payloads.iter().enumerate() {
+        db.execute(
+            "INSERT INTO operations(scope,operation_id,payload,response) VALUES(?1,?2,?3,?4)",
+            rusqlite::params![
+                format!("PATCH /budgets/{BUDGET}/preferences"),
+                format!("legacy-{i}"),
+                payload.to_string(),
+                original.to_string()
+            ],
+        )
+        .unwrap();
+    }
+    drop(db);
+    server.restart();
+    let before: Value = server.get(&path).json().unwrap();
+    for (i, payload) in payloads.into_iter().enumerate() {
+        let replay = server.patch(&path, &format!("legacy-{i}"), payload.clone());
+        assert_eq!(replay.status(), 200);
+        assert_eq!(replay.json::<Value>().unwrap(), json!({"data":original}));
+        assert_eq!(
+            server
+                .patch(&path, &format!("legacy-{i}"), json!({"unknown":true}))
+                .status(),
+            409
+        );
+        assert_eq!(
+            server.patch(&path, &format!("new-{i}"), payload).status(),
+            400
+        );
+    }
+    assert_eq!(
+        server
+            .patch(&path, "new-unknown", json!({"unknown":true}))
+            .status(),
+        400
+    );
+    assert_eq!(server.get(&path).json::<Value>().unwrap(), before);
 }

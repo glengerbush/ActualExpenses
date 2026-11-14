@@ -37,9 +37,9 @@ function financial(rows, refs, cats, item, source) {
       category:
         cats.find((c) => c.id === r[source ? "category" : "category_id"])
           ?.name ?? null,
-      notes: r.notes ?? "",
-      cleared: !!r.cleared,
-      reconciled: !!r.reconciled,
+      notes: source ? "" : (r.notes ?? ""),
+      cleared: source ? true : !!r.cleared,
+      reconciled: source ? false : !!r.reconciled,
       imported_id: r.imported_id ?? null,
       imported_payee: r.imported_payee ?? null,
     }))
@@ -95,8 +95,16 @@ try {
       { budget: stage.budget_id, account: item.ids.account },
     );
     await page.reload();
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    await page.getByRole("button", { name: "Import", exact: true }).click();
     await page
-      .getByRole("button", { name: "Transaction files", exact: true })
+      .getByRole("button", { name: "Transaction file", exact: true })
+      .click();
+    await page
+      .getByRole("button", {
+        name: "Continue to transaction import",
+        exact: true,
+      })
       .click();
     for (let round = 0; round < 2; round++) {
       await page.getByLabel("Transaction file").setInputFiles({
@@ -113,9 +121,9 @@ try {
       await page
         .getByLabel("Date order", { exact: false })
         .selectOption(item.frontend.parseDateFormat ?? "yyyy mm dd");
-      await page
-        .getByLabel("Import notes", { exact: true })
-        .setChecked(item.options.importNotes ?? false);
+      await expect(
+        page.getByLabel("Import notes", { exact: true }),
+      ).toHaveCount(0);
       await page
         .getByLabel("Use memo when payee is missing")
         .setChecked(item.options.fallbackMissingPayeeToMemo ?? false);

@@ -18907,7 +18907,13 @@
               "string",
               "null"
             ],
-            "description": "Original Actual millisecond timestamp text, or null. Updated on successful lock; retained through confirmed edits and unlocking."
+            "description": "Legacy compatibility field. Reconciliation is retired; current accounts return null."
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 10000,
+            "deprecated": true,
+            "description": "Retained account annotation for compatibility; not exposed in the current interface."
           }
         },
         "required": [
@@ -19161,6 +19167,33 @@
           "recurrence": {
             "type": "object",
             "description": "Linked recurrence, including completed series and preserved imported configuration."
+          },
+          "category_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "category_group_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "color_override": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "group_sort_order": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "const": "",
+            "deprecated": true,
+            "description": "Legacy response field; transaction notes are retired and always empty."
           }
         },
         "required": [
@@ -19435,6 +19468,31 @@
             ],
             "pattern": "^#[0-9a-fA-F]{6}$",
             "description": "Null uses the automatic group/category color."
+          },
+          "category_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "category_group_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "color_override": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "group_sort_order": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "resolved_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
           }
         },
         "required": [
@@ -20876,7 +20934,16 @@
                   24,
                   25,
                   26,
-                  27
+                  27,
+                  28,
+                  29,
+                  30,
+                  31,
+                  32,
+                  33,
+                  34,
+                  35,
+                  36
                 ]
               },
               "domains": {
@@ -22635,6 +22702,33 @@
           },
           "recurrence": {
             "$ref": "#/components/schemas/TransactionRecurrence"
+          },
+          "category_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "category_group_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "color_override": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "group_sort_order": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "const": "",
+            "deprecated": true,
+            "description": "Legacy response field; transaction notes are retired and always empty."
           }
         },
         "required": [
@@ -24857,6 +24951,18 @@
               }
             ]
           },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "deprecated": true,
+            "description": "Legacy compatibility field; imported transaction notes are not persisted."
+          },
           "category": {
             "anyOf": [
               {
@@ -25157,6 +25263,11 @@
             "type": "string",
             "format": "date"
           },
+          "notes": {
+            "type": "string",
+            "deprecated": true,
+            "description": "Legacy compatibility field; imported transaction notes are not persisted."
+          },
           "cleared": {
             "type": "boolean"
           },
@@ -25272,6 +25383,7 @@
           "account_id",
           "amount",
           "date",
+          "notes",
           "cleared",
           "payee_id",
           "category_id",
@@ -25366,6 +25478,12 @@
                 "type": "null"
               }
             ]
+          },
+          "notes": {
+            "type": "string",
+            "const": "",
+            "deprecated": true,
+            "description": "Legacy response field; transaction notes are retired and always empty."
           },
           "account_name": {
             "type": "string"
@@ -25483,6 +25601,27 @@
           },
           "pending": {
             "const": true
+          },
+          "category_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "category_group_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "color_override": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "group_sort_order": {
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "required": [
@@ -25498,6 +25637,7 @@
           "category_id",
           "category_name",
           "category_is_income",
+          "notes",
           "account_name"
         ],
         "additionalProperties": false
@@ -25824,6 +25964,12 @@
               }
             ]
           },
+          "notes": {
+            "type": "string",
+            "const": "",
+            "deprecated": true,
+            "description": "Legacy response field; transaction notes are retired and always empty."
+          },
           "account_name": {
             "type": "string"
           },
@@ -25937,6 +26083,27 @@
           },
           "pending": {
             "const": true
+          },
+          "category_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "category_group_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "color_override": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "group_sort_order": {
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "required": [
@@ -25952,6 +26119,7 @@
           "category_id",
           "category_name",
           "category_is_income",
+          "notes",
           "account_name",
           "deleted"
         ],
@@ -27423,7 +27591,8 @@
           "category_groups",
           "rules",
           "schedules",
-          "budget_cells"
+          "budget_cells",
+          "notes"
         ]
       },
       "BoundQueryExpression": {

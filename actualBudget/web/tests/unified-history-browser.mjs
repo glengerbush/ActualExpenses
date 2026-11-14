@@ -72,27 +72,25 @@ try {
     .click();
   await expect(page.getByLabel("Account", { exact: true })).toHaveCount(0);
   await page.getByLabel("Amount", { exact: true }).fill("12.34");
-  await page
-    .getByLabel("Notes", { exact: true })
-    .fill("Draft survives navigation");
+  await page.getByLabel("Date", { exact: true }).fill("2026-11-01");
+  await expect(page.getByLabel("Notes", { exact: true })).toHaveCount(0);
   await nav.getByRole("button", { name: "Budget", exact: true }).click();
   await nav
     .getByRole("button", { name: "Transaction history", exact: true })
     .click();
   await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("12.34");
-  await expect(page.getByLabel("Notes", { exact: true })).toHaveValue(
-    "Draft survives navigation",
+  await expect(page.getByLabel("Date", { exact: true })).toHaveValue(
+    "11/01/2026",
   );
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(
-    page.getByText("Draft survives navigation", { exact: true }),
-  ).toBeVisible();
+  await expect(page.locator(".transaction-form")).toHaveCount(0);
   const transactions = await api(`/budgets/${budget}/transactions`);
   expect(transactions).toHaveLength(1);
   expect(transactions[0].amount).toBe(-1234);
   const legacy = randomUUID();
+  const importedId = randomUUID();
   await api(`/budgets/${budget}/accounts`, {
     id: legacy,
     name: "Historical source",
@@ -100,7 +98,7 @@ try {
     opening_date: "2026-01-01",
   });
   await api(`/budgets/${budget}/transactions`, {
-    id: randomUUID(),
+    id: importedId,
     account_id: legacy,
     amount: -500,
     date: "2026-01-01",
@@ -108,11 +106,109 @@ try {
   });
   await page.reload();
   await expect(
-    page.getByText("Older imported expense", { exact: true }),
-  ).toBeVisible();
+    page.locator(`[data-transaction-id="${importedId}"]`),
+  ).toContainText("5.00");
   await expect(
-    page.getByText("Draft survives navigation", { exact: true }),
+    page.locator(`[data-transaction-id="${transactions[0].id}"]`),
+  ).toContainText("12.34");
+  // Retired routes cannot create fresh work, even when addressed directly.
+  for (const view of ["account", "organize"]) {
+    await page.goto(`${server.url}/?budget=${budget}&view=${view}`);
+    await expect(
+      page.getByRole("heading", { name: "Transaction history", exact: true }),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        (budget) => [
+          localStorage.getItem(`actualBudget.creation.v1.account.${budget}`),
+          localStorage.getItem(`actualBudget.accounts.v1.${budget}`),
+        ],
+        budget,
+      ),
+    ).toEqual([null, null]);
+  }
+  // Invalid saved work also remains reachable without replacing its bytes.
+  await page.evaluate(
+    (budget) =>
+      localStorage.setItem(`actualBudget.creation.v1.account.${budget}`, "{}"),
+    budget,
+  );
+  await page.goto(`${server.url}/?budget=${budget}&view=account`);
+  await expect(
+    page.getByText(/saved creation draft could not be validated/).first(),
   ).toBeVisible();
+  expect(
+    await page.evaluate(
+      (budget) =>
+        localStorage.getItem(`actualBudget.creation.v1.account.${budget}`),
+      budget,
+    ),
+  ).toBe("{}");
+  await page.evaluate(
+    (budget) =>
+      localStorage.removeItem(`actualBudget.creation.v1.account.${budget}`),
+    budget,
+  );
+  // A saved account request still reopens and retries with its original identity.
+  const pendingAccount = randomUUID();
+  const epoch = (await api(`/budgets/${budget}/checkpoint`)).epoch;
+  const pendingBody = {
+    id: pendingAccount,
+    name: "Recovered destination",
+    opening_balance: 0,
+    opening_date: "2026-11-01",
+    off_budget: false,
+    notes: "",
+  };
+  await page.evaluate(
+    ({ budget, pendingAccount, pendingBody, epoch }) => {
+      localStorage.setItem(
+        `actualBudget.creation.v1.account.${budget}`,
+        JSON.stringify({
+          version: 1,
+          origin: location.origin,
+          draft_id: pendingAccount,
+          kind: "account",
+          budget_id: budget,
+          budget_epoch: epoch,
+          fields: {
+            name: pendingBody.name,
+            balance: "0.00",
+            date: pendingBody.opening_date,
+            off_budget: false,
+            notes: "",
+            number_format: "comma-dot",
+            decimal_places: 2,
+            date_format: "yyyy-MM-dd",
+          },
+          pending: { key: pendingAccount, body: pendingBody },
+        }),
+      );
+    },
+    { budget, pendingAccount, pendingBody, epoch },
+  );
+  await page.goto(`${server.url}/?budget=${budget}&view=account`);
+  await expect(
+    page.getByRole("heading", { name: "Add account", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Retry creation", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Transaction history", exact: true }),
+  ).toBeVisible();
+  expect(
+    (await api(`/budgets/${budget}/accounts`)).filter(
+      (row) => row.id === pendingAccount,
+    ),
+  ).toHaveLength(1);
+  expect(
+    await page.evaluate(
+      (budget) =>
+        localStorage.getItem(`actualBudget.creation.v1.account.${budget}`),
+      budget,
+    ),
+  ).toBeNull();
   await expect(
     page.getByRole("columnheader", { name: "Account", exact: true }),
   ).toHaveCount(0);

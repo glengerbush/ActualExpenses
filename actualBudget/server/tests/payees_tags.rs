@@ -99,7 +99,7 @@ fn losing_duplicate_names_do_not_block_independent_winning_fields() {
         "2026-01-02T00:00:00.000Z-0000-0000000000000001",
         "2026-01-03T00:00:00.000Z-0000-0000000000000001",
     ];
-    for (entity, name, flag) in [("payees", "name", "favorite"), ("tags", "tag", "hidden")] {
+    for (entity, name, flag) in [("payees", "name", "favorite")] {
         let root = format!("/api/v1/budgets/{B}/{entity}");
         ok(s.write(
             "POST",
@@ -221,186 +221,65 @@ fn payees_rename_merge_remove_preserve_history_and_receipts() {
     );
 }
 #[test]
-fn tags_rename_exact_tokens_visibility_filter_and_archive_round_trip() {
+fn retired_tag_routes_cannot_change_transaction_history() {
     let s = Server::start();
-    let root = format!("/api/v1/budgets/{B}");
     ok(s.write(
         "POST",
         "/api/v1/budgets",
-        "budget",
+        "b",
         None,
-        json!({"id":B,"name":"Tags"}),
+        json!({"id":B,"name":"Retired tags"}),
     ));
-    ok(s.write("POST",&format!("{root}/accounts"),"account",None,json!({"id":id(2),"name":"Spending","off_budget":false,"opening_balance":0,"opening_date":"2026-01-01"})));
-    for (n, notes) in [
-        (5, "#Food ##Food #Foodie #food #Food#trip"),
-        (6, "##Food #Foodie #food"),
-    ] {
-        ok(s.write(
+    let root = format!("/api/v1/budgets/{B}");
+    ok(s.write(
+        "POST",
+        &format!("{root}/accounts"),
+        "a",
+        None,
+        json!({"id":id(2),"name":"Cash","opening_balance":0,"opening_date":"2026-01-01"}),
+    ));
+    ok(s.write(
+        "POST",
+        &format!("{root}/transactions"),
+        "t",
+        None,
+        json!({"id":id(3),"account_id":id(2),"amount":-1250,"date":"2026-01-02","notes":"#Old"}),
+    ));
+    let before = s.get(&format!("{root}/transactions"));
+    let checkpoint = s.get(&format!("{root}/checkpoint"));
+    for (method, path, body) in [
+        (
             "POST",
-            &format!("{root}/transactions"),
-            &format!("tx{n}"),
-            None,
-            json!({"id":id(n),"account_id":id(2),"amount":-1250,"date":"2026-01-02","notes":notes}),
-        ));
-    }
-    ok(s.write(
-        "POST",
-        &format!("{root}/tags"),
-        "tag",
-        None,
-        json!({"id":id(3),"tag":"Food","color":"#ff0000","description":"Meals"}),
-    ));
-    assert_eq!(
-        s.get(&format!("{root}/transactions?tag=Food"))["data"]
-            .as_array()
-            .unwrap()
-            .len(),
-        1
-    );
-    ok(s.write(
-        "PATCH",
-        &format!("{root}/tags/{}", id(3)),
-        "rename",
-        None,
-        json!({"tag":"Meals","hidden":true}),
-    ));
-    assert_eq!(
-        s.get(&format!("{root}/transactions/{}", id(5)))["data"]["notes"],
-        "#Meals ##Food #Foodie #food #Meals#trip"
-    );
-    assert!(
-        s.get(&format!("{root}/tags"))["data"]
-            .as_array()
-            .unwrap()
-            .is_empty()
-    );
-    assert_eq!(
-        s.get(&format!("{root}/tags?include_hidden=true"))["data"][0]["tag"],
-        "Meals"
-    );
-    assert_eq!(
-        s.get(&format!("{root}/transactions?tag=Meals"))["data"]
-            .as_array()
-            .unwrap()
-            .len(),
-        1
-    );
-    ok(s.write(
-        "POST",
-        &format!("{root}/tags/batch"),
-        "remove-tag",
-        None,
-        json!({"action":"remove","ids":[id(3)]}),
-    ));
-    let recreated = ok(s.write(
-        "POST",
-        &format!("{root}/tags"),
-        "recreate-tag",
-        None,
-        json!({"id":id(9),"tag":"Meals"}),
-    ));
-    assert_eq!(recreated["data"]["id"], id(3));
-    let s = s.restart();
-    assert_eq!(
-        s.get(&format!("{root}/tags?include_hidden=true"))["data"][0]["hidden"],
-        true
-    );
-    let backup = ok(s.write(
-        "POST",
-        &format!("{root}/backups"),
-        "backup",
-        None,
-        json!({"label":"Tags"}),
-    ));
-    let changed = ok(s.write(
-        "PATCH",
-        &format!("{root}/tags/{}", id(3)),
-        "post-backup-tag",
-        None,
-        json!({"hidden":false}),
-    ));
-    ok(s.write(
-        "POST",
-        &format!(
-            "{root}/backups/{}/restore",
-            backup["data"]["id"].as_str().unwrap()
+            format!("{root}/tags"),
+            json!({"id":id(4),"tag":"Old"}),
         ),
-        "restore-existing",
-        None,
-        json!({"confirm_name":"Tags"}),
-    ));
-    assert_eq!(
-        s.get(&format!("{root}/tags?include_hidden=true"))["data"][0]["hidden"],
-        true
-    );
-    assert_eq!(
-        ok(s.write(
+        (
             "PATCH",
-            &format!("{root}/tags/{}", id(3)),
-            "post-backup-tag",
-            None,
-            json!({"hidden":false})
-        )),
-        changed
-    );
-    let archive = s
-        .client
-        .get(format!(
-            "{}{root}/backups/{}/download",
-            s.url,
-            backup["data"]["id"].as_str().unwrap()
-        ))
-        .send()
-        .unwrap();
-    assert!(archive.status().is_success(), "{}", archive.text().unwrap());
-    let restored = Server::start();
-    let staged = ok(restored
-        .client
-        .post(format!("{}/api/v1/restores", restored.url))
-        .header("Idempotency-Key", "native")
-        .header("Content-Type", "application/zip")
-        .body(archive.bytes().unwrap())
-        .send()
-        .unwrap());
-    ok(restored.write(
-        "POST",
-        &format!(
-            "{root}/restores/{}/activate",
-            staged["data"]["id"].as_str().unwrap()
+            format!("{root}/tags/{}", id(4)),
+            json!({"tag":"New"}),
         ),
-        "restore",
-        None,
-        json!({"confirm_name":"Tags"}),
-    ));
+        ("DELETE", format!("{root}/tags/{}", id(4)), json!({})),
+        (
+            "POST",
+            format!("{root}/tags/batch"),
+            json!({"action":"delete","ids":[id(4)]}),
+        ),
+    ] {
+        assert_eq!(s.write(method, &path, &path, None, body).status(), 404);
+    }
     assert_eq!(
-        restored.get(&format!("{root}/tags?include_hidden=true")),
-        s.get(&format!("{root}/tags?include_hidden=true"))
-    );
-    assert_eq!(
-        restored.get(&format!("{root}/transactions/{}", id(5)))["data"],
-        s.get(&format!("{root}/transactions/{}", id(5)))["data"]
-    );
-    assert_eq!(
-        restored
-            .write(
-                "PATCH",
-                &format!("{root}/tags/{}", id(3)),
-                "retired",
-                None,
-                json!({"hidden":false})
-            )
+        s.client
+            .get(format!("{}{root}/tags", s.url))
+            .send()
+            .unwrap()
             .status(),
-        409
+        404
     );
-    let replay = ok(restored.write(
-        "POST",
-        &format!("{root}/tags"),
-        "recreate-tag",
-        None,
-        json!({"id":id(9),"tag":"Meals"}),
-    ));
-    assert_eq!(replay, recreated);
+    assert_eq!(s.get(&format!("{root}/transactions")), before);
+    assert_eq!(s.get(&format!("{root}/checkpoint")), checkpoint);
+    let s = s.restart();
+    assert_eq!(s.get(&format!("{root}/transactions")), before);
+    assert_eq!(s.get(&format!("{root}/checkpoint")), checkpoint);
 }
 #[test]
 fn pinned_import_converts_removed_payees_aliases_imported_text_and_tags() {
@@ -455,8 +334,12 @@ fn pinned_import_converts_removed_payees_aliases_imported_text_and_tags() {
         .unwrap();
     assert_eq!(alias["merged_into"], fixture["first"]);
     assert_eq!(
-        s.get(&format!("{root}/tags?include_hidden=true"))["data"][0]["color"],
-        "#ff0000"
+        s.client
+            .get(format!("{}{root}/tags?include_hidden=true", s.url))
+            .send()
+            .unwrap()
+            .status(),
+        404
     );
     let companion = s.get(&format!(
         "{root}/companion?account_id={}",
@@ -648,7 +531,13 @@ fn genuine_schema7_database_and_archive_backfill_preserve_native_edits_and_recei
             expected["transaction_id"].as_str().unwrap()
         ));
         for (key, value) in expected["transaction"]["data"].as_object().unwrap() {
-            assert_eq!(&tx["data"][key], value, "{key}");
+            let current = match key.as_str() {
+                "notes" => json!(""),
+                "cleared" => json!(true),
+                "reconciled" => json!(false),
+                _ => value.clone(),
+            };
+            assert_eq!(tx["data"][key], current, "{key}");
         }
         let mut accounts = s.get(&format!("{root}/accounts"));
         for account in accounts["data"].as_array_mut().unwrap() {
@@ -686,56 +575,13 @@ fn genuine_schema7_database_and_archive_backfill_preserve_native_edits_and_recei
                 .iter()
                 .any(|p| !p["transfer_account_id"].is_null())
         );
-        assert!(
-            s.get(&format!("{root}/tags"))["data"]
-                .as_array()
-                .unwrap()
-                .is_empty()
-        );
-    }
-}
-#[test]
-fn pinned_tag_rename_oracle_matches_public_note_updates_including_unicode_boundaries() {
-    let s = Server::start();
-    let oracle: Value =
-        serde_json::from_str(include_str!("../../tests/fixtures/payees-tags.json")).unwrap();
-    for (n, case) in oracle["tag_renames"].as_array().unwrap().iter().enumerate() {
-        let b = id(100 + n);
-        let root = format!("/api/v1/budgets/{b}");
-        ok(s.write(
-            "POST",
-            "/api/v1/budgets",
-            &format!("b{n}"),
-            None,
-            json!({"id":b,"name":"Tags"}),
-        ));
-        ok(s.write(
-            "POST",
-            &format!("{root}/accounts"),
-            "a",
-            None,
-            json!({"id":id(2),"name":"Spending","opening_balance":0,"opening_date":"2026-01-01"}),
-        ));
-        ok(s.write("POST",&format!("{root}/transactions"),"t",None,json!({"id":id(3),"account_id":id(2),"amount":-1250,"date":"2026-01-02","notes":case["notes"]})));
-        ok(s.write(
-            "POST",
-            &format!("{root}/tags"),
-            "tag",
-            None,
-            json!({"id":id(4),"tag":case["old"]}),
-        ));
-        ok(s.write(
-            "PATCH",
-            &format!("{root}/tags/{}", id(4)),
-            "rename",
-            None,
-            json!({"tag":case["next"]}),
-        ));
-        let tx = s.get(&format!("{root}/transactions/{}", id(3)));
-        assert_eq!(tx["data"]["notes"], case["expected"], "{case}");
         assert_eq!(
-            tx["data"]["amount"],
-            oracle["snapshots"][0]["transactions"][0]["amount"]
+            s.client
+                .get(format!("{}{root}/tags", s.url))
+                .send()
+                .unwrap()
+                .status(),
+            404
         );
     }
 }

@@ -743,6 +743,10 @@
     align-items: end;
     gap: 0.5rem;
   }
+  .filter-date :global(.date-field) {
+    min-width: 0;
+    max-width: 100%;
+  }
   .filter-date :global(label) {
     margin: 0 0 0.25rem;
     font-size: 0.875rem;

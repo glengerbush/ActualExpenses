@@ -45,7 +45,7 @@ try {
       ).status,
     ).toBe(201);
   }
-  for (const query of [{}, { search: "Boundary" }]) {
+  for (const query of [{}, { search: "2026" }]) {
     const result = await call(
       `/budgets/${boundaryBudget}/transactions?query=${encodeURIComponent(JSON.stringify(query))}`,
     );
@@ -76,6 +76,7 @@ try {
       account_id: a,
       date: "2026-01-02",
       amount,
+      new_payee: { id: randomUUID(), name: notes },
       notes,
       cleared,
     });
@@ -95,8 +96,8 @@ try {
   expect(page.data[0].amount).toBe(-1250);
   expect(page.filtered_balances).toEqual({
     total: -1625,
-    cleared: -1250,
-    uncleared: -375,
+    cleared: -1625,
+    uncleared: 0,
   });
   expect(page.filtered_count).toBe(2);
   expect(page.balances.total).toBe(10775);
@@ -186,9 +187,32 @@ try {
     const result = await call(
       `/budgets/${oracleBudget}/transactions?limit=1&query=${encodeURIComponent(JSON.stringify(test.query))}`,
     );
+    if (
+      test.query.filter.conditions.some(
+        (condition) => condition.field === "notes",
+      )
+    ) {
+      // The pinned text/tag cases now verify retirement; regex on live names is
+      // exercised separately by register-regex-budget.
+      expect(result.status, test.name).toBe(400);
+      expect(result.error.code, test.name).toBe("invalid_request");
+      continue;
+    }
+    const expectedIds = test.query.filter.conditions.some(
+      (condition) => condition.field === "cleared",
+    )
+      ? fixture.input.filter((row) => row.amount > 0).map((row) => row.id)
+      : test.ids;
+    const total = fixture.input
+      .filter((row) => expectedIds.includes(row.id))
+      .reduce((sum, row) => sum + row.amount, 0);
     expect(result.status, test.name).toBe(200);
-    expect(result.filtered_balances, test.name).toEqual(test.balances);
-    expect(result.filtered_count, test.name).toBe(test.ids.length);
+    expect(result.filtered_balances, test.name).toEqual({
+      total,
+      cleared: total,
+      uncleared: 0,
+    });
+    expect(result.filtered_count, test.name).toBe(expectedIds.length);
     const ids = [];
     let offset = 0;
     do {
@@ -198,7 +222,7 @@ try {
       ids.push(...next.data.map((r) => r.id));
       offset = next.next_offset;
     } while (offset !== null);
-    expect(ids.sort(), test.name).toEqual(test.ids);
+    expect(ids.sort(), test.name).toEqual([...expectedIds].sort());
   }
   for (const [value, expected] of [
     [{ frequency: "monthly", start: "2026-01-02" }, [2400, -1250, -1300]],
@@ -237,6 +261,13 @@ try {
   expect(upload.status).toBe(201);
   const staged = (await upload.json()).data;
   expect(staged.status, JSON.stringify(staged.report)).toBe("ready");
+  expect(
+    staged.report.requirements.some(
+      (item) =>
+        item.feature.startsWith("register:retired-saved-filter:") &&
+        item.blocking === false,
+    ),
+  ).toBe(true);
   const activated = await call(`/imports/${staged.id}/activate`, {});
   expect(activated.status).toBe(201);
   const imported = activated.data.id;
@@ -245,7 +276,7 @@ try {
   ).data;
   expect(
     importedSettings.settings.saved_filters.map((f) => f.name).sort(),
-  ).toEqual(["Identity", "Monthly", "Notes", "Payments"]);
+  ).toEqual(["Identity", "Monthly", "Payments"]);
   const importedAccount = "0165d0a7-99e2-4719-a102-c007b7a8daaa";
   expect(
     importedSettings.settings.views[importedAccount].query.hide_reconciled,
@@ -355,13 +386,16 @@ try {
     opening_balance: 0,
     opening_date: "2026-01-01",
   });
+  const parityPayees = [randomUUID(), randomUUID()];
+  for (const [index, name] of ["even", "odd"].entries())
+    await call(`/budgets/${b}/payees`, { id: parityPayees[index], name });
   for (let i = 0; i < 1200; i++)
     await call(`/budgets/${b}/transactions`, {
       id: randomUUID(),
       account_id: large,
       date: "2026-01-01",
       amount: -1,
-      notes: i % 2 ? "odd" : "even",
+      payee_id: parityPayees[i % 2],
     });
   const started = performance.now();
   const bounded = await call(

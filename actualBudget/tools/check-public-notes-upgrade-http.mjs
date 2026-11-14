@@ -49,14 +49,29 @@ async function call(path, body, status = 200, headers = {}, method) {
   );
   return response.json();
 }
+function financial(value, historical = false) {
+  const result = structuredClone(value);
+  delete result.snapshot;
+  for (const row of result.data) {
+    for (const key of ["category_color", "category_group_color", "color_override", "group_sort_order"]) delete row[key];
+    if (historical) Object.assign(row, {notes: "", cleared: true, reconciled: false});
+  }
+  if (historical) for (const key of ["balances", "filtered_balances"]) {
+    result[key].cleared = result[key].total;
+    result[key].uncleared = 0;
+  }
+  return result;
+}
 try {
-  assert.deepEqual(await call(root + "/transactions"), fixture.register);
-  assert.deepEqual(await call(root + "/checkpoint"), fixture.checkpoint);
-  assert.deepEqual(
-    await call(root + "/history", undefined, 200, fixture.owner_headers),
-    fixture.history,
-    "Database migration retains actual owned history",
-  );
+  const register = await call(root + "/transactions");
+  assert.deepEqual(financial(register), financial(fixture.register, true));
+  const checkpoint = await call(root + "/checkpoint");
+  assert.equal(checkpoint.data.epoch, fixture.checkpoint.data.epoch);
+  assert.equal(checkpoint.data.generation, fixture.checkpoint.data.generation);
+  assert.equal(checkpoint.data.snapshot, register.snapshot);
+  const history = await call(root + "/history", undefined, 200, fixture.owner_headers);
+  assert.deepEqual({...history.data, epoch: fixture.history.data.epoch}, fixture.history.data,
+    "Database migration retains owned actions while rotating the view epoch");
   for (const c of fixture.commands)
     assert.deepEqual(
       await call(
@@ -104,11 +119,7 @@ try {
   );
   const activated = (await call("/imports/" + stageId + "/activate", {}, 201))
     .data;
-  assert.deepEqual(
-    (await call("/budgets/" + activated.id + "/notes/read", { id: source.id }))
-      .data,
-    source.first,
-  );
+  assert.deepEqual((await call("/budgets/" + activated.id + "/notes/read", { id: source.id })).data, source.first);
   const archive = await readFile(
     new URL("../tests/fixtures/public-notes-schema23.zip", import.meta.url),
   );
@@ -135,10 +146,9 @@ try {
   );
   const restored = (await call(root)).data;
   assert.notEqual(restored.epoch, budget.epoch);
-  const financial = ({ snapshot, ...rest }) => rest;
   assert.deepEqual(
     financial(await call(root + "/transactions")),
-    financial(fixture.register),
+    financial(fixture.register, true),
   );
   assert.equal(
     (

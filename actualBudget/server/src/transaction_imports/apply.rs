@@ -5,7 +5,7 @@ pub(super) fn ignored(before: &Value, next: &Value) -> bool {
     if before["reconciled"] == true {
         return true;
     }
-    for field in ["payee_id", "category_id", "notes"] {
+    for field in ["payee_id", "category_id"] {
         if (before[field].is_null() || before[field] == "")
             && !next[field].is_null()
             && next[field] != ""

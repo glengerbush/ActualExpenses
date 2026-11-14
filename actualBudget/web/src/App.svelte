@@ -257,7 +257,20 @@
       if (route.screen === "manage") managedBudget = budget;
       reportTab = route.report;
       transactionFilter = route.transactions ?? null;
-      form = route.screen;
+      // Old account URLs may reopen durable recovery, never start retired workflows.
+      let recovery = true;
+      try {
+        recovery =
+          route.screen === "organize"
+            ? !!budget && !!readAccountDraft(budget.id)
+            : route.screen === "account"
+              ? !!budget &&
+                !!readDraft({ kind: "account", budget_id: budget.id })
+              : true;
+      } catch {
+        // Unreadable saved work still needs the editor's recovery message.
+      }
+      form = recovery ? route.screen : null;
       if (budget) rememberView(budget.id, form);
       await focusContent();
     } finally {

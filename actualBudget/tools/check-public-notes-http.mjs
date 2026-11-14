@@ -101,7 +101,18 @@ try {
   assert.deepEqual(
     nativeRows,
     source.financial.map((r) =>
-      Object.fromEntries(fields.map((k) => [k, r[k] ?? null])),
+      Object.fromEntries(
+        fields.map((k) => [
+          k,
+          k === "notes"
+            ? ""
+            : k === "cleared"
+              ? true
+              : k === "reconciled"
+                ? false
+                : (r[k] ?? null),
+        ]),
+      ),
     ),
     "Exact genuine source financial rows",
   );
@@ -231,31 +242,20 @@ try {
     categories = (await call(root + "/categories")).data,
     category = categories.find((c) => c.id === categoryId);
   assert.ok(category);
+  const retiredCheckpoint = (await call(root + "/checkpoint")).data;
   await call(
     root + "/notes/commands",
     {
       id: categoryId,
       note: "Caller category annotation",
-      snapshot: (await call(root + "/checkpoint")).data.snapshot,
+      snapshot: retiredCheckpoint.snapshot,
     },
-    200,
+    400,
     owned,
   );
-  assert.equal(
-    (await call(root + "/categories")).data.find((c) => c.id === categoryId)
-      .notes,
-    "Caller category annotation",
-    "Known SDK note identity updates its authoritative category field",
-  );
-  const knownUndo = (await call(root + "/history", undefined, 200, owned)).data
-    .undo;
-  await call(root + "/history/undo", { action_id: knownUndo.id }, 200, owned);
-  assert.equal(
-    (await call(root + "/categories")).data.find((c) => c.id === categoryId)
-      .notes,
-    category.notes,
-  );
-  const monthId = "budget-2025-02";
+  assert.deepEqual((await call(root + "/categories")).data, categories);
+  assert.deepEqual((await call(root + "/checkpoint")).data, retiredCheckpoint);
+  const monthId = "caller-month-2025-02";
   const createdMonth = await call(
     root + "/notes/commands",
     {
@@ -305,10 +305,9 @@ try {
     await call(root + "/changes?cursor=" + encodeURIComponent(monthSnapshot))
   ).data;
   assert.equal(
-    monthChanges.find((r) => r.entity === "budget_months" && r.id === "2025-02")
-      .data.buffered,
-    0,
-    "Revival preserves original buffered value",
+    monthChanges.find((r) => r.entity === "notes" && r.id === monthId).data
+      .note,
+    "Fresh month annotation",
   );
   assert.equal(
     rewrittenMonth.data?.note,

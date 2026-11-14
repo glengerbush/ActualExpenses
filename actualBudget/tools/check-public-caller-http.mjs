@@ -26,6 +26,18 @@ const server = await startServer(),
       ),
     ),
   );
+// Historical observations retain their bytes; these live projections follow completed-entry semantics.
+batch.fields = batch.fields.filter((field) => field !== "notes");
+for (const state of [batch.before, batch.after])
+  for (const row of state) {
+    delete row.notes;
+    row.cleared = true;
+    row.reconciled = false;
+  }
+for (const op of batch.operations) {
+  if (op.transaction) delete op.transaction.notes;
+  if (op.fields) delete op.fields.notes;
+}
 let loseAck = true,
   redirectNext = false,
   redirectRequests = 0,
@@ -370,7 +382,12 @@ try {
     importedReceipt,
   );
   const expected = manual.after.transactions.map((row) =>
-    Object.fromEntries(batch.fields.map((k) => [k, row[k] ?? null])),
+    Object.fromEntries(
+      batch.fields.map((k) => [
+        k,
+        k === "cleared" ? true : k === "reconciled" ? false : (row[k] ?? null),
+      ]),
+    ),
   );
   assert.deepEqual(
     await rows(imported),
@@ -428,7 +445,7 @@ else: raise AssertionError("Counter overflow accepted")
           .epoch,
         "X-Actual-Edit-Clock": futureClock,
       },
-      body: JSON.stringify({ notes: "Future-clock winner" }),
+      body: JSON.stringify({ date: "2026-11-10" }),
     });
   assert.equal(seeded.status, 200, await seeded.clone().text());
   const plainPoint = (await call(importRoot + "/checkpoint")).data,
@@ -448,7 +465,7 @@ else: raise AssertionError("Counter overflow accepted")
         {
           action: "update",
           id: target,
-          fields: { notes: "Observed-clock update" },
+          fields: { date: "2026-11-11" },
         },
       ],
     }),
@@ -475,8 +492,8 @@ else: raise AssertionError("Counter overflow accepted")
   );
   assert.deepEqual(JSON.parse(await readFile(clockBox)).request, clockRequest);
   assert.equal(
-    (await rows(imported)).find((row) => row.id === target).notes,
-    "Observed-clock update",
+    (await rows(imported)).find((row) => row.id === target).date,
+    "2026-11-11",
   );
   assert.deepEqual(proxyErrors, []);
   console.log(

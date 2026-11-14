@@ -2,7 +2,7 @@
 //! Reconstruct only a proven path from the imported defaults to the retained
 //! current state. A revision bump alone never proves a currency edit.
 use super::*;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 #[derive(Clone)]
 struct Receipt {
     changes: Value,
@@ -93,15 +93,15 @@ pub(super) fn resolve(
                 .push(Receipt { changes, response });
         }
     }
-    // Equal states merge their two possible provenance bits: unchanged/touched.
-    let mut states = BTreeMap::from([(initial.to_string(), 1_u8)]);
+    // Retired currency preferences are absent from normalized proof copies.
+    let mut states = BTreeSet::from([initial.to_string()]);
     let mut work = 2_000_000_usize;
     for n in 1..=revision {
         let Some(receipts) = by_revision.get(&n) else {
             return Ok((raw.into(), true));
         };
-        let mut next = BTreeMap::<String, u8>::new();
-        for (state, bits) in states {
+        let mut next = BTreeSet::new();
+        for state in states {
             let previous: Value = serde_json::from_str(&state).map_err(Error::internal)?;
             for receipt in receipts {
                 let Some(left) = work.checked_sub(1) else {
@@ -125,10 +125,6 @@ pub(super) fn resolve(
                         } else {
                             crate::preferences::defaults()[key].clone()
                         };
-                    } else if key == "experimental" {
-                        for (name, enabled) in value.as_object().unwrap() {
-                            candidate[key][name] = enabled.clone();
-                        }
                     } else {
                         candidate[key] = value.clone();
                     }
@@ -139,12 +135,7 @@ pub(super) fn resolve(
                 crate::preferences::remove_retired_features(&mut candidate);
                 candidate["revision"] = json!(n);
                 if candidate == receipt.response {
-                    let touched = changes.contains_key("currency_code")
-                        || changes.get("experimental").is_some_and(|flags| {
-                            flags.is_null() || flags.get("currency").is_some()
-                        });
-                    let proof = if touched { 2 } else { bits };
-                    *next.entry(candidate.to_string()).or_default() |= proof;
+                    next.insert(candidate.to_string());
                 }
             }
         }
@@ -153,12 +144,5 @@ pub(super) fn resolve(
         }
         states = next;
     }
-    match states.get(&current.to_string()).copied() {
-        Some(1) => Ok((raw.into(), false)),
-        Some(2) => Ok((
-            current["currency_code"].as_str().unwrap_or("").into(),
-            false,
-        )),
-        _ => Ok((raw.into(), true)),
-    }
+    Ok((raw.into(), !states.contains(&current.to_string())))
 }

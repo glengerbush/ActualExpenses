@@ -117,17 +117,34 @@ fn receipts(s: &Server, f: &Value) {
         assert_eq!(response.json::<Value>().unwrap(), command["result"]);
     }
 }
-fn financial(s: &Server, f: &Value, restored: bool) {
+fn financial(s: &Server, f: &Value, _restored: bool) {
     let root = root(f);
     let path = format!(
         "{root}/transactions?account_id={}",
         f["account_id"].as_str().unwrap()
     );
-    let actual = s.get(&path);
+    let mut actual = s.get(&path);
     let mut expected = f["register"].clone();
-    if restored {
-        assert_ne!(actual["snapshot"], expected["snapshot"]);
-        expected["snapshot"] = actual["snapshot"].clone();
+    assert_ne!(actual["snapshot"], expected["snapshot"]);
+    expected["snapshot"] = actual["snapshot"].clone();
+    for row in expected["data"].as_array_mut().unwrap() {
+        row["notes"] = json!("");
+        row["cleared"] = json!(true);
+        row["reconciled"] = json!(false);
+    }
+    for key in ["balances", "filtered_balances"] {
+        expected[key]["cleared"] = expected[key]["total"].clone();
+        expected[key]["uncleared"] = json!(0);
+    }
+    for row in actual["data"].as_array_mut().unwrap() {
+        for key in [
+            "category_color",
+            "category_group_color",
+            "color_override",
+            "group_sort_order",
+        ] {
+            row.as_object_mut().unwrap().remove(key);
+        }
     }
     assert_eq!(actual, expected);
     for (key, path) in [
@@ -135,7 +152,32 @@ fn financial(s: &Server, f: &Value, restored: bool) {
         ("categories", "categories"),
         ("payees", "payees"),
     ] {
-        assert_eq!(s.get(&format!("{root}/{path}")), f[key]);
+        let mut actual = s.get(&format!("{root}/{path}"));
+        let mut expected = f[key].clone();
+        if key == "categories" {
+            for row in expected["data"].as_array_mut().unwrap() {
+                row.as_object_mut().unwrap().remove("notes");
+                row["field_versions"]
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("notes");
+                row["hidden"] = json!(false);
+                row["group_hidden"] = json!(false);
+            }
+            for row in actual["data"].as_array_mut().unwrap() {
+                for key in [
+                    "category_color",
+                    "category_group_color",
+                    "color_override",
+                    "group_sort_order",
+                    "resolved_color",
+                    "color",
+                ] {
+                    row.as_object_mut().unwrap().remove(key);
+                }
+            }
+        }
+        assert_eq!(actual, expected);
     }
 }
 #[test]
@@ -152,7 +194,14 @@ fn genuine20_database_preserves_finances_history_receipts_and_refreshes_blocked_
     let root = root(&f);
     financial(&s, &f, false);
     assert_eq!(read_history(&s, &root, &f), f["history"]);
-    assert_eq!(s.get(&format!("{root}/checkpoint")), f["checkpoint"]);
+    let checkpoint = s.get(&format!("{root}/checkpoint"));
+    let mut expected_checkpoint = f["checkpoint"].clone();
+    assert_ne!(
+        checkpoint["data"]["snapshot"],
+        expected_checkpoint["data"]["snapshot"]
+    );
+    expected_checkpoint["data"]["snapshot"] = checkpoint["data"]["snapshot"].clone();
+    assert_eq!(checkpoint, expected_checkpoint);
     receipts(&s, &f);
     for stage in f["stages"].as_array().unwrap() {
         let id = stage["result"]["data"]["id"].as_str().unwrap();
@@ -215,7 +264,14 @@ fn genuine20_database_preserves_finances_history_receipts_and_refreshes_blocked_
     }
     financial(&s, &f, false);
     assert_eq!(read_history(&s, &root, &f), f["history"]);
-    assert_eq!(s.get(&format!("{root}/checkpoint")), f["checkpoint"]);
+    let checkpoint = s.get(&format!("{root}/checkpoint"));
+    let mut expected_checkpoint = f["checkpoint"].clone();
+    assert_ne!(
+        checkpoint["data"]["snapshot"],
+        expected_checkpoint["data"]["snapshot"]
+    );
+    expected_checkpoint["data"]["snapshot"] = checkpoint["data"]["snapshot"].clone();
+    assert_eq!(checkpoint, expected_checkpoint);
 }
 #[test]
 fn genuine20_native_backup_preserves_receipts_finances_and_rotates_history_epoch() {
@@ -234,7 +290,7 @@ fn genuine20_native_backup_preserves_receipts_finances_and_rotates_history_epoch
         .unwrap();
     assert_eq!(upload.status(), 201, "{}", upload.text().unwrap());
     let stage: Value = upload.json().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 27);
+    assert_eq!(stage["data"]["report"]["schema_version"], 36);
     let response = s
         .client
         .post(format!(

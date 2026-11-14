@@ -50,9 +50,14 @@ try {
     root = "/budgets/" + b;
   for (const c of source.cases) {
     await call(
-      root + "/transactions/" + source.id,
-      { notes: c.notes },
-      "PATCH",
+      root + "/notes/commands",
+      {
+        id: source.id,
+        note: c.notes,
+        snapshot: (await call(root + "/checkpoint", undefined, "GET")).data
+          .snapshot,
+      },
+      "POST",
     );
     const cp = (await call(root + "/checkpoint", undefined, "GET")).data,
       ledger = await call(root + "/transactions?limit=1000", undefined, "GET");
@@ -60,16 +65,21 @@ try {
       root + "/query",
       {
         version: 1,
-        table: "transactions",
-        select: ["id", "notes"],
-        filter: [{ id: source.id, notes: { [c.op]: c.pattern } }],
+        table: "notes",
+        select: ["id", "note"],
+        filter: [{ id: source.id, note: { [c.op]: c.pattern } }],
         order_by: ["id"],
         snapshot: cp.snapshot,
       },
       "POST",
       c.error ? 400 : 200,
     );
-    if (!c.error) assert.deepEqual(result.data, c.data, c.id);
+    if (!c.error)
+      assert.deepEqual(
+        result.data,
+        c.data.map(({ notes, ...row }) => ({ ...row, note: notes })),
+        c.id,
+      );
     assert.deepEqual(
       (await call(root + "/checkpoint", undefined, "GET")).data,
       cp,

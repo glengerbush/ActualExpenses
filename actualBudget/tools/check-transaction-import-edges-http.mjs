@@ -5,7 +5,7 @@ import {randomUUID,createHash} from 'node:crypto';
 import {startServer} from '../web/tests/server.mjs';
 const fixture=JSON.parse(await readFile(new URL('../tests/fixtures/transaction-import-edges.json',import.meta.url))),server=await startServer(),api=server.url.replace('actualbudget.test','127.0.0.1')+'/api/v1';
 async function call(path,body,headers={}){const r=await fetch(api+path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json','Idempotency-Key':randomUUID(),...headers},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(r.ok,`${path}: ${r.status} ${await r.clone().text()}`);return r.json();}
-function shape(rows,item,source){return rows.flatMap(r=>[r,...(source?r.subtransactions??[]:r.children??[])]).map(r=>({id:r.id.startsWith('25290000-')?r.id:'<new>',parent:!!r.parent_id,is_parent:!!r.is_parent,account:r[source?'account':'account_id'],date:r.date,amount:r.amount,payee:r[source?'payee':'payee_id']??null,category:r[source?'category':'category_id']??null,cleared:!!r.cleared,reconciled:!!r.reconciled,notes:r.notes??'',imported_id:r.imported_id??null,imported_payee:r.imported_payee??null})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));}
+function shape(rows,item,source){return rows.flatMap(r=>[r,...(source?r.subtransactions??[]:r.children??[])]).map(r=>({id:r.id.startsWith('25290000-')?r.id:'<new>',parent:!!r.parent_id,is_parent:!!r.is_parent,account:r[source?'account':'account_id'],date:r.date,amount:r.amount,payee:r[source?'payee':'payee_id']??null,category:r[source?'category':'category_id']??null,cleared:source?true:!!r.cleared,reconciled:source?false:!!r.reconciled,notes:source?'':r.notes??'',imported_id:r.imported_id??null,imported_payee:r.imported_payee??null})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));}
 const failures=[];
 try{for(const item of fixture.cases){try{
  const bytes=await readFile(new URL('../tests/fixtures/transaction-import-edges/'+item.archive.filename,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),item.archive.sha256);
@@ -28,7 +28,7 @@ try{for(const item of fixture.cases){try{
   assert.deepEqual(await call(root+'/transactions'),before);assert.deepEqual((await call(root+'/checkpoint')).data,cp);
   const headers={'Idempotency-Key':randomUUID(),'X-Actual-Budget-Epoch':cp.epoch};const result=await call(path+'/commit',body,headers);const rows=(await call(root+'/transactions')).data;
   assert.deepEqual(shape(rows,item,false),shape(expected.transactions,item,true),'Complete independent financial state');
-  if(item.id==='file-order')assert.deepEqual(rows.map(row=>[row.date,row.amount,row.notes]),expected.transactions.map(row=>[row.date,row.amount,row.notes]),'Observable input-file order survives');
+  if(item.id==='file-order')assert.deepEqual(rows.map(row=>[row.date,row.amount,row.notes]),expected.transactions.map(row=>[row.date,row.amount,'']),'Observable input-file order survives');
   const ids=rows.flatMap(row=>[row,...(row.children??[])]).map(row=>row.id).sort();if(round===0)firstIds=ids;else assert.deepEqual(ids,firstIds);
   assert.deepEqual(await call(path+'/commit',body,headers),result);assert.deepEqual((await call(root+'/transactions')).data,rows);
  }

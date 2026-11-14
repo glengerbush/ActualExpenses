@@ -21,6 +21,7 @@ let browser;
 try {
   const budget = randomUUID(),
     account = randomUUID(),
+    category = randomUUID(),
     ids = [randomUUID(), randomUUID(), randomUUID()];
   expect(
     (await call("/budgets", { id: budget, name: "Bulk history" })).status,
@@ -30,6 +31,11 @@ try {
     name: "Spending",
     opening_balance: 0,
     opening_date: "2026-01-01",
+  });
+  await call(`/budgets/${budget}/categories`, {
+    id: category,
+    name: "Reviewed allocation",
+    is_income: false,
   });
   for (let i = 0; i < ids.length; i++)
     await call(`/budgets/${budget}/transactions`, {
@@ -75,8 +81,10 @@ try {
   await page
     .getByRole("button", { name: "Edit selected", exact: true })
     .click();
-  await page.getByLabel("Field", { exact: true }).selectOption("notes");
-  await page.getByLabel("New value", { exact: true }).fill("Reviewed together");
+  await page.getByLabel("Field", { exact: true }).selectOption("date");
+  await page
+    .getByLabel("Date for selected entries", { exact: true })
+    .fill("02/01/2026");
   await page
     .getByRole("button", { name: "Apply to 2 entries", exact: true })
     .click();
@@ -85,17 +93,17 @@ try {
   );
   expect(
     (await call(`/budgets/${budget}/transactions`)).data.filter(
-      (r) => r.notes === "Reviewed together",
+      (r) => r.date === "2026-02-01",
     ),
   ).toHaveLength(2);
-  await page.locator("h2#register-title").click();
+  await page.locator("#register-title").click();
   await page.keyboard.press("Control+z");
   await expect(
     page.getByRole("button", { name: "Redo", exact: true }),
   ).toBeEnabled();
   expect(
     (await call(`/budgets/${budget}/transactions`)).data.filter(
-      (r) => r.notes === "Reviewed together",
+      (r) => r.date === "2026-02-01",
     ),
   ).toHaveLength(0);
   await page.reload();
@@ -251,37 +259,24 @@ try {
   await page
     .getByRole("button", { name: "Edit selected", exact: true })
     .click();
-  await page.getByLabel("Field", { exact: true }).selectOption("notes");
-  await page.getByLabel("Notes action", { exact: true }).selectOption("append");
-  await page.getByLabel("New value", { exact: true }).fill(" extra");
+  await expect(
+    page
+      .getByLabel("Field", { exact: true })
+      .getByRole("option", { name: "Notes", exact: true }),
+  ).toHaveCount(0);
+  await page.getByLabel("Field", { exact: true }).selectOption("category_id");
+  await page.getByLabel("New value", { exact: true }).selectOption(category);
   await page
     .getByRole("button", { name: "Apply to 1 entry", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: "Edit selected", exact: true }),
   ).toHaveCount(0);
-  expect(
-    (await call(`/budgets/${budget}/transactions/${childA}`)).data.notes,
-  ).toBe("Split A1 extra");
-  await childBoxes.first().check();
-  await page
-    .getByRole("button", { name: "Edit selected", exact: true })
-    .click();
-  await page
-    .getByLabel("Notes action", { exact: true })
-    .selectOption("find_replace");
-  await page.getByLabel("Find in notes", { exact: true }).fill("(\\d)");
-  await page.getByLabel("Use regular expression", { exact: true }).check();
-  await page.getByLabel("New value", { exact: true }).fill("[$1]");
-  await page
-    .getByRole("button", { name: "Apply to 1 entry", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Edit selected", exact: true }),
-  ).toHaveCount(0);
-  expect(
-    (await call(`/budgets/${budget}/transactions/${childA}`)).data.notes,
-  ).toBe("Split A[1] extra");
+  const editedChild = (await call(`/budgets/${budget}/transactions/${childA}`))
+    .data;
+  expect(editedChild.category_id).toBe(category);
+  expect(editedChild.amount).toBe(-617);
+  expect(editedChild.notes).toBe("");
   // Full page renders for review: selection, error, narrow, dark and 200% text.
   await mkdir("test-results/bulk-history", { recursive: true });
   await page.getByLabel("Select all loaded entries").check();
@@ -354,8 +349,10 @@ try {
   await left
     .getByRole("button", { name: "Edit selected", exact: true })
     .click();
-  await left.getByLabel("Field", { exact: true }).selectOption("notes");
-  await left.getByLabel("New value", { exact: true }).fill("Across tabs");
+  await left.getByLabel("Field", { exact: true }).selectOption("date");
+  await left
+    .getByLabel("Date for selected entries", { exact: true })
+    .fill("03/01/2026");
   await left
     .getByRole("button", { name: "Apply to 1 entry", exact: true })
     .click();
@@ -375,7 +372,7 @@ try {
   expect(owners[0]).toMatch(/^[0-9a-f-]{36}$/);
   expect(
     (await call(`/budgets/${budget}/transactions`)).data.some(
-      (row) => row.notes === "Across tabs",
+      (row) => row.date === "2026-03-01",
     ),
   ).toBe(false);
   await raceContext.close();

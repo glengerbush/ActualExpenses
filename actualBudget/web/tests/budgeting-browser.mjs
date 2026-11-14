@@ -25,7 +25,7 @@ try {
   await call("/budgets", {
     id: budget,
     name: "Monthly planning",
-    budget_type: "envelope",
+    budget_type: "tracking",
   });
   await call(`/budgets/${budget}/accounts`, {
     id: account,
@@ -74,52 +74,59 @@ try {
     { budget, account },
   );
   await page.reload();
-  async function remoteMethod(method) {
-    const current = await call(`/budgets/${budget}/budget?month=2026-01`);
-    await call(`/budgets/${budget}/budget`, {
-      action: "method",
-      month: "2026-01",
-      method,
-      snapshot: current.snapshot,
-    });
-  }
   await page.getByRole("button", { name: "Budget", exact: true }).click();
-  await page.getByLabel("Budget month", { exact: true }).fill("2026-01");
+  await page.getByLabel("Budget month", { exact: true }).fill("Jan-26");
   await page
     .getByLabel("Budget month", { exact: true })
     .dispatchEvent("change");
-  await expect(page.getByTestId("2026-01-to_budget")).toHaveText("500.00");
-  const edit = () =>
-      page.getByRole("button", {
-        name: "Edit Food allocation for January 2026",
-        exact: true,
-      }),
-    save = () => page.getByRole("button", { name: "Save plan", exact: true });
-  await edit().click();
-  await page.getByLabel("Amount", { exact: true }).fill("100.00");
-  await page.reload();
-  await expect(page.getByLabel("Amount", { exact: true })).toHaveValue(
-    "100.00",
-  );
-  await save().click();
-  await expect(
-    page.getByRole("heading", { name: "Edit allocation", exact: true }),
-  ).toHaveCount(0);
-  await expect(page.getByTestId("2026-01-to_budget")).toHaveText("400.00");
-  await page
-    .getByRole("button", {
-      name: "View Food transactions for January 2026",
+  await expect(page.getByTestId("2026-01-real_saved")).toHaveText("400.00");
+  const amountInput = () =>
+    page.getByLabel("Planned Food for January 2026", { exact: true });
+  // Current entry autosaves inline; released durable drafts remain recoverable.
+  await amountInput().fill("100.00");
+  await amountInput().press("Enter");
+  await expect(page.getByTestId("2026-01-total_budgeted")).toHaveText("100.00");
+  async function savedDraft(amount) {
+    const plan = await call(`/budgets/${budget}/budget?month=2026-01`);
+    await page.evaluate(
+      ({ budget, food, epoch, amount }) =>
+        localStorage.setItem(
+          `actualBudget.planning.v1.${budget}`,
+          JSON.stringify({
+            version: 1,
+            epoch,
+            month: "2026-01",
+            action: "set",
+            category: food,
+            amount,
+            method: "tracking",
+            enabled: true,
+            format: { decimal_places: 2, number_format: "comma-dot" },
+            pending: null,
+          }),
+        ),
+      { budget, food, epoch: plan.epoch, amount },
+    );
+    await page.reload();
+    await expect(
+      page.getByRole("region", { name: "Saved budget change", exact: true }),
+    ).toBeVisible();
+  }
+  const save = () =>
+    page.getByRole("button", {
+      name: "Retry saved budget change",
       exact: true,
-    })
-    .click();
-  await expect(
-    page.getByText("2 contributing transactions · -100.00", { exact: true }),
-  ).toBeVisible();
+    });
   await page
-    .getByRole("button", { name: "Close category detail", exact: true })
+    .getByRole("button", { name: "Edit Food for January 2026", exact: true })
     .click();
-  await edit().click();
-  await page.getByLabel("Amount", { exact: true }).fill("150.00");
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
+  await expect(
+    page.locator(".register-table tr[data-transaction-id]"),
+  ).toHaveCount(2);
+  await expect(page.locator(".register-table")).toContainText("Food");
+  await page.getByRole("button", { name: "Budget", exact: true }).click();
+  await savedDraft("150.00");
   let captured, delivered;
   await page.route("**/api/v1/budgets/*/budget", async (route) => {
     if (route.request().method() !== "POST") return route.continue();
@@ -158,7 +165,7 @@ try {
   ).toBeVisible();
   await expect.poll(() => delivered?.status).not.toBeUndefined();
   expect(delivered.status, delivered.body).toBe(200);
-  await remoteMethod("tracking");
+
   await page.reload();
   await expect(page.getByTestId("2026-01-real_saved")).toHaveText("400.00");
   let retry;
@@ -186,64 +193,10 @@ try {
     expect(retry.headers[h]).toBe(captured.headers[h]);
   await page.unroute("**/api/v1/budgets/*/budget");
   await expect(page.getByTestId("2026-01-real_saved")).toHaveText("400.00");
-  await remoteMethod("envelope");
-  await page
-    .getByRole("button", { name: "Refresh budget", exact: true })
-    .click();
-  await expect(page.getByTestId("2026-01-to_budget")).toHaveText("350.00");
-  await page.getByRole("button", { name: /^Undo / }).click();
-  await save().click();
-  await expect(page.getByTestId("2026-01-to_budget")).toHaveText("400.00");
-  await page
-    .getByRole("button", { name: "Change budgeting method", exact: true })
-    .click();
-  await page
-    .getByLabel("Budgeting method", { exact: true })
-    .selectOption("tracking");
-  await save().click();
-  await expect(page.getByTestId("2026-01-real_saved")).toHaveText("400.00");
-  await edit().click();
-  await page.getByLabel("Amount", { exact: true }).fill("60.00");
-  await save().click();
-  await expect(page.getByTestId("2026-01-total_budgeted")).toHaveText("60.00");
-  await edit().click();
-  await page.getByLabel("Amount", { exact: true }).fill("123.00");
-  await remoteMethod("envelope");
-  await page
-    .getByRole("button", { name: "Refresh budget", exact: true })
-    .click();
-  await expect(page.getByTestId("2026-01-to_budget")).toHaveText("400.00");
-  for (let attempt = 0; attempt < 2; attempt++) {
-    if (attempt) await page.reload();
-    await expect(page.getByLabel("Amount", { exact: true })).toHaveValue(
-      "123.00",
-    );
-    await save().click();
-    await expect(page.getByRole("alert")).toContainText(
-      "draft still belongs to Tracking",
-    );
-    const current = await call(`/budgets/${budget}/budget?month=2026-01`);
-    expect(current.method).toBe("envelope");
-    expect(
-      current.months["2026-01"].categories.find((c) => c.id === food).budgeted,
-    ).toBe(10000);
-    const saved = await page.evaluate(
-      (budget) =>
-        JSON.parse(localStorage.getItem(`actualBudget.planning.v1.${budget}`)),
-      budget,
-    );
-    expect(saved.method).toBe("tracking");
-    expect(saved.pending).toBeNull();
-  }
-  await page
-    .getByRole("button", { name: "Discard budget draft", exact: true })
-    .click();
-  await expect(page.getByRole("alert")).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "Retry connection", exact: true }),
-  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(page.getByTestId("2026-01-total_budgeted")).toHaveText("100.00");
   // Quota errors preserve typed values and block transmission.
-  await edit().click();
+  await savedDraft("80.00");
   await page.evaluate(() => {
     window.__planningSet = Storage.prototype.setItem;
     Storage.prototype.setItem = function (k, v) {
@@ -252,8 +205,7 @@ try {
       return window.__planningSet.call(this, k, v);
     };
   });
-  await page.getByLabel("Amount", { exact: true }).fill("80.00");
-  await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("80.00");
+
   await save().click();
   await expect(page.getByRole("alert")).toContainText("quota");
   expect(
@@ -272,7 +224,14 @@ try {
   await save().click();
   await expect(page.getByRole("alert")).toContainText("Another tab");
   await page.reload();
-  await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("90.00");
+  expect(
+    await page.evaluate(
+      (b) =>
+        JSON.parse(localStorage.getItem(`actualBudget.planning.v1.${b}`))
+          .amount,
+      budget,
+    ),
+  ).toBe("90.00");
   await page.route("**/api/v1/budgets/*/budget", async (route) =>
     route.request().method() === "POST"
       ? route.abort("failed")
@@ -298,16 +257,25 @@ try {
       { exact: true },
     ),
   ).toBeVisible();
-  await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("90.00");
+  expect(
+    await page.evaluate(
+      (b) =>
+        JSON.parse(localStorage.getItem(`actualBudget.planning.v1.${b}`))
+          .amount,
+      budget,
+    ),
+  ).toBe("90.00");
   expect(
     (await call(`/budgets/${budget}/budget?month=2026-01`)).months[
       "2026-01"
     ].categories.find((c) => c.id === food).budgeted,
   ).toBe(10000);
   await page
-    .getByRole("button", { name: "Discard budget draft", exact: true })
+    .getByRole("button", { name: "Discard saved change", exact: true })
     .click();
-  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(
+    page.getByRole("region", { name: "Saved budget change", exact: true }),
+  ).toHaveCount(0);
   await mkdir("../../test-results/budgeting", { recursive: true });
   await page.screenshot({
     path: "../../test-results/budgeting/desktop.png",
@@ -330,7 +298,10 @@ try {
   await region.focus();
   await page.keyboard.press("End");
   await expect(
-    page.getByRole("button", { name: "Edit Food notes", exact: true }),
+    page.getByRole("button", {
+      name: "Edit Food for January 2026",
+      exact: true,
+    }),
   ).toBeInViewport();
   await page.emulateMedia({ colorScheme: "dark" });
   await page.screenshot({
@@ -361,7 +332,7 @@ try {
   });
   expect(errors).toEqual([]);
   console.log(
-    "PASS budgeting: both methods, actual leaf drilldown, reload draft, immutable lost-ack retry, undo, retained method allocations, responsive view",
+    "PASS tracking budget: filtered transactions, released draft recovery, immutable lost-ack retry, undo, quota/ownership/cancellation, responsive view",
   );
 } catch (e) {
   if (page) {

@@ -130,6 +130,8 @@ fn qualify(server: &Server, expected: &Value) {
                 assert_eq!(row["reconciled"], false);
                 row["cleared"] = saved["cleared"].clone();
                 row["reconciled"] = saved["reconciled"].clone();
+                assert_eq!(row["notes"], "");
+                row["notes"] = saved["notes"].clone();
                 row["running_balance"] = saved["running_balance"].clone();
             }
         }
@@ -143,7 +145,7 @@ fn qualify(server: &Server, expected: &Value) {
     assert_eq!(native["name"], "Native category after import");
     assert_eq!(native["hidden"], false);
     assert_eq!(native["deleted"], false);
-    assert_eq!(native["notes"], "");
+    assert!(native.get("notes").is_none());
     assert_eq!(native["sort_order"], 0.0);
     assert!(native["group_id"].is_null());
     if expected["mode"] == "import" {
@@ -154,7 +156,7 @@ fn qualify(server: &Server, expected: &Value) {
                 "{base}/categories/{}",
                 source["id"].as_str().unwrap()
             ));
-            for field in ["name", "is_income", "hidden", "group_id"] {
+            for field in ["name", "is_income", "group_id"] {
                 assert_eq!(category["data"][field], source[field], "{field}");
             }
         }

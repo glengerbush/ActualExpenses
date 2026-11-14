@@ -160,7 +160,7 @@ try {
           account_id: textAccount,
           amount: -100,
           date: "2026-11-02",
-          notes: "Case-fold café",
+          new_payee: { id: randomUUID(), name: "Case-fold café" },
         },
         { "Idempotency-Key": randomUUID() },
       )
@@ -175,7 +175,7 @@ try {
       start: "2026-11",
       end: "2026-11",
       summary: { type: "sum" },
-      conditions: [{ field: "notes", op: "contains", value: "CAFÉ" }],
+      conditions: [{ field: "payee_name", op: "contains", value: "CAFÉ" }],
     },
   };
   let textResult = await api(`/budgets/${budget}/reports/query`, textQuery);
@@ -185,7 +185,9 @@ try {
     ...textQuery,
     options: {
       ...textQuery.options,
-      conditions: [{ field: "notes", op: "matches", value: "^Case.*café$" }],
+      conditions: [
+        { field: "payee_name", op: "matches", value: "^Case.*café$" },
+      ],
     },
   };
   textResult = await api(`/budgets/${budget}/reports/query`, regexQuery);
@@ -204,7 +206,7 @@ try {
     ...regexQuery,
     options: {
       ...regexQuery.options,
-      conditions: [{ field: "notes", op: "matches", value: "(" }],
+      conditions: [{ field: "payee_name", op: "matches", value: "(" }],
     },
   });
   assert.equal(invalidRegex.status, 400);
@@ -223,7 +225,7 @@ try {
           account_id: textAccount,
           amount: -1,
           date: "2026-11-03",
-          notes: "a".repeat(64) + "!",
+          new_payee: { id: randomUUID(), name: "a".repeat(64) + "!" },
         },
         { "Idempotency-Key": randomUUID() },
       )
@@ -234,14 +236,14 @@ try {
       ...regexQuery,
       options: {
         ...regexQuery.options,
-        conditions: [{ field: "notes", op: "matches", value: "^(a+)+$" }],
+        conditions: [{ field: "payee_name", op: "matches", value: "^(a+)+$" }],
       },
     },
     easyRegex = {
       ...regexQuery,
       options: {
         ...regexQuery.options,
-        conditions: [{ field: "notes", op: "matches", value: "^a" }],
+        conditions: [{ field: "payee_name", op: "matches", value: "^a" }],
       },
     };
   const exhausted = await api(`/budgets/${budget}/reports/query`, hardRegex);

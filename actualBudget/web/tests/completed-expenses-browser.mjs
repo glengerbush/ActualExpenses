@@ -45,17 +45,18 @@ try {
   });
   expect((await call(root + "/transactions/" + id)).cleared).toBe(true);
   await server.stop();
-  // Recreate the preceding on-disk schema's status state, then exercise real startup migration.
+  // Rebuild genuine schema27 before restoring legacy status values.
+  execFileSync("python3", [
+    "tests/historical-schema.py",
+    data + "/actualbudget.sqlite3",
+    "27",
+  ]);
   execFileSync("python3", [
     "-c",
     `import sqlite3,sys
 c=sqlite3.connect(sys.argv[1])
-for name in ['manual_entries_insert','manual_entries_update','manual_balances_insert','manual_balances_update']: c.execute('DROP TRIGGER '+name)
 c.execute('UPDATE transactions SET cleared=0,reconciled=1')
 c.execute('UPDATE ledger_totals SET cleared=0,uncleared=total')
-c.execute('ALTER TABLE categories DROP COLUMN color')
-c.execute('ALTER TABLE category_groups DROP COLUMN color')
-[c.execute('DROP TRIGGER IF EXISTS visible_'+t+'_'+e) for t in ['categories','category_groups'] for e in ['insert','update']];c.execute('PRAGMA user_version=27')
 c.commit()`,
     data + "/actualbudget.sqlite3",
   ]);
@@ -71,10 +72,11 @@ c.commit()`,
   ).toBe(true);
   const edited = await call(
     root + "/transactions/" + id,
-    { notes: "Editable immediately", cleared: false },
+    { amount: -2600, cleared: false },
     "PATCH",
   );
-  expect(edited.notes).toBe("Editable immediately");
+  expect(edited.amount).toBe(-2600);
+  expect(edited.notes).toBe("");
   expect(edited.cleared).toBe(true);
   const statusQuery = {
     hide_cleared: true,
@@ -138,9 +140,7 @@ c.commit()`,
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
   await page.getByRole("button", { name: /Completed expenses.*Open/ }).click();
-  await expect(page.locator(".register-table")).toContainText(
-    "Editable immediately",
-  );
+  await expect(page.locator(".register-table")).toContainText("26.00");
   await expect(
     page.getByRole("columnheader", { name: "Status", exact: true }),
   ).toHaveCount(0);
@@ -159,13 +159,11 @@ c.commit()`,
     .click();
   await expect(page.getByLabel("Cleared", { exact: true })).toHaveCount(0);
   await page.getByLabel("Amount", { exact: true }).fill("3.21");
-  await page.getByLabel("Notes", { exact: true }).fill("Complete at entry");
+  await expect(page.getByLabel("Notes", { exact: true })).toHaveCount(0);
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.locator(".register-table")).toContainText(
-    "Complete at entry",
-  );
+  await expect(page.locator(".register-table")).toContainText("3.21");
   await page.route("**/api/v1/**", (route) =>
     route.abort("internetdisconnected"),
   );
@@ -174,36 +172,28 @@ c.commit()`,
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("4.56");
-  await page
-    .getByLabel("Notes", { exact: true })
-    .fill("Offline complete expense");
+
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.locator(".register-table")).toContainText(
-    "Offline complete expense",
-  );
+  await expect(page.locator(".register-table")).toContainText("4.56");
   await expect(
     page.getByRole("heading", { name: /Pending expenses/ }),
   ).toHaveCount(0);
   await page.reload();
-  await expect(page.locator(".register-table")).toContainText(
-    "Offline complete expense",
-  );
+  await expect(page.locator(".register-table")).toContainText("4.56");
   await page.unroute("**/api/v1/**");
   await page.evaluate(() => dispatchEvent(new Event("online")));
   await expect
     .poll(
       async () =>
         (await call(root + "/transactions")).filter(
-          (row) => row.notes === "Offline complete expense",
+          (row) => row.amount === -456,
         ).length,
     )
     .toBe(1);
   await expect(
-    page
-      .locator(".register-table tbody tr")
-      .filter({ hasText: "Offline complete expense" }),
+    page.locator(".register-table tbody tr").filter({ hasText: "4.56" }),
   ).toHaveCount(1);
   await mkdir("test-results/completed-expenses", { recursive: true });
   await page.screenshot({

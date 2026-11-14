@@ -321,6 +321,16 @@ pub fn convert_actual(source: &Value) -> (Settings, Vec<String>) {
             .as_str()
             .and_then(|s| serde_json::from_str::<Value>(s).ok())
             .unwrap_or_else(|| row["conditions"].clone());
+        if conditions.as_array().is_some_and(|conditions| {
+            conditions
+                .iter()
+                .any(|condition| condition["field"] == "notes")
+        }) {
+            // Omitting the entire saved filter avoids broadening a retired predicate.
+            // Its original definition remains in the retained import archive.
+            unsupported.push(format!("retired-saved-filter:{}", row["id"]));
+            continue;
+        }
         let mut query = Query::default();
         query.filter.op = if row["conditions_op"] == "or" || row["conditionsOp"] == "or" {
             crate::register::Junction::Or
@@ -411,4 +421,23 @@ pub fn enrich_legacy_imports(db: &Connection, only_budget: Option<&str>) -> Resu
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod retirement_tests {
+    use super::*;
+
+    #[test]
+    fn note_filters_stay_inactive_while_financial_filters_are_imported() {
+        let (settings, unsupported) = convert_actual(&json!({"transaction_filters":[
+            {"id":"00000000-0000-4000-8000-000000000001","name":"Notes","conditions_op":"or","conditions":[{"field":"notes","op":"contains","value":"old"},{"field":"amount","op":"is","value":100}]},
+            {"id":"00000000-0000-4000-8000-000000000002","name":"Amount","conditions_op":"and","conditions":[{"field":"amount","op":"is","value":100}]}
+        ]}));
+        assert_eq!(settings.saved_filters.len(), 1);
+        assert_eq!(settings.saved_filters[0].name, "Amount");
+        assert_eq!(
+            unsupported,
+            vec!["retired-saved-filter:\"00000000-0000-4000-8000-000000000001\""]
+        );
+    }
 }

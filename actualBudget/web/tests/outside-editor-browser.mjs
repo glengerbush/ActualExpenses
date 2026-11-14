@@ -98,25 +98,23 @@ try {
     page.getByLabel("Search transactions", { exact: true }),
   ).toBeEnabled();
   await transaction().click();
-  await page.getByLabel("Notes", { exact: true }).fill("Keep this edit");
+  await page.getByLabel("Amount", { exact: true }).fill("12.34");
   await outside();
   await expect(page.locator(".transaction-form")).toBeVisible();
   await page.reload();
-  await expect(page.getByLabel("Notes", { exact: true })).toHaveValue(
-    "Keep this edit",
-  );
+  await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("12.34");
   await outside();
   await expect(page.locator(".transaction-form")).toBeVisible();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.locator(`[data-transaction-id="${split}"]`).click();
   await expect(page.locator(".split-editor")).toBeVisible();
-  await expect(page.getByLabel("Split 1 notes", { exact: true })).toHaveValue(
-    "First",
+  await expect(page.getByLabel("Split 1 notes", { exact: true })).toHaveCount(
+    0,
   );
   await outside();
   await expect(page.locator(".split-editor")).toHaveCount(0);
   await page.locator(`[data-transaction-id="${split}"]`).click();
-  await page.getByLabel("Split 1 notes", { exact: true }).fill("Changed split");
+  await page.getByLabel("Split 1 amount", { exact: true }).fill("7.00");
   await outside();
   await expect(page.locator(".split-editor")).toBeVisible();
   await page
@@ -130,7 +128,7 @@ try {
   await outside();
   await expect(page.locator(".transfer-form")).toHaveCount(0);
   await page.locator(`[data-transaction-id="${transfer}"]`).click();
-  await page.getByLabel("Notes", { exact: true }).fill("Changed transfer");
+  await page.getByLabel("Amount", { exact: true }).fill("6.00");
   await outside();
   await expect(page.locator(".transfer-form")).toBeVisible();
   await page
@@ -141,24 +139,18 @@ try {
     page
       .locator(".budget-month")
       .first()
-      .locator(".budget-category")
-      .filter({ hasText: "Food" });
-  await category().click();
+      .locator(`.budget-category[data-id="${c}"]`);
+  const options = () =>
+    category().getByRole("button", { name: /^Edit Food for/ });
+  const planned = () =>
+    category().getByRole("textbox", { name: /^Planned Food for/ });
+  await options().click();
   await expect(page.locator(".inline-plan-row")).toBeVisible();
-  await page.getByLabel("Amount", { exact: true }).click();
+  await page.getByRole("region", { name: "Budget options for Food" }).click();
   await expect(page.locator(".inline-plan-row")).toBeVisible();
   await outside();
   await expect(page.locator(".inline-plan-row")).toHaveCount(0);
-  await category().click();
-  await page.getByLabel("Amount", { exact: true }).fill("42");
-  await outside();
-  await expect(page.locator(".inline-plan-row")).toBeVisible();
-  await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("42");
-  await page.reload();
-  await page.getByRole("button", { name: "Budget", exact: true }).click();
-  await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("42");
-  await outside();
-  await expect(page.locator(".inline-plan-row")).toBeVisible();
+  // Planned amounts now save on blur. Outside clicks must preserve the write.
   let release;
   const paused = new Promise((resolve) => (release = resolve));
   await page.route("**/api/v1" + root + "/budget", async (route) => {
@@ -166,17 +158,20 @@ try {
     await paused;
     await route.continue();
   });
-  await page.getByRole("button", { name: "Save plan", exact: true }).click();
+  await planned().fill("42");
   await outside();
-  await expect(page.locator(".inline-plan-row")).toBeVisible();
+  await expect(planned()).toHaveValue("42");
   release();
-  await expect(page.locator(".inline-plan-row")).toHaveCount(0);
-
+  await expect(planned()).toHaveValue("42.00");
+  await page.reload();
+  await page.getByRole("button", { name: "Budget", exact: true }).click();
+  await expect(planned()).toHaveValue("42.00");
   await page.setViewportSize({ width: 390, height: 844 });
-  await category().click();
+  await options().click();
   await outside();
   await expect(page.locator(".inline-plan-row")).toHaveCount(0);
-  expect((await call(root + `/transactions/${row}`)).notes).toBe("Regular");
+  expect((await call(root + `/transactions/${row}`)).amount).toBe(-1000);
+  expect((await call(root + `/transactions/${row}`)).notes).toBe("");
   expect(errors).toEqual([]);
   console.log(
     "PASS pristine outside dismissal for budget, transaction, split and transfer rows; inside clicks, dirty/recovered drafts and mobile",

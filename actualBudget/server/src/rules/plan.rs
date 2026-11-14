@@ -456,7 +456,7 @@ pub(super) fn commit_with_work(
         }
     }
     for (id, new) in planned {
-        crate::payees_tags::create(db, b, "payees", &new, clock)?;
+        crate::payees_tags::create(db, b, &new, clock)?;
         sync::mark(db, b, "payees", &id)?;
     }
     for entry in &mut entries {

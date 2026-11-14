@@ -59,7 +59,9 @@ try {
   await expect(
     page.getByRole("heading", { name: "Einstellungen", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   // Known German strings from the unchanged pinned catalog, not native implementation output.
   await expect(
     page.getByRole("button", { name: "Rückgängig", exact: true }),
@@ -94,13 +96,13 @@ try {
   await page.getByRole("button", { name: "Budget", exact: true }).click();
   await expect(page.getByRole("button", { name: /^Rückgängig/ })).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Vorheriger Monat", exact: true }),
+    page.getByRole("button", { name: "Previous month", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Nächster Monat", exact: true }),
+    page.getByRole("button", { name: "Next month", exact: true }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Close budget view", exact: true })
+    .getByRole("button", { name: "Transaction history", exact: true })
     .click();
   await page.getByRole("button", { name: "Regeln", exact: true }).click();
   await page
@@ -115,18 +117,18 @@ try {
   await page
     .getByRole("button", { name: "Discard draft", exact: true })
     .click();
-  await page.getByRole("button", { name: "Schließen", exact: true }).click();
-  await page.getByRole("button", { name: "Terminpläne", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Geplante Transaktionen", exact: true }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Schließen", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
+  // Inline recurrence replaces the standalone schedule view (covered by recurrence-editor-browser).
   await page.setViewportSize({ width: 320, height: 800 });
   await page
     .getByRole("button", { name: "Einstellungen", exact: true })
     .click();
   await page.locator("#theme").selectOption("midnight");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "Rückgängig", exact: true }),
   ).toBeVisible();
@@ -144,7 +146,9 @@ try {
     .getByRole("button", { name: "Einstellungen", exact: true })
     .click();
   await page.locator("#language").selectOption("en");
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "Undo", exact: true }),
   ).toBeVisible();
@@ -155,7 +159,7 @@ try {
   expect(stored.data).toHaveLength(1);
   expect(errors).toEqual([]);
   console.log(
-    "PASS translated register/planning/rule/schedule controls, unchanged enums/names/finances, mobile and English switch",
+    "PASS translated register/planning/rule controls, unchanged enums/names/finances, mobile and English switch",
   );
 } finally {
   await browser?.close();

@@ -1,3 +1,5 @@
+#[path = "support/retired_rows.rs"]
+mod retirement;
 use reqwest::blocking::{Client, Response};
 use serde_json::{Value, json};
 use std::{
@@ -126,7 +128,54 @@ fn ordered_rules_match_the_independent_engine_without_preview_side_effects() {
         .status(),
         201
     );
-    for case in f["cases"].as_array().unwrap() {
+    for original_case in f["cases"].as_array().unwrap() {
+        let mut case = original_case.clone();
+        if case["rules"].as_array().unwrap().iter().any(|r| {
+            r["conditions"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|c| c["field"] == "notes")
+        }) {
+            let rule = case["rules"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|r| {
+                    r["conditions"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .any(|c| c["field"] == "notes")
+                })
+                .unwrap();
+            assert_eq!(s.post(&format!("{root}/rules/preview"), "retired-condition", json!({"snapshot":cursor(&s,&root),"rule":rule,"transaction":{"id":E,"account_id":f["ids"]["account"],"amount":-100,"date":"2026-01-01"}})).status(), 400);
+            continue;
+        }
+        let note_only = case["rules"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .flat_map(|r| r["actions"].as_array().unwrap())
+            .all(|a| matches!(a["op"].as_str(), Some("append-notes" | "prepend-notes")));
+        let matched = original_case["after"]["notes"] != original_case["transaction"]["notes"];
+        for rule in case["rules"].as_array_mut().unwrap() {
+            let actions = rule["actions"].as_array_mut().unwrap();
+            if note_only {
+                for action in actions {
+                    *action = json!({"op":"set","field":"date","value":"2025-12-31"});
+                }
+            } else {
+                actions.retain(|a| {
+                    !(a["field"] == "notes"
+                        || matches!(a["op"].as_str(), Some("append-notes" | "prepend-notes")))
+                });
+            }
+        }
+        if note_only && matched {
+            case["after"]["date"] = json!("2025-12-31");
+        }
+        case = retirement::current(case);
         for rule in case["rules"].as_array().unwrap() {
             let cursor = s
                 .get(&format!("{root}/checkpoint"))
@@ -171,7 +220,6 @@ fn ordered_rules_match_the_independent_engine_without_preview_side_effects() {
         for (native, source) in [
             ("amount", "amount"),
             ("date", "date"),
-            ("notes", "notes"),
             ("cleared", "cleared"),
             ("payee_id", "payee"),
             ("category_id", "category"),
@@ -197,7 +245,6 @@ fn ordered_rules_match_the_independent_engine_without_preview_side_effects() {
             for (a, c) in actual.iter().zip(children) {
                 for (native, source) in [
                     ("amount", "amount"),
-                    ("notes", "notes"),
                     ("payee_id", "payee"),
                     ("category_id", "category"),
                 ] {
@@ -225,6 +272,7 @@ fn ordered_rules_match_the_independent_engine_without_preview_side_effects() {
                 .len(),
             0
         );
+        case = retirement::current(case);
         for rule in case["rules"].as_array().unwrap() {
             let cursor = s
                 .get(&format!("{root}/checkpoint"))
@@ -287,7 +335,7 @@ fn cursor(s: &Server, root: &str) -> Value {
 #[test]
 fn preview_selective_apply_is_one_replay_safe_owned_action() {
     let (s, root) = setup();
-    let rule = json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"lt","value":0}],"actions":[{"op":"append-notes","value":" / checked"}],"snapshot":cursor(&s,&root)});
+    let rule = json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"lt","value":0}],"actions":[{"op":"set","field":"date","value":"2026-01-02"}],"snapshot":cursor(&s,&root)});
     assert_eq!(s.post(&format!("{root}/rules"), "rule", rule).status(), 201);
     for (id, notes) in [(E, "One"), (F, "Two")] {
         assert_eq!(
@@ -324,20 +372,20 @@ fn preview_selective_apply_is_one_replay_safe_owned_action() {
     assert_eq!(applied.status(), 200, "{}", applied.text().unwrap());
     let applied = applied.json::<Value>().unwrap();
     assert_eq!(applied["data"]["affected_count"], 1);
-    let r=s.client.patch(format!("{}{root}/rules/{R}",s.url)).header("Idempotency-Key","remote-rule-change").json(&json!({"snapshot":cursor(&s,&root),"actions":[{"op":"append-notes","value":" different"}]})).send().unwrap();
+    let r=s.client.patch(format!("{}{root}/rules/{R}",s.url)).header("Idempotency-Key","remote-rule-change").json(&json!({"snapshot":cursor(&s,&root),"actions":[{"op":"set","field":"date","value":"2026-01-03"}]})).send().unwrap();
     assert_eq!(r.status(), 200);
     assert_eq!(send().json::<Value>().unwrap(), applied);
     assert_eq!(
         s.get(&format!("{root}/transactions/{E}"))
             .json::<Value>()
-            .unwrap()["data"]["notes"],
-        "One / checked"
+            .unwrap()["data"]["date"],
+        "2026-01-02"
     );
     assert_eq!(
         s.get(&format!("{root}/transactions/{F}"))
             .json::<Value>()
-            .unwrap()["data"]["notes"],
-        "Two"
+            .unwrap()["data"]["date"],
+        "2026-01-01"
     );
     let history = s
         .client
@@ -359,24 +407,37 @@ fn preview_selective_apply_is_one_replay_safe_owned_action() {
     assert_eq!(
         s.get(&format!("{root}/transactions/{E}"))
             .json::<Value>()
-            .unwrap()["data"]["notes"],
-        "One"
+            .unwrap()["data"]["date"],
+        "2026-01-01"
     );
 }
 
 #[test]
 fn selective_apply_shares_one_regex_budget_and_rolls_back_the_whole_command() {
     let (s, root) = setup();
-    for index in 0..2 {
+    for index in 0..32 {
         let id = format!("19190000-0000-4000-8000-{:012}", 500 + index);
-        let conditions = vec![json!({"field":"notes","op":"matches","value":"a"}); 32];
-        let r=s.post(&format!("{root}/rules"),&id,json!({"id":id,"stage":null,"conditionsOp":"and","conditions":conditions,"actions":[{"op":"set","field":"cleared","value":true}],"snapshot":cursor(&s,&root)}));
+        let conditions = vec![json!({"field":"payee_name","op":"matches","value":"a"}); 32];
+        let r=s.post(&format!("{root}/rules"),&id,json!({"id":id,"stage":null,"conditionsOp":"and","conditions":conditions,"actions":[{"op":"set","field":"date","value":"2026-01-02"}],"snapshot":cursor(&s,&root)}));
         assert_eq!(r.status(), 201, "{}", r.text().unwrap());
     }
+    assert_eq!(
+        s.post(
+            &format!("{root}/payees"),
+            "long-payee",
+            json!({"id":F,"name":"a".repeat(120)})
+        )
+        .status(),
+        201
+    );
     let mut ids = vec![];
     for index in 0..100 {
         let id = format!("19190000-0000-4000-8000-{:012}", 1000 + index);
-        let r=s.post(&format!("{root}/transactions"),&id,json!({"id":id,"account_id":A,"amount":-1,"date":"2026-01-01","notes":"a".repeat(10000)}));
+        let r = s.post(
+            &format!("{root}/transactions"),
+            &id,
+            json!({"id":id,"account_id":A,"amount":-1,"date":"2026-01-01","payee_id":F}),
+        );
         assert_eq!(r.status(), 201);
         ids.push(id);
     }
@@ -401,7 +462,7 @@ fn selective_apply_shares_one_regex_budget_and_rolls_back_the_whole_command() {
             .as_array()
             .unwrap()
             .iter()
-            .all(|row| row["cleared"] == false)
+            .all(|row| row["date"] == "2026-01-01")
     );
 }
 
@@ -608,7 +669,11 @@ fn genuine_schema16_upgrade_retains_history_and_replay_while_archive_rotates_own
     .unwrap();
     assert_eq!(history, f["history"]);
     let rowpath = format!("{root}/transactions/{}", f["row"]["id"].as_str().unwrap());
-    assert_eq!(s.get(&rowpath).json::<Value>().unwrap()["data"], f["row"]);
+    let expected_row = retirement::current(f["row"].clone());
+    let actual_row = s.get(&rowpath).json::<Value>().unwrap();
+    for (key, value) in expected_row.as_object().unwrap() {
+        assert_eq!(&actual_row["data"][key], value, "{key}");
+    }
     assert_eq!(
         s.get(&root).json::<Value>().unwrap()["data"]["epoch"],
         f["metadata"]["epoch"]
@@ -648,12 +713,27 @@ fn genuine_schema16_upgrade_retains_history_and_replay_while_archive_rotates_own
     );
     assert_eq!(plan.status(), 200, "{}", plan.text().unwrap());
     assert_eq!(plan.json::<Value>().unwrap(), f["planning"]);
-    assert_eq!(
-        s.get(&format!("{root}/budget?month=2026-01"))
-            .json::<Value>()
-            .unwrap(),
-        f["planning_view"]
-    );
+    let planning = s
+        .get(&format!("{root}/budget?month=2026-01"))
+        .json::<Value>()
+        .unwrap();
+    let expected = &f["planning_view"]["data"]["months"]["2026-01"];
+    let actual = &planning["data"]["months"]["2026-01"];
+    for category in expected["categories"].as_array().unwrap() {
+        let id = &category["id"];
+        let actual_category = actual["categories"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| &c["id"] == id)
+            .unwrap();
+        for field in ["actual", "budgeted", "balance"] {
+            assert_eq!(actual_category[field], category[field], "{id}/{field}");
+        }
+    }
+    for (key, value) in expected["summary"].as_object().unwrap() {
+        assert_eq!(&actual["summary"][key], value, "{key}");
+    }
     let stage_id = f["stage"]["data"]["id"].as_str().unwrap();
     let stage = s
         .get(&format!("/api/v1/imports/{stage_id}"))
@@ -687,7 +767,7 @@ fn genuine_schema16_upgrade_retains_history_and_replay_while_archive_rotates_own
         .unwrap()
         .json::<Value>()
         .unwrap();
-    assert_eq!(upload["data"]["report"]["schema_version"], 27, "{upload}");
+    assert_eq!(upload["data"]["report"]["schema_version"], 36, "{upload}");
     let activate = target.post(
         &format!(
             "{root}/restores/{}/activate",
@@ -701,10 +781,10 @@ fn genuine_schema16_upgrade_retains_history_and_replay_while_archive_rotates_own
         target.get(&root).json::<Value>().unwrap()["data"]["epoch"],
         f["metadata"]["epoch"]
     );
-    assert_eq!(
-        target.get(&rowpath).json::<Value>().unwrap()["data"],
-        f["row"]
-    );
+    let restored = target.get(&rowpath).json::<Value>().unwrap();
+    for (key, value) in expected_row.as_object().unwrap() {
+        assert_eq!(&restored["data"][key], value, "{key}");
+    }
     let h = target
         .client
         .get(format!("{}{root}/history", target.url))
@@ -742,7 +822,7 @@ fn genuine_rule_import_and_current_native_restore_keep_execution_and_simple_asso
         uploaded["data"]["budget_id"].as_str().unwrap()
     );
     let rules = s.get(&format!("{root}/rules")).json::<Value>().unwrap();
-    assert_eq!(rules["data"].as_array().unwrap().len(), 3);
+    assert_eq!(rules["data"].as_array().unwrap().len(), 2);
     let f: Value =
         serde_json::from_str(include_str!("../../tests/fixtures/rules-26.10.0.json")).unwrap();
     let associations = s
@@ -773,7 +853,7 @@ fn genuine_rule_import_and_current_native_restore_keep_execution_and_simple_asso
         .unwrap()
         .json::<Value>()
         .unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 27, "{stage}");
+    assert_eq!(stage["data"]["report"]["schema_version"], 36, "{stage}");
     let name = s.get(&root).json::<Value>().unwrap()["data"]["name"].clone();
     let r = t.post(
         &format!(
@@ -843,7 +923,9 @@ fn financial_state(s: &Server, root: &str) -> Value {
 fn persisted_transfer_rule_oracle_preserves_valid_pairs_and_refuses_contradictory_amounts_atomically()
  {
     let oracle: Value =
-        serde_json::from_str(include_str!("../../tests/fixtures/rules-26.10.0.json")).unwrap();
+        serde_json::from_str(include_str!("../../tests/fixtures/rules-26.10.0.json"))
+            .map(retirement::current)
+            .unwrap();
     for (index, case) in oracle["financial"].as_array().unwrap().iter().enumerate() {
         let s = Server::start();
         let source = std::fs::read(format!(
@@ -911,7 +993,13 @@ fn persisted_transfer_rule_oracle_preserves_valid_pairs_and_refuses_contradictor
             .json(&json!({"snapshot":before,"ids":ids}))
             .send()
             .unwrap();
-        if case["replacement_refusal"] == true {
+        if case["replacement_refusal"] == true
+            && case["actions"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|a| a["field"] != "cleared")
+        {
             assert!(
                 [400, 409].contains(&r.status().as_u16()),
                 "{} {}",
@@ -993,7 +1081,7 @@ fn selected_peers_keep_only_each_rules_explicit_field_intent() {
         let actions = if only_amount {
             json!([{"op":"set","field":"amount","value":-77}])
         } else {
-            json!([{"op":"append-notes","value":" X"}])
+            json!([{"op":"set","field":"date","value":"2026-12-01"}])
         };
         let rule = json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"account","op":"is","value":row["account_id"]}],"actions":actions,"snapshot":cursor(&s,&root)});
         assert_eq!(
@@ -1001,7 +1089,7 @@ fn selected_peers_keep_only_each_rules_explicit_field_intent() {
             201
         );
         if !only_amount {
-            let rule = json!({"id":F,"stage":null,"conditionsOp":"and","conditions":[{"field":"account","op":"is","value":other["account_id"]}],"actions":[{"op":"set","field":"cleared","value":true}],"snapshot":cursor(&s,&root)});
+            let rule = json!({"id":F,"stage":null,"conditionsOp":"and","conditions":[{"field":"account","op":"is","value":other["account_id"]}],"actions":[{"op":"set","field":"date","value":"2026-12-02"}],"snapshot":cursor(&s,&root)});
             assert_eq!(
                 s.post(&format!("{root}/rules"), "ruleB", rule).status(),
                 201
@@ -1027,8 +1115,8 @@ fn selected_peers_keep_only_each_rules_explicit_field_intent() {
             assert_eq!(a["amount"], -77);
             assert_eq!(b["amount"], 77);
         } else {
-            assert_eq!(a["notes"], "Pair X");
-            assert_eq!(b["notes"], "Pair X");
+            assert_eq!(a["date"], "2026-12-01");
+            assert_eq!(b["date"], "2026-12-02");
             assert_eq!(b["cleared"], true);
         }
     }
@@ -1070,7 +1158,7 @@ fn automatic_entry_protection_matches_the_executed_desktop_helper() {
         serde_json::from_str(include_str!("../../tests/fixtures/rules-26.10.0.json")).unwrap();
     for case in oracle["manual_protection"].as_array().unwrap() {
         let field = case["field"].as_str().unwrap();
-        if field == "imported_payee" {
+        if matches!(field, "imported_payee" | "notes") {
             continue;
         }
         let key = match field {
@@ -1107,13 +1195,17 @@ fn automatic_entry_protection_matches_the_executed_desktop_helper() {
 }
 #[test]
 fn automatic_entry_is_one_atomic_owned_action_with_manual_values_and_exact_replay() {
-    check_automatic_entry(false);
+    check_automatic_entry();
 }
 #[test]
-fn calculated_entry_preserves_manual_values_exact_receipt_and_history() {
-    check_automatic_entry(true);
+fn calculated_rule_actions_are_rejected_without_writes() {
+    let (s, root) = setup();
+    let before = cursor(&s, &root);
+    let r=s.post(&format!("{root}/rules"), "retired-formula", json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[],"actions":[{"op":"set","field":"amount","value":null,"options":{"formula":"=-7.77"}}],"snapshot":before}));
+    assert_eq!(r.status(), 400);
+    assert_eq!(cursor(&s, &root), before);
 }
-fn check_automatic_entry(calculated: bool) {
+fn check_automatic_entry() {
     let (s, root) = setup();
     for (id, name) in [(E, "Food"), (F, "Travel")] {
         assert_eq!(
@@ -1126,17 +1218,7 @@ fn check_automatic_entry(calculated: bool) {
             201
         );
     }
-    let mut rule = json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"lt","value":0}],"actions":[{"op":"set","field":"category","value":E},{"op":"set","field":"amount","value":-777},{"op":"set","field":"date","value":"2025-01-01"},{"op":"set","field":"cleared","value":true},{"op":"append-notes","value":" X"}],"snapshot":cursor(&s,&root)});
-    if calculated {
-        rule["actions"][1] =
-            json!({"op":"set","field":"amount","value":null,"options":{"formula":"=-7.77"}});
-        rule["actions"][2] =
-            json!({"op":"set","field":"date","value":null,"options":{"template":"2025-01-01"}});
-        rule["actions"][3] =
-            json!({"op":"set","field":"cleared","value":null,"options":{"formula":"=TRUE()"}});
-        rule["actions"][4] =
-            json!({"op":"set","field":"notes","value":null,"options":{"template":"{{notes}} X"}});
-    }
+    let rule = json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"lt","value":0}],"actions":[{"op":"set","field":"category","value":E},{"op":"set","field":"amount","value":-777},{"op":"set","field":"date","value":"2025-01-01"},{"op":"set","field":"cleared","value":true}],"snapshot":cursor(&s,&root)});
     assert_eq!(s.post(&format!("{root}/rules"), "rule", rule).status(), 201);
     let transaction = json!({"id":E,"account_id":A,"amount":-100,"date":"2026-01-01","notes":"Manual","category_id":F});
     let mut body = transaction;
@@ -1158,11 +1240,11 @@ fn check_automatic_entry(calculated: bool) {
         ("date", json!("2026-01-01")),
         ("category_id", json!(F)),
         ("cleared", json!(true)),
-        ("notes", json!("Manual X")),
+        ("notes", json!("")),
     ] {
         assert_eq!(original["data"][field], value);
     }
-    let r=s.client.patch(format!("{}{root}/rules/{R}",s.url)).header("Idempotency-Key","remote").json(&json!({"snapshot":cursor(&s,&root),"actions":[{"op":"append-notes","value":" different"}]})).send().unwrap();
+    let r=s.client.patch(format!("{}{root}/rules/{R}",s.url)).header("Idempotency-Key","remote").json(&json!({"snapshot":cursor(&s,&root),"actions":[{"op":"set","field":"date","value":"2026-01-03"}]})).send().unwrap();
     assert_eq!(r.status(), 200);
     assert_eq!(send().json::<Value>().unwrap(), original);
     let h = s
@@ -1212,7 +1294,7 @@ fn rules_contract_cancellation_lookup_and_field_clocks_keep_original_intent() {
         .to_rfc3339_opts(chrono::SecondsFormat::Millis, true);
     let a = format!("{clock}-0001-0000000000000019");
     let b = format!("{clock}-0002-0000000000000019");
-    let body = json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"lt","value":0}],"actions":[{"op":"append-notes","value":" original"}],"snapshot":cursor(&s,&root)});
+    let body = json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"lt","value":0}],"actions":[{"op":"set","field":"date","value":"2026-01-02"}],"snapshot":cursor(&s,&root)});
     let post = |key: &str, lookup: bool, cancel: bool| {
         let mut r = s
             .client
@@ -1252,8 +1334,7 @@ fn rules_contract_cancellation_lookup_and_field_clocks_keep_original_intent() {
         post("create", true, false).json::<Value>().unwrap(),
         original
     );
-    let newer =
-        json!({"snapshot":cursor(&s,&root),"actions":[{"op":"append-notes","value":" winning"}]});
+    let newer = json!({"snapshot":cursor(&s,&root),"actions":[{"op":"set","field":"date","value":"2026-01-03"}]});
     let r = s
         .client
         .patch(format!("{}{root}/rules/{R}", s.url))
@@ -1270,14 +1351,14 @@ fn rules_contract_cancellation_lookup_and_field_clocks_keep_original_intent() {
             .patch(format!("{}{root}/rules/{R}", s.url))
             .header("Idempotency-Key", format!("stale{clock}"))
             .header("X-Actual-Edit-Clock", clock)
-            .json(&json!({"snapshot":before,"actions":[{"op":"append-notes","value":" stale"}]}))
+            .json(&json!({"snapshot":before,"actions":[{"op":"set","field":"date","value":"2026-01-04"}]}))
             .send()
             .unwrap();
         assert_eq!(r.status(), 409, "{}", r.text().unwrap());
         assert_eq!(cursor(&s, &root), before);
     }
     let current = s.get(&format!("{root}/rules/{R}")).json::<Value>().unwrap();
-    assert_eq!(current["data"]["actions"][0]["value"], " winning");
+    assert_eq!(current["data"]["actions"][0]["value"], "2026-01-03");
     assert_eq!(current["data"]["field_versions"]["actions"], b);
     let malformed=s.post(&format!("{root}/rules/preview"),"bad",json!({"snapshot":cursor(&s,&root),"transaction":{"id":E,"account_id":A,"amount":"wrong","date":"2026-01-01"}}));
     assert_eq!(malformed.status(), 400);
@@ -1314,91 +1395,211 @@ fn rules_contract_cancellation_lookup_and_field_clocks_keep_original_intent() {
         .json::<Value>()
         .unwrap();
     assert_eq!(associated["data"].as_array().unwrap().len(), 1);
-    // Saved expressions are accepted even when their editor opt-in is disabled.
+    // Retired expressions are rejected even when submitted directly.
     let action =
         json!({"op":"set","field":"notes","value":"","options":{"template":"{{payee_name}}"}});
     let r=s.post(&format!("{root}/rules"),"template42",json!({"id":F,"stage":null,"conditionsOp":"and","conditions":[],"actions":[action],"snapshot":cursor(&s,&root)}));
-    assert_eq!(r.status(), 201, "{}", r.text().unwrap());
+    assert_eq!(r.status(), 400, "{}", r.text().unwrap());
 }
 
 #[test]
-fn protected_peer_refuses_rule_apply_until_explicit_unlock_and_fresh_preview() {
+fn rule_history_refuses_a_newer_overlapping_pair_edit() {
     let (s, root, id, row) = import_financial(0);
     let peer = row["transfer_id"].as_str().unwrap();
-    let other = s
-        .get(&format!("{root}/transactions/{peer}"))
-        .json::<Value>()
-        .unwrap()["data"]["account_id"]
-        .as_str()
-        .unwrap()
-        .to_owned();
-    let r = s
+    let r=s.post(&format!("{root}/rules"),"rule",json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"lt","value":0}],"actions":[{"op":"set","field":"amount","value":-77}],"snapshot":cursor(&s,&root)}));
+    assert_eq!(r.status(), 201);
+    let applied = s
         .client
-        .patch(format!("{}{root}/transactions/{peer}", s.url))
-        .header("Idempotency-Key", "clear")
-        .json(&json!({"cleared":true}))
+        .post(format!("{}{root}/rules/apply", s.url))
+        .header("Idempotency-Key", "owned-apply")
+        .header("X-Actual-History-Owner", OWNER)
+        .json(&json!({"snapshot":cursor(&s,&root),"ids":[id]}))
         .send()
         .unwrap();
-    assert_eq!(r.status(), 200);
-    let path = format!("{root}/accounts/{other}/reconciliation");
-    let review = s
-        .get(&format!("{path}?statement_balance=100"))
+    assert_eq!(applied.status(), 200, "{}", applied.text().unwrap());
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{peer}"))
+            .json::<Value>()
+            .unwrap()["data"]["amount"],
+        77
+    );
+    let history = s
+        .client
+        .get(format!("{}{root}/history", s.url))
+        .header("X-Actual-History-Owner", OWNER)
+        .send()
+        .unwrap()
         .json::<Value>()
         .unwrap();
-    let r=s.post(&path,"lock",json!({"action":"lock","statement_balance":100,"snapshot":review["data"]["snapshot"],"date":"2026-11-08"}));
-    assert_eq!(r.status(), 200, "{}", r.text().unwrap());
-    let r=s.post(&format!("{root}/rules"),"rule",json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"lt","value":0}],"actions":[{"op":"append-notes","value":" / safe"}],"snapshot":cursor(&s,&root)}));
-    assert_eq!(r.status(), 201);
+    let remote = s
+        .client
+        .patch(format!("{}{root}/transactions/{id}", s.url))
+        .header("Idempotency-Key", "remote-amount")
+        .json(&json!({"amount":-88}))
+        .send()
+        .unwrap();
+    assert_eq!(remote.status(), 200, "{}", remote.text().unwrap());
     let before = cursor(&s, &root);
     let state = financial_state(&s, &root);
-    let r = s
-        .post(
-            &format!("{root}/rules/preview"),
-            "preview",
-            json!({"snapshot":before,"ids":[id]}),
-        )
-        .json::<Value>()
+    let undo = s
+        .client
+        .post(format!("{}{root}/history/undo", s.url))
+        .header("Idempotency-Key", "refuse-overlap")
+        .header("X-Actual-History-Owner", OWNER)
+        .json(&json!({"action_id":history["data"]["undo"]["id"]}))
+        .send()
         .unwrap();
-    assert_eq!(r["data"]["protected_count"], 1);
-    let r = s.post(
-        &format!("{root}/rules/apply"),
-        "protected",
-        json!({"snapshot":before,"ids":[id]}),
-    );
-    assert_eq!(r.status(), 409);
+    assert_eq!(undo.status(), 409, "{}", undo.text().unwrap());
     assert_eq!(cursor(&s, &root), before);
     assert_eq!(financial_state(&s, &root), state);
-    let locked = s
-        .get(&format!("{root}/transactions/{peer}"))
-        .json::<Value>()
-        .unwrap();
-    let r = s.post(
-        &format!("{root}/transactions/{peer}/unlock"),
-        "unlock",
-        json!({"reconciled_version":locked["data"]["field_versions"]["reconciled"]}),
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{peer}"))
+            .json::<Value>()
+            .unwrap()["data"]["amount"],
+        88
     );
-    assert_eq!(r.status(), 200);
-    let preview = s
-        .post(
-            &format!("{root}/rules/preview"),
-            "new-preview",
-            json!({"snapshot":cursor(&s,&root),"ids":[id]}),
-        )
-        .json::<Value>()
+}
+
+#[test]
+fn historical_native_archive_retires_note_rules_without_losing_financial_actions() {
+    use sha2::{Digest, Sha256};
+    use std::io::{Cursor, Read, Write};
+    for predicate in [false, true] {
+        // Authentic old-server archive structure, with a legacy note action/predicate.
+        // Recompute only the changed entry's manifest; original receipts stay byte-for-byte data.
+        let mut source = zip::ZipArchive::new(Cursor::new(include_bytes!(
+            "../../tests/fixtures/budget-automation-schema19.zip"
+        )))
         .unwrap();
-    assert_eq!(preview["data"]["protected_count"], 0);
-    let r = s.post(
-        &format!("{root}/rules/apply"),
-        "unlocked",
-        json!({"snapshot":preview["data"]["snapshot"],"ids":[id]}),
-    );
-    assert_eq!(r.status(), 200, "{}", r.text().unwrap());
-    for id in [&id, peer] {
-        assert_eq!(
-            s.get(&format!("{root}/transactions/{id}"))
-                .json::<Value>()
-                .unwrap()["data"]["notes"],
-            "Pair / safe"
+        let mut entries = std::collections::BTreeMap::new();
+        for index in 0..source.len() {
+            let mut file = source.by_index(index).unwrap();
+            let mut bytes = vec![];
+            file.read_to_end(&mut bytes).unwrap();
+            entries.insert(file.name().to_owned(), bytes);
+        }
+        let mut state: Value = serde_json::from_slice(&entries["budget.json"]).unwrap();
+        let original_receipts = state["receipts"].clone();
+        let budget = state["budget"]["id"].as_str().unwrap().to_owned();
+        let name = state["budget"]["name"].clone();
+        let row = &mut state["tables"]["rules"]["rows"][0];
+        let original_actions: Value = serde_json::from_str(row[5].as_str().unwrap()).unwrap();
+        let mut actions = original_actions.clone();
+        actions
+            .as_array_mut()
+            .unwrap()
+            .push(json!({"op":"append-notes","value":"legacy memo"}));
+        row[5] = json!(actions.to_string());
+        if predicate {
+            let mut conditions: Value = serde_json::from_str(row[4].as_str().unwrap()).unwrap();
+            conditions
+                .as_array_mut()
+                .unwrap()
+                .push(json!({"field":"notes","op":"contains","value":"legacy memo"}));
+            row[4] = json!(conditions.to_string());
+        }
+        assert_eq!(state["receipts"], original_receipts);
+        let payload = serde_json::to_vec(&state).unwrap();
+        let mut manifest: Value = serde_json::from_slice(&entries["manifest.json"]).unwrap();
+        manifest["entries"]["budget.json"] =
+            json!({"bytes":payload.len(),"sha256":format!("{:x}",Sha256::digest(&payload))});
+        entries.insert("budget.json".into(), payload);
+        entries.insert(
+            "manifest.json".into(),
+            serde_json::to_vec(&manifest).unwrap(),
         );
+        let mut zip = zip::ZipWriter::new(Cursor::new(vec![]));
+        for (name, bytes) in entries {
+            zip.start_file(name, zip::write::SimpleFileOptions::default())
+                .unwrap();
+            zip.write_all(&bytes).unwrap();
+        }
+        let s = Server::start();
+        let upload = s
+            .client
+            .post(format!("{}/api/v1/restores", s.url))
+            .header("Idempotency-Key", "historical-notes")
+            .header("Content-Type", "application/zip")
+            .body(zip.finish().unwrap().into_inner())
+            .send()
+            .unwrap();
+        assert_eq!(upload.status(), 201, "{}", upload.text().unwrap());
+        let stage = upload.json::<Value>().unwrap();
+        let root = format!("/api/v1/budgets/{budget}");
+        let activated = s.post(
+            &format!(
+                "{root}/restores/{}/activate",
+                stage["data"]["id"].as_str().unwrap()
+            ),
+            "activate",
+            json!({"confirm_name":name}),
+        );
+        assert_eq!(activated.status(), 200, "{}", activated.text().unwrap());
+        let rules = s.get(&format!("{root}/rules")).json::<Value>().unwrap();
+        assert_eq!(
+            rules["data"].as_array().unwrap().len(),
+            usize::from(!predicate)
+        );
+        if !predicate {
+            assert_eq!(rules["data"][0]["actions"], original_actions);
+        }
+        let schedules = s.get(&format!("{root}/schedules")).json::<Value>().unwrap();
+        assert_eq!(
+            schedules["data"]["schedules"].as_array().unwrap().len(),
+            usize::from(!predicate)
+        );
+        let epoch = s.get(&root).json::<Value>().unwrap()["data"]["epoch"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        let backup = s
+            .client
+            .post(format!("{}{root}/backups", s.url))
+            .header("Idempotency-Key", "receipt-proof")
+            .header("X-Actual-Budget-Epoch", epoch)
+            .json(&json!({}))
+            .send()
+            .unwrap();
+        assert_eq!(backup.status(), 201, "{}", backup.text().unwrap());
+        let backup = backup.json::<Value>().unwrap();
+        let bytes = s
+            .get(&format!(
+                "{root}/backups/{}/download",
+                backup["data"]["id"].as_str().unwrap()
+            ))
+            .bytes()
+            .unwrap();
+        let mut exported = zip::ZipArchive::new(Cursor::new(bytes)).unwrap();
+        let mut restored = vec![];
+        exported
+            .by_name("budget.json")
+            .unwrap()
+            .read_to_end(&mut restored)
+            .unwrap();
+        let restored: Value = serde_json::from_slice(&restored).unwrap();
+        for receipt in original_receipts.as_array().unwrap() {
+            assert!(
+                restored["receipts"].as_array().unwrap().contains(receipt),
+                "Historical receipt changed: {receipt}"
+            );
+        }
+        let transactions = &state["tables"]["transactions"];
+        let columns = transactions["columns"].as_array().unwrap();
+        let index = |field: &str| columns.iter().position(|c| c == field).unwrap();
+        for row in transactions["rows"].as_array().unwrap() {
+            if row[index("tombstone")] == 1 {
+                continue;
+            }
+            let actual = s
+                .get(&format!(
+                    "{root}/transactions/{}",
+                    row[index("id")].as_str().unwrap()
+                ))
+                .json::<Value>()
+                .unwrap();
+            for field in ["amount", "date", "account_id"] {
+                assert_eq!(actual["data"][field], row[index(field)], "{field}");
+            }
+        }
     }
 }

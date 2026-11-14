@@ -129,7 +129,7 @@ try {
   });
   {
     const data = await fixture("Cutoff response recovery", 10000);
-    await data.add({
+    const future = await data.add({
       amount: 5000,
       date: "2026-12-01",
       notes: "Future income",
@@ -141,8 +141,9 @@ try {
       .first()
       .textContent();
     await page.route("**/transactions?**", (route) => route.abort("failed"));
+    await page.getByText("Filters", { exact: true }).click();
     await page.getByLabel("Show through date").fill("06/01/2026");
-    await page.getByRole("button", { name: "Apply", exact: true }).click();
+    await page.getByRole("button", { name: "Apply date", exact: true }).click();
     await expect(
       page
         .getByText(
@@ -156,14 +157,14 @@ try {
       confirmedLabel,
     );
     await expect(
-      page.getByText("Future income", { exact: true }),
+      page.locator(`[data-transaction-id="${future.id}"]`),
     ).toBeVisible();
     await page.unroute("**/transactions?**");
-    await page.getByRole("button", { name: "Apply", exact: true }).click();
+    await page.getByRole("button", { name: "Apply date", exact: true }).click();
     await expect(page.getByTestId("register-total")).toHaveText("100.00");
-    await expect(page.getByText("Future income", { exact: true })).toHaveCount(
-      0,
-    );
+    await expect(
+      page.locator(`[data-transaction-id="${future.id}"]`),
+    ).toHaveCount(0);
     await expect(page.locator(".register-balances dt").first()).not.toHaveText(
       confirmedLabel,
     );
@@ -192,14 +193,20 @@ try {
     await expect(page.getByTestId("register-total")).toHaveText("102.00");
     await expect(rows).toHaveCount(100);
     await expect(
-      page.getByText("Other device insertion", { exact: true }),
+      page.locator(`[data-transaction-id="${inserted.id}"]`),
     ).toBeVisible();
     await expect(
       page.getByText("Data changed. The transaction list was refreshed."),
     ).toBeVisible();
     await more.click();
     await expect(rows).toHaveCount(102);
-    expect(new Set(await rows.allTextContents()).size).toBe(102);
+    expect(
+      new Set(
+        await rows.evaluateAll((nodes) =>
+          nodes.map((node) => node.dataset.transactionId),
+        ),
+      ).size,
+    ).toBe(102);
     await page.reload();
     await expect(rows).toHaveCount(100);
     await request(
@@ -211,21 +218,27 @@ try {
     await expect(page.getByTestId("register-total")).toHaveText("106.00");
     await expect(rows).toHaveCount(100);
     await expect(
-      page.getByText("Edited on other device", { exact: true }),
+      page.locator(`[data-transaction-id="${inserted.id}"]`),
     ).toBeVisible();
     await expect(
-      page.getByText("Other device insertion", { exact: true }),
-    ).toHaveCount(0);
+      page.locator(`[data-transaction-id="${inserted.id}"] td.amount`).first(),
+    ).toHaveText("+5.00");
     await request(`${data.transactions}/${inserted.id}`, {}, "DELETE");
     await more.click();
     await expect(page.getByTestId("register-total")).toHaveText("101.00");
     await expect(rows).toHaveCount(100);
     await expect(
-      page.getByText("Edited on other device", { exact: true }),
+      page.locator(`[data-transaction-id="${inserted.id}"]`),
     ).toHaveCount(0);
     await more.click();
     await expect(rows).toHaveCount(101);
-    expect(new Set(await rows.allTextContents()).size).toBe(101);
+    expect(
+      new Set(
+        await rows.evaluateAll((nodes) =>
+          nodes.map((node) => node.dataset.transactionId),
+        ),
+      ).size,
+    ).toBe(101);
     await context.close();
     console.log(
       "PASS concurrent insertion/edit/deletion refresh coherent pages; stable continuation has no duplicates",
@@ -242,16 +255,18 @@ try {
       .click();
     await page.getByLabel("Amount", { exact: true }).fill("12.34");
     await page.getByLabel("Date", { exact: true }).fill("01/02/2026");
-    await page
-      .getByLabel("Notes", { exact: true })
-      .fill("Recover original expense");
     const createRoute = transactionCreatePattern(data.budget);
     const creates = await loseCommittedResponse(page, createRoute, "POST");
     await page
       .getByRole("button", { name: "Save transaction", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "Retry pending expense" }),
+      page
+        .getByText(
+          "Cannot reach the server. Check your connection and retry.",
+          { exact: true },
+        )
+        .first(),
     ).toBeVisible();
     await hidePreferences(page, data.budget);
     await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
@@ -263,27 +278,27 @@ try {
       undefined,
       "GET",
     );
-    expect(
-      actual.filter((row) => row.notes === "Recover original expense"),
-    ).toHaveLength(1);
+    expect(actual.filter((row) => row.amount === -1234)).toHaveLength(1);
     await restorePreferences(page);
     await expect(page.getByTestId("register-total")).toHaveText("87.66");
     await page.unroute(createRoute);
-    const entry = actual.find(
-      (row) => row.notes === "Recover original expense",
-    );
+    const entry = actual.find((row) => row.amount === -1234);
     const deleteRoute = `**/api/v1${data.transactions}/${entry.id}`;
     const deletes = await loseCommittedResponse(page, deleteRoute, "DELETE");
     await page
-      .locator(".register-table tbody tr")
-      .filter({ hasText: "Recover original expense" })
+      .locator(`[data-transaction-id="${entry.id}"]`)
       .getByRole("button", { name: /^Delete / })
       .click();
     await page
       .getByRole("button", { name: "Confirm delete", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "Retry pending expense" }),
+      page
+        .getByText(
+          "Cannot reach the server. Check your connection and retry.",
+          { exact: true },
+        )
+        .first(),
     ).toBeVisible();
     await hidePreferences(page, data.budget);
     await expect(page.getByTestId("pending-expenses")).toHaveCount(0);

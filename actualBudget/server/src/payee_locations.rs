@@ -178,7 +178,7 @@ fn create(db: &Connection, b: &str, body: Value, clock: &str) -> Result<Value, E
         (None, Some(p)) => {
             validate_id(&p.id)?;
             validate_name(p.name.trim())?;
-            crate::payees_tags::duplicate(db, b, "payees", &p.id, p.name.trim())?;
+            crate::payees_tags::duplicate(db, b, &p.id, p.name.trim())?;
             if db.query_row(
                 "SELECT EXISTS(SELECT 1 FROM payees WHERE budget_id=?1 AND id=?2)",
                 params![b, p.id],

@@ -32,7 +32,7 @@ try {
   const source = JSON.parse(
       await readFile(
         new URL(
-          "../../tests/fixtures/custom-reports-source-26.10.json",
+          "../../tests/fixtures/custom-reports-visible-source-26.10.json",
           import.meta.url,
         ),
         "utf8",
@@ -89,7 +89,7 @@ try {
   const dateShapes = JSON.parse(
     await readFile(
       new URL(
-        "../../tests/fixtures/custom-report-dates-source-26.10.json",
+        "../../tests/fixtures/custom-report-dates-visible-source-26.10.json",
         import.meta.url,
       ),
       "utf8",
@@ -98,7 +98,7 @@ try {
   const groupedShapes = JSON.parse(
     await readFile(
       new URL(
-        "../../tests/fixtures/custom-report-groups-source-26.10.json",
+        "../../tests/fixtures/custom-report-groups-visible-source-26.10.json",
         import.meta.url,
       ),
       "utf8",
@@ -230,7 +230,7 @@ try {
   assert.equal(allocations.total_count, 2);
   assert.ok(
     allocations.rows.every(
-      (row) => row.account_id === null && row.id.startsWith("envelope:"),
+      (row) => row.account_id === null && row.id.startsWith("tracking:"),
     ),
   );
   const nested = { ...payment, groupBy: "CategoryGroup", nested: true },

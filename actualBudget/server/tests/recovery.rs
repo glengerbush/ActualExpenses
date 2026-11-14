@@ -422,7 +422,7 @@ fn source_backed_repairs_are_atomic_keep_graph_amounts_and_preserve_a_durable_or
     );
 }
 #[test]
-fn ambiguous_references_or_split_amounts_are_review_only_and_protected_graphs_unchanged() {
+fn ambiguous_references_or_split_amounts_are_review_only_after_retired_status_cleanup() {
     let mut s = financial_fixture();
     fault(
         &mut s,
@@ -431,9 +431,9 @@ fn ambiguous_references_or_split_amounts_are_review_only_and_protected_graphs_un
         ),
     );
     let protected = plan(&s);
-    assert!(protected["repairs"].as_array().unwrap().is_empty());
+    assert!(!protected["repairs"].as_array().unwrap().is_empty());
     assert!(
-        protected["issues"]
+        !protected["issues"]
             .as_array()
             .unwrap()
             .iter()

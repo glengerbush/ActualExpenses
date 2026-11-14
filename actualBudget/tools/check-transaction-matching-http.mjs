@@ -21,7 +21,7 @@ function financial(rows,manualIds,source){
     id:manualIds.has(row.id)?row.id:'<new unique transaction>',
     account_id:row[source?'account':'account_id'],date:row.date,amount:row.amount,
     payee_id:row[source?'payee':'payee_id']??null,category_id:row[source?'category':'category_id']??null,
-    notes:row.notes??'',cleared:!!row.cleared,reconciled:!!row.reconciled,
+    notes:source?'':row.notes??'',cleared:source?true:!!row.cleared,reconciled:source?false:!!row.reconciled,
     imported_id:row.imported_id??null,imported_payee:row.imported_payee??null,
   }));
   assert.equal(new Set(rows.map(row=>row.id)).size,rows.length,'Every distinct purchase retains a unique ID');
@@ -32,6 +32,11 @@ try{
     const seed=manifest.archives.find(seed=>seed.id===sourceItem.id);assert.ok(seed);
     const replacements=new Map(Object.entries(sourceItem.ids).map(([key,value])=>[value,seed.ids[key]]));
     const item=JSON.parse(JSON.stringify(sourceItem),(_,value)=>typeof value==='string'&&replacements.has(value)?replacements.get(value):value);
+    // Reconciliation no longer blocks importing bank identity onto this same row.
+    if(item.id==='reconciled-match-unchanged'){
+      item.preview.updated=[item.ids.locked];
+      for(const state of [item.after,item.repeated])state.transactions.find(row=>row.id===item.ids.locked).imported_payee=item.input.incoming[0].imported_payee;
+    }
     const selected=process.argv.find(arg=>arg.startsWith('--case='))?.slice(7);
     if(selected&&item.id!==selected)continue;
     tested++;
@@ -59,8 +64,7 @@ try{
         if(round===0){
           // Source force-add is an explicit review choice in this public API,
           // applied below; an offered candidate is not an accepted merge.
-          const locked=new Set(item.input.existing.filter(row=>row.reconciled).map(row=>item.ids[row.label]));
-          const matches=preview.rows.filter(row=>row.match_id&&!locked.has(row.match_id)&&!item.input.incoming[row.row].forceAddTransaction).map(row=>row.match_id);
+          const matches=preview.rows.filter(row=>row.match_id&&!item.input.incoming[row.row].forceAddTransaction).map(row=>row.match_id);
           assert.deepEqual(matches,item.preview.updated,'Same source matching allocation/order');
         }
         const rows=preview.rows.map(row=>({row:row.row,action:item.input.incoming[row.row].forceAddTransaction?'add':row.match_id?'merge':'add',...(row.match_id?{match_id:row.match_id}:{})}));

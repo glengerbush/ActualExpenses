@@ -667,7 +667,10 @@
                             : c,
                         ),
                       )}
-                    >{#each ["date", "payee", "amount", "category", "notes"] as name (name)}<option
+                    >{#if condition.field === "notes"}<option
+                        value="notes"
+                        disabled>Historical notes</option
+                      >{/if}{#each ["date", "payee", "amount", "category"] as name (name)}<option
                         value={name}>{name}</option
                       >{/each}</select
                   ></label
@@ -823,7 +826,7 @@
         {:else if ["link", "unlink"].includes(String(draft.body.action))}<p>
             {(draft.body.transaction_ids as string[]).length} selected payments ·
             {draft.original?.name ?? "Schedule"}. Paired legs change their links
-            together. Amounts, dates, categories and notes are retained.
+            together. Amounts, dates and categories are retained.
           </p>
         {:else}<p>
             {draft.original?.name ?? "Scheduled transaction"} · {String(
@@ -849,8 +852,8 @@
           <ul>
             {#each draft.transactions as row (row.id)}<li>
                 {row.date} · {formatAmount(row.amount)} · {row.account_name} · {row.payee_name ??
-                  "No payee"} · {row.category_name ?? "No category"} · {row.notes ||
-                  "No notes"}{row.transfer_id ? " · Paired entry" : ""}
+                  "No payee"} · {row.category_name ??
+                  "No category"}{row.transfer_id ? " · Paired entry" : ""}
               </li>{/each}
           </ul>
         </details>{/if}

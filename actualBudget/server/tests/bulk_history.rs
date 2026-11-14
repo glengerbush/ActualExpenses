@@ -94,7 +94,7 @@ fn create_budget(server: &Server) {
     assert_eq!(response.status(), 201, "{}", response.text().unwrap());
 }
 #[test]
-fn bulk_update_is_one_replay_safe_undo_group_and_preserves_another_devices_note() {
+fn bulk_update_is_one_replay_safe_undo_group_and_preserves_another_devices_amount() {
     let server = Server::start();
     create_budget(&server);
     assert_eq!(server.post(&format!("/api/v1/budgets/{BUDGET}/accounts"), "account", json!({"id":ACCOUNT,"name":"Spending","opening_balance":0,"opening_date":"2026-01-01"})).status(),201);
@@ -117,7 +117,7 @@ fn bulk_update_is_one_replay_safe_undo_group_and_preserves_another_devices_note(
     }
     let owner = "20000000-0000-4000-8000-000000000001";
     let snapshot: Value = server.get(&path).json().unwrap();
-    let body = json!({"snapshot":snapshot["snapshot"],"action":"update","ids":ids,"fields":{"cleared":true}});
+    let body = json!({"snapshot":snapshot["snapshot"],"action":"update","ids":ids,"fields":{"date":"2026-01-03"}});
     let send = |route: &str, key: &str, body: &Value| {
         server
             .client
@@ -136,8 +136,8 @@ fn bulk_update_is_one_replay_safe_undo_group_and_preserves_another_devices_note(
         server
             .client
             .patch(format!("{}{path}/{}", server.url, ids[0]))
-            .header("Idempotency-Key", "other-device-note")
-            .json(&json!({"notes":"Remote note"}))
+            .header("Idempotency-Key", "other-device-amount")
+            .json(&json!({"amount":-1500}))
             .send()
             .unwrap()
             .status(),
@@ -159,10 +159,11 @@ fn bulk_update_is_one_replay_safe_undo_group_and_preserves_another_devices_note(
     );
     assert_eq!(undo.status(), 200, "{}", undo.text().unwrap());
     let register: Value = server.get(&path).json().unwrap();
-    assert_eq!(register["balances"]["total"], -6912);
-    assert_eq!(register["balances"]["cleared"], 0);
+    assert_eq!(register["balances"]["total"], -7178);
+    assert_eq!(register["balances"]["cleared"], -7178);
     let row: Value = server.get(&format!("{path}/{}", ids[0])).json().unwrap();
-    assert_eq!(row["data"]["notes"], "Remote note");
+    assert_eq!(row["data"]["amount"], -1500);
+    assert_eq!(row["data"]["date"], "2026-01-02");
     let history: Value = server
         .client
         .get(format!("{}{history_path}", server.url))
@@ -182,7 +183,8 @@ fn bulk_update_is_one_replay_safe_undo_group_and_preserves_another_devices_note(
         200
     );
     let register: Value = server.get(&path).json().unwrap();
-    assert_eq!(register["balances"]["cleared"], -6912);
+    assert_eq!(register["balances"]["cleared"], -7178);
+    assert!(register["data"].as_array().unwrap().iter().all(|r| r["date"] == "2026-01-03"));
 }
 
 const OWNER: &str = "20000000-0000-4000-8000-000000000001";
@@ -302,7 +304,7 @@ fn split_actions_duplicate_delete_and_history_restore_whole_aggregates() {
     );
     let register: Value = s.get(&path).json().unwrap();
     assert_eq!(register["balances"]["total"], -10002);
-    assert_eq!(register["balances"]["cleared"], -5001);
+    assert_eq!(register["balances"]["cleared"], -10002);
     let r = s.step("undo", "u-dup");
     assert_eq!(r.status(), 200, "{}", r.text().unwrap());
     let r = s.step("redo", "r-dup");
@@ -340,13 +342,13 @@ fn failures_overlap_and_remote_deletion_never_partially_change_a_bulk_action() {
     assert_eq!(unchanged["snapshot"], snapshot["snapshot"]);
     assert_eq!(unchanged["balances"]["total"], -2000);
     assert!(s.history()["undo"].is_null());
-    assert_eq!(s.owned("POST",&format!("{path}/bulk"),"edit",json!({"snapshot":snapshot["snapshot"],"action":"update","ids":[ENTRY,other],"fields":{"notes":"Joint edit"}})).status(),200);
+    assert_eq!(s.owned("POST",&format!("{path}/bulk"),"edit",json!({"snapshot":snapshot["snapshot"],"action":"update","ids":[ENTRY,other],"fields":{"date":"2026-01-03"}})).status(),200);
     let action = s.history()["undo"].clone();
     assert_eq!(
         s.client
             .patch(format!("{}{path}/{other}", s.url))
             .header("Idempotency-Key", "remote")
-            .json(&json!({"notes":"Joint edit"}))
+            .json(&json!({"date":"2026-01-03"}))
             .send()
             .unwrap()
             .status(),
@@ -355,7 +357,7 @@ fn failures_overlap_and_remote_deletion_never_partially_change_a_bulk_action() {
     assert_eq!(s.step("undo", "blocked").status(), 409);
     assert_eq!(s.history()["undo"], action);
     let row: Value = s.get(&format!("{path}/{ENTRY}")).json().unwrap();
-    assert_eq!(row["data"]["notes"], "Joint edit");
+    assert_eq!(row["data"]["date"], "2026-01-03");
     assert_eq!(
         s.client
             .delete(format!("{}{path}/{ENTRY}", s.url))
@@ -599,7 +601,7 @@ fn restart_receipt_owner_fences_cancellation_and_native_restore_history_epoch() 
     assert_eq!(rows["balances"]["total"], -1234);
 }
 #[test]
-fn selected_split_children_update_together_and_support_note_modes() {
+fn selected_split_children_update_and_undo_together() {
     let s = Server::setup();
     let path = format!("/api/v1/budgets/{BUDGET}/transactions");
     let a = "10000000-0000-4000-8000-000000000002";
@@ -617,44 +619,18 @@ fn selected_split_children_update_together_and_support_note_modes() {
     let parent: Value = s.get(&format!("{path}/{ENTRY}")).json().unwrap();
     assert_eq!(parent["data"]["children"][0]["amount"], -2500);
     assert_eq!(parent["data"]["children"][1]["amount"], -2500);
-    for (key, mode, value, extra, expected) in [
-        ("append", "append", " paid", json!({}), "Shop 12 paid"),
-        ("prepend", "prepend", "At ", json!({}), "At Shop 12 paid"),
-        (
-            "literal",
-            "find_replace",
-            "store",
-            json!({"find":"Shop","use_regex":false}),
-            "At store 12 paid",
-        ),
-        (
-            "regex",
-            "find_replace",
-            "[$1]",
-            json!({"find":"(\\d+)","use_regex":true}),
-            "At store [12] paid",
-        ),
-    ] {
-        let page: Value = s.get(&path).json().unwrap();
-        let mut notes = json!({"mode":mode});
-        notes
-            .as_object_mut()
-            .unwrap()
-            .extend(extra.as_object().unwrap().clone());
-        let r=s.owned("POST",&format!("{path}/bulk"),key,json!({"snapshot":page["snapshot"],"action":"update","ids":[a],"fields":{"notes":value},"notes":notes}));
-        assert_eq!(r.status(), 200, "{}", r.text().unwrap());
-        let row: Value = s.get(&format!("{path}/{a}")).json().unwrap();
-        assert_eq!(row["data"]["notes"], expected);
-    }
-    let r = s.step("undo", "undo-regex");
-    assert_eq!(r.status(), 200, "{}", r.text().unwrap());
-    let row: Value = s.get(&format!("{path}/{a}")).json().unwrap();
-    assert_eq!(row["data"]["notes"], "At store 12 paid");
+    assert_eq!(s.step("undo", "undo-children").status(), 200);
+    let row: Value = s.get(&format!("{path}/{ENTRY}")).json().unwrap();
+    assert_eq!(row["data"]["children"][0]["amount"], -2000);
+    assert_eq!(row["data"]["children"][1]["amount"], -3000);
+    assert_eq!(row["data"]["amount"], -5000);
+    assert_eq!(s.step("redo", "redo-children").status(), 200);
+    let row: Value = s.get(&format!("{path}/{ENTRY}")).json().unwrap();
+    assert!(row["data"]["children"].as_array().unwrap().iter().all(|c| c["amount"] == -2500));
 }
+
 #[test]
-fn note_find_replace_matches_pinned_ecmascript_and_rejects_invalid_patterns_atomically() {
-    let fixture: Value =
-        serde_json::from_str(include_str!("../../tests/fixtures/history-26.10.0.json")).unwrap();
+fn retired_note_transformations_are_rejected_atomically() {
     let s = Server::setup();
     let path = format!("/api/v1/budgets/{BUDGET}/transactions");
     s.post(
@@ -662,24 +638,13 @@ fn note_find_replace_matches_pinned_ecmascript_and_rejects_invalid_patterns_atom
         "create",
         json!({"id":ENTRY,"account_id":ACCOUNT,"amount":-1,"date":"2026-01-02"}),
     );
-    for (index, case) in fixture["noteCases"].as_array().unwrap().iter().enumerate() {
-        s.client
-            .patch(format!("{}{path}/{ENTRY}", s.url))
-            .header("Idempotency-Key", format!("seed-{index}"))
-            .json(&json!({"notes":case["text"]}))
-            .send()
-            .unwrap();
-        let page: Value = s.get(&path).json().unwrap();
-        let r=s.owned("POST",&format!("{path}/bulk"),&format!("notes-{index}"),json!({"snapshot":page["snapshot"],"action":"update","ids":[ENTRY],"fields":{"notes":case["replace"]},"notes":{"mode":"find_replace","find":case["find"],"use_regex":case["use_regex"]}}));
-        assert_eq!(r.status(), 200, "{}", r.text().unwrap());
-        let row: Value = s.get(&format!("{path}/{ENTRY}")).json().unwrap();
-        assert_eq!(row["data"]["notes"], case["expected"], "{case}");
-    }
     let page: Value = s.get(&path).json().unwrap();
-    let r=s.owned("POST",&format!("{path}/bulk"),"invalid-regex",json!({"snapshot":page["snapshot"],"action":"update","ids":[ENTRY],"fields":{"notes":"changed"},"notes":{"mode":"find_replace","find":"(","use_regex":true}}));
-    assert_eq!(r.status(), 400);
-    let unchanged: Value = s.get(&path).json().unwrap();
-    assert_eq!(unchanged["snapshot"], page["snapshot"]);
+    for mode in ["append", "prepend", "find_replace"] {
+        let r=s.owned("POST",&format!("{path}/bulk"),mode,json!({"snapshot":page["snapshot"],"action":"update","ids":[ENTRY],"fields":{"notes":"changed"},"notes":{"mode":mode,"find":"old","use_regex":false}}));
+        assert_eq!(r.status(), 400);
+        assert_eq!(s.get(&path).json::<Value>().unwrap(), page);
+        assert!(s.history()["undo"].is_null());
+    }
 }
 #[test]
 fn metadata_undo_preserves_newer_transactions_but_refuses_new_references() {
@@ -794,14 +759,10 @@ fn account_close_and_forced_delete_restore_their_local_financial_changes() {
 fn undo_account_group_rename_refuses_a_name_claimed_by_another_device() {
     metadata_undo_name_collision("account-groups", "Original", "Renamed");
 }
-#[test]
-fn undo_tag_rename_refuses_a_name_claimed_by_another_device() {
-    metadata_undo_name_collision("tags", "old", "new");
-}
 fn metadata_undo_name_collision(domain: &str, original: &str, renamed: &str) {
     let server = Server::start();
     create_budget(&server);
-    let field = if domain == "tags" { "tag" } else { "name" };
+    let field = "name";
     let root = format!("/api/v1/budgets/{BUDGET}");
     let a = "90000000-0000-4000-8000-000000000001";
     let b = "90000000-0000-4000-8000-000000000002";
@@ -863,7 +824,7 @@ fn metadata_undo_name_collision(domain: &str, original: &str, renamed: &str) {
 }
 
 #[test]
-fn transfer_creation_history_restores_both_legs_and_reconciliation_is_one_action() {
+fn transfer_creation_history_restores_both_legs() {
     let s = Server::setup();
     let root = format!("/api/v1/budgets/{BUDGET}");
     let other = "13000000-0000-4000-8000-000000000002";
@@ -896,37 +857,11 @@ fn transfer_creation_history_restores_both_legs_and_reconciliation_is_one_action
             .unwrap()["data"]["amount"],
         100
     );
-    let reconcile = format!("{root}/accounts/{ACCOUNT}/reconciliation");
-    let preview = s.get(&reconcile).json::<Value>().unwrap();
-    let locked=s.owned("POST",&reconcile,"owned-lock",json!({"action":"lock","statement_balance":-100,"snapshot":preview["data"]["snapshot"],"date":"2026-01-31"}));
-    assert_eq!(locked.status(), 200, "{}", locked.text().unwrap());
-    assert_eq!(
-        s.get(&format!("{root}/transactions/{ENTRY}"))
-            .json::<Value>()
-            .unwrap()["data"]["reconciled"],
-        true
-    );
-    let undone = s.step("undo", "undo-lock");
-    assert_eq!(undone.status(), 200, "{}", undone.text().unwrap());
-    assert_eq!(
-        s.get(&format!("{root}/transactions/{ENTRY}"))
-            .json::<Value>()
-            .unwrap()["data"]["reconciled"],
-        false
-    );
-    let redone = s.step("redo", "redo-lock");
-    assert_eq!(redone.status(), 200, "{}", redone.text().unwrap());
-    assert_eq!(
-        s.get(&format!("{root}/transactions/{ENTRY}"))
-            .json::<Value>()
-            .unwrap()["data"]["reconciled"],
-        true
-    );
 }
 
 #[test]
-fn protected_transfer_history_uses_saved_graph_and_refuses_remote_peer_fields_or_relocks() {
-    for remote in ["notes", "relock", "owned-unlock-undo"] {
+fn transfer_history_uses_saved_graph_and_refuses_remote_peer_edits() {
+    for remote_amount in [130, 125] {
         let s = Server::setup();
         let root = format!("/api/v1/budgets/{BUDGET}");
         let other = "13000000-0000-4000-8000-000000000002";
@@ -951,14 +886,8 @@ fn protected_transfer_history_uses_saved_graph_and_refuses_remote_peer_fields_or
             .status(),
             200
         );
-        for (account, balance, key) in [(ACCOUNT, -100, "lock-source"), (other, 100, "lock-peer")] {
-            let path = format!("{root}/accounts/{account}/reconciliation");
-            let preview = s.get(&path).json::<Value>().unwrap();
-            assert_eq!(s.post(&path,key,json!({"action":"lock","snapshot":preview["data"]["snapshot"],"statement_balance":balance,"date":"2026-01-31"})).status(),200);
-        }
         let path = format!("{root}/transactions/{ENTRY}");
-        let proof = s.get(&format!("{path}/splits")).json::<Value>().unwrap();
-        let edited=s.owned("PATCH",&path,"confirmed",json!({"amount":-125,"confirm_reconciled":true,"transfer_protection_token":proof["transfer_protection_token"]}));
+        let edited=s.owned("PATCH",&path,"confirmed",json!({"amount":-125}));
         assert_eq!(edited.status(), 200, "{}", edited.text().unwrap());
         for (direction, key, amount) in [("undo", "u", -100), ("redo", "r", -125)] {
             let r = s.step(direction, key);
@@ -975,43 +904,8 @@ fn protected_transfer_history_uses_saved_graph_and_refuses_remote_peer_fields_or
             );
         }
         let peer_path = format!("{root}/transactions/{peer}");
-        if remote == "notes" {
-            let proof = s
-                .get(&format!("{peer_path}/splits"))
-                .json::<Value>()
-                .unwrap();
-            let r=s.client.patch(format!("{}{peer_path}",s.url)).header("Idempotency-Key","remote-notes").json(&json!({"notes":"Remote peer note","confirm_reconciled":true,"transfer_protection_token":proof["transfer_protection_token"]})).send().unwrap();
-            assert_eq!(r.status(), 200, "{}", r.text().unwrap());
-        } else if remote == "owned-unlock-undo" {
-            let row = s.get(&peer_path).json::<Value>().unwrap();
-            let r = s.owned(
-                "POST",
-                &format!("{peer_path}/unlock"),
-                "owned-unlock",
-                json!({"reconciled_version":row["data"]["field_versions"]["reconciled"]}),
-            );
-            assert_eq!(r.status(), 200, "{}", r.text().unwrap());
-            let r = s.step("undo", "undo-owned-unlock");
-            assert_eq!(r.status(), 200, "{}", r.text().unwrap());
-            assert_eq!(
-                s.get(&peer_path).json::<Value>().unwrap()["data"]["reconciled"],
-                true
-            );
-        } else {
-            let row = s.get(&peer_path).json::<Value>().unwrap();
-            assert_eq!(
-                s.post(
-                    &format!("{peer_path}/unlock"),
-                    "remote-unlock",
-                    json!({"reconciled_version":row["data"]["field_versions"]["reconciled"]})
-                )
-                .status(),
-                200
-            );
-            let path = format!("{root}/accounts/{other}/reconciliation");
-            let preview = s.get(&path).json::<Value>().unwrap();
-            assert_eq!(s.post(&path,"remote-relock",json!({"action":"lock","snapshot":preview["data"]["snapshot"],"statement_balance":125,"date":"2026-02-28"})).status(),200);
-        }
+        let r=s.client.patch(format!("{}{peer_path}",s.url)).header("Idempotency-Key","remote-amount").json(&json!({"amount":remote_amount})).send().unwrap();
+        assert_eq!(r.status(), 200, "{}", r.text().unwrap());
         let before = s.get(&path).json::<Value>().unwrap();
         let peer_before = s.get(&peer_path).json::<Value>().unwrap();
         let history = s.history();
@@ -1065,7 +959,7 @@ fn imported_thousand_child_sparse_history_undo_and_redo_preserve_exact_aggregate
     );
     let before = s.get(&path).json::<Value>().unwrap();
     let child = before["data"]["children"][1000]["id"].as_str().unwrap();
-    let body = json!({"snapshot":before["snapshot"],"changes":{"upsert":[{"id":child,"amount":-1,"notes":"Sparse history final child"}]}});
+    let body = json!({"snapshot":before["snapshot"],"changes":{"upsert":[{"id":child,"amount":-2},{"id":before["data"]["children"][999]["id"],"amount":0}]}});
     assert!(body.to_string().len() < 512);
     let r = s.owned("POST", &path, "large-owned-sparse", body.clone());
     assert_eq!(r.status(), 200, "{}", r.text().unwrap());
@@ -1089,15 +983,9 @@ fn imported_thousand_child_sparse_history_undo_and_redo_preserve_exact_aggregate
         assert_eq!(r.status(), 200, "{}", r.text().unwrap());
         let actual = s.get(&path).json::<Value>().unwrap();
         assert_eq!(actual["data"]["children"].as_array().unwrap().len(), 1001);
-        assert_eq!(
-            actual["data"]["children"][1000]["notes"],
-            if direction == "undo" {
-                before["data"]["children"][1000]["notes"].clone()
-            } else {
-                json!("Sparse history final child")
-            }
-        );
+        assert_eq!(actual["data"]["children"][1000]["amount"], if direction == "undo" { -1 } else { -2 });
         assert_eq!(actual["data"]["amount"], -1001);
+        assert_eq!(actual["data"]["children"][999]["amount"], if direction == "undo" { -1 } else { 0 });
     }
     assert_eq!(
         s.owned("POST", &path, "large-owned-sparse", body)
@@ -1120,11 +1008,15 @@ fn genuine_schema14_upgrade_and_archive_keep_original_receipts_without_portable_
     let s = Server::with_data(data);
     let budget = fixture["budget"]["data"]["id"].as_str().unwrap();
     let root = format!("/api/v1/budgets/{budget}");
+    let mut current_row = fixture["rows"][0].clone();
+    current_row["notes"] = json!("");
+    current_row["cleared"] = json!(true);
+    current_row["reconciled"] = json!(false);
     let peer = fixture["rows"][0]["id"].as_str().unwrap();
     let path = format!("{root}/transactions/{peer}");
     assert_eq!(
         s.get(&path).json::<Value>().unwrap()["data"],
-        fixture["rows"][0]
+        current_row
     );
     for (route, key, body, result) in [
         ("transfers", "transfer13", "transfer_body", "transfer"),
@@ -1137,19 +1029,6 @@ fn genuine_schema14_upgrade_and_archive_keep_original_receipts_without_portable_
             fixture[result]
         );
     }
-    assert_eq!(
-        s.post(
-            &format!(
-                "{root}/accounts/{}/reconciliation",
-                fixture["account"]["id"].as_str().unwrap()
-            ),
-            "reconcile13",
-            fixture["reconciliation_body"].clone()
-        )
-        .json::<Value>()
-        .unwrap(),
-        fixture["reconciliation"]
-    );
     assert_eq!(
         s.get(&format!(
             "/api/v1/imports/{}",
@@ -1168,8 +1047,7 @@ fn genuine_schema14_upgrade_and_archive_keep_original_receipts_without_portable_
         .json::<Value>()
         .unwrap();
     assert!(history["data"]["undo"].is_null());
-    let proof = s.get(&format!("{path}/splits")).json::<Value>().unwrap();
-    let r=s.owned("PATCH",&path,"post-upgrade",json!({"notes":"Owned after migration","confirm_reconciled":true,"transfer_protection_token":proof["transfer_protection_token"]}));
+    let r=s.owned("PATCH",&path,"post-upgrade",json!({"date":"2026-03-01"}));
     assert_eq!(r.status(), 200, "{}", r.text().unwrap());
     let history = s
         .client
@@ -1191,7 +1069,7 @@ fn genuine_schema14_upgrade_and_archive_keep_original_receipts_without_portable_
         .unwrap()
         .json::<Value>()
         .unwrap();
-    assert_eq!(upload["data"]["report"]["schema_version"], 27);
+    assert_eq!(upload["data"]["report"]["schema_version"], 36);
     let restored = target.post(
         &format!(
             "{root}/restores/{}/activate",
@@ -1207,7 +1085,7 @@ fn genuine_schema14_upgrade_and_archive_keep_original_receipts_without_portable_
     );
     assert_eq!(
         target.get(&path).json::<Value>().unwrap()["data"],
-        fixture["rows"][0]
+        current_row
     );
     assert_eq!(
         target
@@ -1300,60 +1178,28 @@ fn selecting_both_transfer_legs_matches_pinned_bulk_duplicate_and_delete() {
 }
 
 #[test]
-fn sequential_split_history_walks_unchanged_lock_generations_without_remote_changes() {
-    for locked in [false, true] {
-        let s = Server::setup();
-        let root = format!("/api/v1/budgets/{BUDGET}");
-        assert_eq!(s.post(&format!("{root}/transactions"),"parent",json!({"id":ENTRY,"account_id":ACCOUNT,"amount":-500,"date":"2026-01-02","cleared":true})).status(),201);
-        let path = format!("{root}/transactions/{ENTRY}/splits");
-        let first = "13000000-0000-4000-8000-000000000020";
-        let second = "13000000-0000-4000-8000-000000000021";
+fn sequential_split_history_walks_multiple_edits_without_false_conflicts() {
+    let s = Server::setup();
+    let root = format!("/api/v1/budgets/{BUDGET}");
+    assert_eq!(s.post(&format!("{root}/transactions"),"parent",json!({"id":ENTRY,"account_id":ACCOUNT,"amount":-500,"date":"2026-01-02"})).status(),201);
+    let path = format!("{root}/transactions/{ENTRY}/splits");
+    let first = "13000000-0000-4000-8000-000000000020";
+    let second = "13000000-0000-4000-8000-000000000021";
+    let view = s.get(&path).json::<Value>().unwrap();
+    assert_eq!(s.post(&path,"split",json!({"snapshot":view["snapshot"],"children":[{"id":first,"amount":-200},{"id":second,"amount":-300}]})).status(),200);
+    for (key, amount) in [("first-edit", -210), ("second-edit", -220)] {
         let view = s.get(&path).json::<Value>().unwrap();
-        assert_eq!(s.post(&path,"split",json!({"snapshot":view["snapshot"],"children":[{"id":first,"amount":-200},{"id":second,"amount":-300}]})).status(),200);
-        if locked {
-            let reconcile = format!("{root}/accounts/{ACCOUNT}/reconciliation");
-            let view = s.get(&reconcile).json::<Value>().unwrap();
-            assert_eq!(s.post(&reconcile,"lock",json!({"action":"lock","snapshot":view["data"]["snapshot"],"statement_balance":-500,"date":"2026-01-31"})).status(),200);
-        }
-        for note in ["First edit", "Second edit"] {
-            let view = s.get(&path).json::<Value>().unwrap();
-            let mut body = json!({"snapshot":view["snapshot"],"changes":{"upsert":[{"id":first,"amount":-200,"notes":note}]}});
-            if locked {
-                body["confirm_reconciled"] = json!(true);
-                body["reconciliation_token"] = view["reconciliation_token"].clone();
-            }
-            let r = s.owned(
-                "POST",
-                &path,
-                if note == "First edit" {
-                    "first-edit"
-                } else {
-                    "second-edit"
-                },
-                body,
-            );
-            assert_eq!(r.status(), 200, "{}", r.text().unwrap());
-        }
-        for (direction, key, note) in [
-            ("undo", "undo-second", "First edit"),
-            ("undo", "undo-first", ""),
-            ("redo", "redo-first", "First edit"),
-            ("redo", "redo-second", "Second edit"),
-        ] {
-            let r = s.step(direction, key);
-            assert_eq!(r.status(), 200, "locked={locked}: {}", r.text().unwrap());
-            let row = s.get(&path).json::<Value>().unwrap();
-            assert_eq!(row["data"]["children"][0]["notes"], note);
-            assert_eq!(row["data"]["amount"], -500);
-            assert_eq!(row["data"]["children"].as_array().unwrap().len(), 2);
-            assert_eq!(row["data"]["reconciled"], locked);
-            assert!(
-                row["data"]["children"]
-                    .as_array()
-                    .unwrap()
-                    .iter()
-                    .all(|c| c["reconciled"] == locked)
-            );
-        }
+        let body = json!({"snapshot":view["snapshot"],"changes":{"upsert":[{"id":first,"amount":amount},{"id":second,"amount":-500-amount}]}});
+        let r = s.owned("POST", &path, key, body);
+        assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+    }
+    for (direction, key, amount) in [("undo","undo-second",-210),("undo","undo-first",-200),("redo","redo-first",-210),("redo","redo-second",-220)] {
+        let r = s.step(direction,key);
+        assert_eq!(r.status(),200,"{}",r.text().unwrap());
+        let row = s.get(&path).json::<Value>().unwrap();
+        assert_eq!(row["data"]["children"][0]["amount"],amount);
+        assert_eq!(row["data"]["children"][1]["amount"],-500-amount);
+        assert_eq!(row["data"]["amount"],-500);
+        assert_eq!(row["data"]["children"].as_array().unwrap().len(),2);
     }
 }

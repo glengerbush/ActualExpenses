@@ -1,3 +1,4 @@
+import { expectSavedWork } from "./saved-work-ui.mjs";
 import { transactionRows } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -67,17 +68,7 @@ try {
   page = await context.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(server.url);
-  await page.evaluate(
-    ({ budget, account }) =>
-      localStorage.setItem(
-        "actualBudget.selection",
-        JSON.stringify({ budgetId: budget, accountId: account }),
-      ),
-    { budget, account },
-  );
-  await page.reload();
-  await page.getByRole("button", { name: "Rules", exact: true }).click();
+  await page.goto(`${server.url}/?budget=${budget}&view=rules`);
   await expect(
     page.getByRole("heading", { name: "Rules and category learning" }),
   ).toBeVisible();
@@ -85,8 +76,9 @@ try {
   await page.getByLabel(/^Value\s+1/).selectOption(shop);
   await page.getByLabel(/^Set value 1/).selectOption(food);
   await page.getByRole("button", { name: "Add action", exact: true }).click();
-  await page.getByLabel(/^Action 2/).selectOption("append-notes");
-  await page.getByLabel(/^Notes text 2/).fill(" / checked");
+  await page.getByLabel(/^Action 2/).selectOption("set");
+  await page.getByLabel(/^Set field 2/).selectOption("date");
+  await page.getByLabel(/^Set date 2/).fill("2026-01-02");
   await mkdir(output, { recursive: true });
   await page.screenshot({
     path: output + "/builder-desktop.png",
@@ -141,10 +133,12 @@ try {
       .filter({ hasText: "Selected rule actions saved." }),
   ).toBeVisible();
   const rows = (await call(root + "/transactions?limit=100")).data;
-  expect(rows.filter((r) => r.notes.endsWith(" / checked"))).toHaveLength(1);
+  expect(rows.filter((r) => r.date === "2026-01-02")).toHaveLength(1);
   expect(rows.filter((r) => r.category_id === food)).toHaveLength(1);
   // Readonly preview transport failure cannot prevent the original Save handoff.
-  await page.getByRole("button", { name: "Close", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   const previewPattern = "**/api/v1" + root + "/rules/preview",
     entryPattern = "**/api/v1" + root + "/rules/transactions";
   let allowEntry = false;
@@ -172,19 +166,18 @@ try {
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("2.22");
-  await page.getByLabel("Payee", { exact: true }).selectOption(shop);
+  await page.getByRole("combobox", { name: "Payee", exact: true }).fill("Shop");
+  await page.getByRole("option", { name: "Shop", exact: true }).click();
   await page.getByLabel("Category", { exact: true }).selectOption(travel);
-  await page.getByLabel("Notes", { exact: true }).fill("Network preview entry");
+
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText(
-    "Network preview entry",
-  );
+  await expectSavedWork(page, 1);
   await expect.poll(() => entryAttempts.length).toBeGreaterThan(0);
   const capturedEntry = entryAttempts[0],
     capturedBody = JSON.parse(capturedEntry.body);
-  expect(capturedBody.notes).toBe("Network preview entry");
+  expect(capturedBody.notes ?? "").toBe("");
   expect(capturedBody.amount).toBe(-222);
   expect(capturedBody.category_id).toBe(travel);
   expect(capturedBody.snapshot).toMatch(/^c1/);
@@ -198,9 +191,8 @@ try {
     (await fetch(api + root + "/transactions/" + capturedBody.id)).status,
   ).toBe(404);
   await page.reload();
-  await expect(page.getByTestId("pending-expenses")).toContainText(
-    "Network preview entry",
-  );
+  await page.waitForLoadState("networkidle");
+  await expectSavedWork(page, 1);
   expect(
     entryAttempts.every(
       (a) => JSON.stringify(a) === JSON.stringify(capturedEntry),
@@ -210,7 +202,7 @@ try {
   // may legitimately settle the item before a manual Retry click can land.
   allowEntry = true;
   await page.evaluate(() => dispatchEvent(new Event("online")));
-  await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+  await expectSavedWork(page, 0);
   expect(entryAttempts.length).toBeGreaterThan(1);
   expect(
     entryAttempts.every(
@@ -222,7 +214,7 @@ try {
   ).data;
   expect(savedNetworkEntry.amount).toBe(-222);
   expect(savedNetworkEntry.category_id).toBe(travel);
-  expect(savedNetworkEntry.notes).toBe("Network preview entry / checked");
+  expect(savedNetworkEntry.notes).toBe("");
   expect(
     (await call(root + "/transactions?limit=100")).data.filter(
       (r) => r.id === capturedBody.id,
@@ -233,7 +225,7 @@ try {
   await page.getByRole("button", { name: "Rules", exact: true }).click();
   // An untouched remote condition survives an actions-only edit, including refresh.
   await page.getByRole("button", { name: "Edit rule", exact: true }).click();
-  await page.getByLabel(/^Notes text 2/).fill(" / local");
+  await page.getByLabel(/^Set date 2/).fill("2026-01-03");
   rules = await call(root + "/rules");
   await call(
     root + "/rules/" + rule.id,
@@ -254,17 +246,17 @@ try {
   expect(rules.data[0].conditions).toEqual([
     { field: "amount", op: "lt", value: 0 },
   ]);
-  expect(rules.data[0].actions[1].value).toBe(" / local");
+  expect(rules.data[0].actions[1].value).toBe("2026-01-03");
   // A remote edit of the same field refuses silent overwrite after refresh/reload.
   await page.getByRole("button", { name: "Edit rule", exact: true }).click();
-  await page.getByLabel(/^Notes text 2/).fill(" / retained");
+  await page.getByLabel(/^Set date 2/).fill("2026-01-04");
   await call(
     root + "/rules/" + rule.id,
     {
       snapshot: rules.snapshot,
       actions: [
         { op: "set", field: "category", value: food },
-        { op: "append-notes", value: " / remote" },
+        { op: "set", field: "date", value: "2026-01-05" },
       ],
     },
     "PATCH",
@@ -277,7 +269,8 @@ try {
     "actions changed elsewhere",
   );
   await page.reload();
-  await expect(page.getByLabel(/^Notes text 2/)).toHaveValue(" / retained");
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByLabel(/^Set date 2/)).toHaveValue("2026-01-04");
   await page.getByRole("button", { name: "Save rule", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText(
     "actions changed elsewhere",
@@ -287,7 +280,7 @@ try {
     .click();
   // A committed lost acknowledgement retries the exact owner/epoch/clock/body/key.
   await page.getByRole("button", { name: "Edit rule", exact: true }).click();
-  await page.getByLabel(/^Notes text 2/).fill(" / captured");
+  await page.getByLabel(/^Set date 2/).fill("2026-01-06");
   const attempts = [];
   let drop = true;
   await page.route("**/api/v1" + root + "/rules/" + rule.id, async (route) => {
@@ -343,6 +336,7 @@ try {
     "PATCH",
   );
   await page.reload();
+  await page.waitForLoadState("networkidle");
   await page
     .getByRole("button", { name: "Retry saved request", exact: true })
     .click();
@@ -356,16 +350,19 @@ try {
   );
   await expect(page.getByRole("alert")).toHaveCount(0);
   // Automatic new entry protects manual fields; existing edits do not rerun rules.
-  await page.getByRole("button", { name: "Close", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("12.34");
-  await page.getByLabel("Notes", { exact: true }).fill("Manual");
+  await page.getByLabel("Date", { exact: true }).fill("11/09/2026");
   await page.getByLabel("Category", { exact: true }).selectOption(travel);
-  await page.getByLabel("Payee", { exact: true }).selectOption(shop);
-  await expect(page.getByLabel("Notes", { exact: true })).toHaveValue(
-    "Manual / captured",
+  await page.getByRole("combobox", { name: "Payee", exact: true }).fill("Shop");
+  await page.getByRole("option", { name: "Shop", exact: true }).click();
+  await expect(page.getByLabel("Date", { exact: true })).toHaveValue(
+    "11/09/2026",
   );
   await expect(page.getByLabel("Category", { exact: true })).toHaveValue(
     travel,
@@ -379,11 +376,11 @@ try {
   let saved = (await call(root + "/transactions?limit=100")).data.find(
     (r) => r.amount === -1234,
   );
-  expect(saved.notes).toBe("Manual / captured");
+  expect(saved.date).toBe("2026-11-09");
   expect(saved.category_id).toBe(travel);
   // Empty new categories remain fillable, while explicit existing clearing stays clear.
   const edit = transactionRows(
-    page.locator(".register-table tr").filter({ hasText: "Manual / captured" }),
+    page.locator(`tr[data-transaction-id="${saved.id}"]`),
     { name: /^Edit / },
   );
   await edit.click();
@@ -438,7 +435,7 @@ try {
     id: detailRule,
     stage: null,
     conditionsOp: "and",
-    conditions: [{ field: "notes", op: "contains", value: "Detailed review" }],
+    conditions: [{ field: "amount", op: "is", value: -250 }],
     actions: [
       { op: "set", field: "date", value: "2026-02-03" },
       { op: "set", field: "account", value: reserve },
@@ -461,9 +458,7 @@ try {
     .getByRole("button", { name: "Preview selected saved rules", exact: true })
     .click();
   expect((await accountPreview).postDataJSON().account_id).toBe(account);
-  await page
-    .getByLabel("Find transactions", { exact: true })
-    .fill("Detailed review");
+  await page.getByLabel("Find transactions", { exact: true }).fill("2.50");
   await page
     .getByRole("button", { name: "Find transactions", exact: true })
     .click();
@@ -478,13 +473,10 @@ try {
   const narrowedBody = (await narrowed).postDataJSON();
   expect(narrowedBody.ids).toEqual([detailed]);
   expect(narrowedBody.account_id).toBeUndefined();
-  const detail = page
-    .locator(".preview-list li")
-    .filter({ hasText: "Detailed review" });
+  const detail = page.locator(".preview-list li").filter({ hasText: "2.50" });
   await expect(detail).toContainText("Date: 2026-01-01 → 2026-02-03");
   await expect(detail).toContainText("Account: Cash → Reserve");
   await expect(detail).toContainText("Payee: Other shop → Shop");
-  await expect(detail).toContainText("Cleared: No → Yes");
   expect((await call(root + "/transactions/" + detailed)).data.date).toBe(
     "2026-01-01",
   );
@@ -527,7 +519,7 @@ try {
     id: splitRule,
     stage: null,
     conditionsOp: "and",
-    conditions: [{ field: "notes", op: "contains", value: "Split review" }],
+    conditions: [{ field: "amount", op: "is", value: -300 }],
     actions: [
       {
         op: "set-split-amount",
@@ -549,9 +541,7 @@ try {
   await page
     .locator(`.rule-list li[data-rule-id="${splitRule}"] input[type=checkbox]`)
     .check();
-  await page
-    .getByLabel("Find transactions", { exact: true })
-    .fill("Split review");
+  await page.getByLabel("Find transactions", { exact: true }).fill("3.00");
   await page
     .getByRole("button", { name: "Find transactions", exact: true })
     .click();
@@ -568,7 +558,6 @@ try {
   await expect(allocations).toContainText("Amount: Not present → -2.00");
   await expect(allocations).toContainText("Category: Not present → Travel");
   await expect(allocations).toContainText("Payee: Not present → Other shop");
-  await expect(allocations).toContainText("Cleared: Not present → No");
   await expect(page.locator(".preview-list")).toContainText(
     "Ordinary transaction → Split transaction",
   );
@@ -594,76 +583,11 @@ try {
   await page
     .locator(`.rule-list li[data-rule-id="${splitRule}"] input[type=checkbox]`)
     .uncheck();
-  // One protected match must not block selection of an unrelated unlocked match.
-  const lockedRow = randomUUID(),
-    unlockedRow = randomUUID();
-  await call(root + "/transactions", {
-    id: lockedRow,
-    account_id: account,
-    date: "2026-01-01",
-    amount: -10,
-    payee_id: shop,
-    notes: "Protected preview",
-    cleared: true,
-  });
-  await call(root + "/transactions", {
-    id: unlockedRow,
-    account_id: account,
-    date: "2026-01-01",
-    amount: -20,
-    payee_id: shop,
-    notes: "Unlocked preview",
-  });
-  const reconciliation = (
-    await call(root + `/accounts/${account}/reconciliation`)
-  ).data;
-  await call(root + `/accounts/${account}/reconciliation`, {
-    action: "lock",
-    statement_balance: reconciliation.balances.cleared,
-    snapshot: reconciliation.snapshot,
-    date: "2026-02-28",
-  });
-  await page
-    .getByRole("button", { name: "Refresh rules", exact: true })
-    .click();
-  await page
-    .locator(`.rule-list li[data-rule-id="${rule.id}"] input[type=checkbox]`)
-    .check();
-  await page
-    .getByRole("button", { name: "Preview selected saved rules", exact: true })
-    .click();
-  const lockedMatch = page
-      .locator(".preview-list>li")
-      .filter({ hasText: "Protected preview" }),
-    unlockedMatch = page
-      .locator(".preview-list>li")
-      .filter({ hasText: "Unlocked preview" });
-  await expect(lockedMatch.getByRole("checkbox")).toBeDisabled();
-  await expect(unlockedMatch.getByRole("checkbox")).toBeEnabled();
-  await unlockedMatch.getByRole("checkbox").check();
-  await expect(
-    page.getByRole("button", {
-      name: "Apply rules to 1 selected",
-      exact: true,
-    }),
-  ).toBeEnabled();
-  await page
-    .getByRole("button", { name: "Apply rules to 1 selected", exact: true })
-    .click();
-  await expect(
-    page
-      .getByRole("status")
-      .filter({ hasText: "Selected rule actions saved." }),
-  ).toBeVisible();
-  expect((await call(root + "/transactions/" + lockedRow)).data.notes).toBe(
-    "Protected preview",
+  // Removed reconciliation locks no longer prevent ordinary financial edits.
+  const retiredReconciliation = await fetch(
+    api + root + `/accounts/${account}/reconciliation`,
   );
-  expect(
-    (await call(root + "/transactions/" + lockedRow)).data.reconciled,
-  ).toBe(true);
-  expect((await call(root + "/transactions/" + unlockedRow)).data.notes).toBe(
-    "Unlocked preview / captured",
-  );
+  expect(retiredReconciliation.status).toBe(404);
   await mkdir(output, { recursive: true });
   await expect(page.getByRole("alert")).toHaveCount(0);
   await page.screenshot({ path: output + "/desktop.png", fullPage: true });
@@ -674,11 +598,7 @@ try {
   const headingBox = await page
     .getByRole("heading", { name: "Rules and category learning", exact: true })
     .boundingBox();
-  const closeBox = await page
-    .getByRole("button", { name: "Close", exact: true })
-    .boundingBox();
   expect(headingBox.width).toBeGreaterThan(300);
-  expect(closeBox.y).toBeGreaterThanOrEqual(headingBox.y + headingBox.height);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

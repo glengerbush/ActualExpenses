@@ -24,6 +24,22 @@ for (const ext of [".sqlite3", ".zip"]) {
     fixture.artifacts[ext].sha256,
   );
 }
+// Historical fixture remains untouched; only explicitly retired product fields
+// differ. Presentation colors are additive and separately covered by category tests.
+function currentRows(name, rows, historical = false) {
+  return rows.map((source) => {
+    const row = structuredClone(source);
+    if (name === "transactions") {
+      for (const key of ["category_color", "category_group_color", "color_override", "group_sort_order"]) delete row[key];
+      if (historical) Object.assign(row, {notes: "", cleared: true, reconciled: false});
+    }
+    if (name === "categories") {
+      for (const key of ["color", "color_override", "group_color", "category_color", "category_group_color", "group_sort_order", "resolved_color"]) delete row[key];
+      if (historical) { delete row.notes; row.hidden = false; delete row.field_versions?.notes; }
+    }
+    return row;
+  });
+}
 for (const mode of ["database", "archive"]) {
   const directory = await mkdtemp(tmpdir() + "/bank-retirement-");
   if (mode === "database")
@@ -72,7 +88,7 @@ for (const mode of ["database", "archive"]) {
       });
       assert.equal(res.status, 201, await res.clone().text());
       const stage = (await res.json()).data;
-      assert.equal(stage.report.schema_version, 27);
+      assert.equal(stage.report.schema_version, 36);
       assert.ok(
         stage.report.retired_external_connections > 0,
         "Legacy native conversion reports removed external configuration",
@@ -89,17 +105,15 @@ for (const mode of ["database", "archive"]) {
     ]) {
       const actual = await call(root + path);
       assert.deepEqual(
-        actual.data,
-        fixture.snapshot[name].data,
+        currentRows(name, actual.data),
+        currentRows(name, fixture.snapshot[name].data, true),
         "Original financial/reference/status/imported fields remain exact: " +
           name,
       );
     }
     const before = await call(root + "/checkpoint");
     const preferences = (await call(root + "/preferences")).data.experimental;
-    assert.ok(
-      !("enableBanking" in preferences) && !("akahuBankSync" in preferences),
-    );
+    assert.equal(preferences, undefined);
     const connection =
       fixture.snapshot.banking?.data?.connections?.[0]?.id ?? randomUUID();
     for (const path of [
@@ -133,33 +147,17 @@ for (const mode of ["database", "archive"]) {
         "X-Actual-History-Owner": fixture.owner,
         "X-Actual-Budget-Epoch": before.data.epoch,
       };
-      assert.equal(
-        (await call(root + "/history", undefined, 200, owned)).data.undo.id,
-        fixture.snapshot.history.data.undo.id,
-      );
-      let undos = 0;
-      for (; undos < 20; undos++) {
-        const next = (await call(root + "/history", undefined, 200, owned)).data
-          .undo;
-        if (!next) break;
-        await call(root + "/history/undo", { action_id: next.id }, 200, owned);
-      }
-      assert.ok(
-        undos > 0 && undos < 20,
-        "Preserved history drains through old financial imports",
-      );
-      for (let n = 0; n < undos; n++) {
-        const next = (await call(root + "/history", undefined, 200, owned)).data
-          .redo;
-        assert.ok(next);
-        await call(root + "/history/redo", { action_id: next.id }, 200, owned);
-      }
+      // Converting the old envelope budget rotates its epoch and invalidates
+      // undo graphs that could restore the removed budgeting method.
+      assert.notEqual(before.data.epoch, fixture.snapshot.history.data.epoch);
+      assert.equal((await call(root + "/history", undefined, 200, owned)).data.undo, null);
+      await call(root + "/history/undo", {action_id: fixture.snapshot.history.data.undo.id}, 409, owned);
       // Owned inverses mint fresh field clocks; initial upgrade comparison above
       // still requires every original clock unchanged before user mutations.
       const financial = (rows) => rows.map(({ field_versions, ...row }) => row);
       assert.deepEqual(
-        financial((await call(root + "/transactions")).data),
-        financial(fixture.snapshot.transactions.data),
+        financial(currentRows("transactions", (await call(root + "/transactions")).data)),
+        financial(currentRows("transactions", fixture.snapshot.transactions.data, true)),
         "Undo/redo restores every original financial/import field and identity",
       );
     }

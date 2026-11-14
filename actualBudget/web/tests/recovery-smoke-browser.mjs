@@ -51,9 +51,8 @@ try {
   });
   await page.reload();
   await page.getByRole("button", { name: new RegExp(name + ".*Open") }).click();
-  await page
-    .getByRole("button", { name: "Recovery tools", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
     .getByRole("button", { name: "Inspect budget", exact: true })
     .click();
@@ -89,30 +88,31 @@ try {
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("1.23");
-  const note = `Recovery purchase ${randomUUID()}`;
-  await page.getByLabel("Notes", { exact: true }).fill(note);
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText(note);
-  await page
-    .getByRole("button", { name: "Recovery tools", exact: true })
-    .click();
+  await expect(page.getByRole("row", { name: /Edit -1.23/ })).toBeVisible();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
     .getByRole("button", { name: "Reset downloaded data", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Confirm cache reset", exact: true })
     .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
-    .getByRole("button", { name: "Review pending expenses", exact: true })
+    .getByRole("button", { name: "Troubleshoot saved changes", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText(note);
+  await expect(page.getByTestId("pending-expenses")).toContainText("1.23");
   await page.reload();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
-    .getByRole("button", { name: "Review pending expenses", exact: true })
+    .getByRole("button", { name: "Troubleshoot saved changes", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText(note);
+  await expect(page.getByTestId("pending-expenses")).toContainText("1.23");
   await page.setViewportSize({ width: 390, height: 844 });
   expect(
     await page.evaluate(
@@ -123,12 +123,11 @@ try {
   await page.evaluate(() => dispatchEvent(new Event("online")));
   await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
   const transactions = (await api(`/budgets/${budget}/transactions`)).data;
-  expect(transactions.filter((row) => row.notes === note)).toHaveLength(1);
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  expect(transactions.filter((row) => row.amount === -123)).toHaveLength(1);
+  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
   await page.getByRole("button", { name: new RegExp(name + ".*Open") }).click();
-  await page
-    .getByRole("button", { name: "Recovery tools", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
     .getByRole("button", { name: "Reset downloaded data", exact: true })
     .click();

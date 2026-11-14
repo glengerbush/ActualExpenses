@@ -38,6 +38,8 @@ const MIGRATIONS: &[&str] = &[
     include_str!("migrations/032_retire_notes.sql"),
     include_str!("migrations/033_weekly_backups.sql"),
     include_str!("migrations/034_retire_experiments.sql"),
+    include_str!("migrations/035_note_month_guards.sql"),
+    include_str!("migrations/036_retired_rule_notes.sql"),
 ];
 pub(crate) const CURRENT_VERSION: usize = MIGRATIONS.len();
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
@@ -58,6 +60,10 @@ pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let tx = db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     for (index, sql) in MIGRATIONS.iter().enumerate().skip(version as usize) {
         tx.execute_batch(sql)?;
+        if index == 35 {
+            crate::rules::normalize_retired_notes(&tx, None)?;
+            crate::imports::refresh_rule_capabilities(&tx, None)?;
+        }
         if index == 30 {
             crate::budgeting::normalize(&tx, None)?;
         }
@@ -111,4 +117,63 @@ pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     }
     tx.commit()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod note_month_guards {
+    use rusqlite::Connection;
+
+    #[test]
+    fn forward_repair_preserves_arbitrary_ids_without_reviving_deleted_notes() {
+        let db = Connection::open_in_memory().unwrap();
+        db.execute_batch("CREATE TABLE notes(budget_id TEXT,id TEXT,note TEXT,tombstone INT);
+            CREATE TABLE categories(budget_id TEXT,id TEXT);
+            CREATE TABLE category_groups(budget_id TEXT,id TEXT);
+            CREATE TABLE accounts(budget_id TEXT,id TEXT,notes TEXT);
+            CREATE TRIGGER retired_domain_notes_insert AFTER INSERT ON notes WHEN NEW.id GLOB 'budget-[0-9][0-9][0-9][0-9]-[0-9][0-9]' BEGIN UPDATE notes SET note='',tombstone=1 WHERE id=NEW.id; END;
+            CREATE TRIGGER retired_domain_notes_update AFTER UPDATE ON notes WHEN NEW.note<>'' AND NEW.id GLOB 'budget-[0-9][0-9][0-9][0-9]-[0-9][0-9]' BEGIN UPDATE notes SET note='',tombstone=1 WHERE id=NEW.id; END;
+            INSERT INTO notes VALUES('b','budget-2026-13','previously deleted',0);").unwrap();
+        db.execute_batch(include_str!("migrations/035_note_month_guards.sql"))
+            .unwrap();
+        let erased: (String, bool) = db
+            .query_row(
+                "SELECT note,tombstone FROM notes WHERE id='budget-2026-13'",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .unwrap();
+        assert_eq!(erased, (String::new(), true));
+        for id in [
+            "budget-2026-00",
+            "budget-2026-14",
+            "budget-0000-01",
+            "budget-automation",
+        ] {
+            db.execute("INSERT INTO notes VALUES('b',?1,'retained',0)", [id])
+                .unwrap();
+            db.execute("UPDATE notes SET note='edited' WHERE id=?1", [id])
+                .unwrap();
+            let visible: String = db
+                .query_row(
+                    &format!(
+                        "SELECT t.note {} WHERE t.id=?1 AND t.tombstone=0",
+                        crate::notes::QUERY_FROM
+                    ),
+                    [id],
+                    |r| r.get(0),
+                )
+                .unwrap();
+            assert_eq!(visible, "edited");
+        }
+        for id in ["budget-0001-01", "budget-2026-12", "budget-9999-12", "b"] {
+            db.execute("INSERT INTO notes VALUES('b',?1,'retired',0)", [id])
+                .unwrap();
+            let erased: (String, bool) = db
+                .query_row("SELECT note,tombstone FROM notes WHERE id=?1", [id], |r| {
+                    Ok((r.get(0)?, r.get(1)?))
+                })
+                .unwrap();
+            assert_eq!(erased, (String::new(), true));
+        }
+    }
 }

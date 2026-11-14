@@ -1,4 +1,6 @@
 //! Source-backed conversion graphs and horizon warnings through public HTTP.
+#[path = "support/retired_rows.rs"]
+mod retirement;
 use reqwest::blocking::Client;
 use serde_json::{Value, json};
 use std::{
@@ -279,10 +281,13 @@ fn new_projection(row: &Value, ids: &BTreeMap<String, String>) -> Value {
 #[test]
 fn conversion_preserves_source_financial_graphs_and_corrects_split_transfer_loss_atomically() {
     let oracle: Value =
-        serde_json::from_str(include_str!("../../tests/fixtures/schedule-matching.json")).unwrap();
+        serde_json::from_str(include_str!("../../tests/fixtures/schedule-matching.json"))
+            .map(retirement::current)
+            .unwrap();
     let manifest: Value = serde_json::from_str(include_str!(
         "../../tests/fixtures/schedule-conversion/manifest.json"
     ))
+    .map(retirement::current)
     .unwrap();
     assert_eq!(manifest["archives"].as_array().unwrap().len(), 5);
     for case in oracle["conversion"].as_array().unwrap() {
@@ -490,7 +495,7 @@ fn conversion_preserves_source_financial_graphs_and_corrects_split_transfer_loss
                 .clone();
             peer["id"] = json!("corrected-peer");
             peer["transfer_id"] = child_id;
-            peer["cleared"] = json!(false);
+            peer["cleared"] = json!(true);
             peer["reconciled"] = json!(false);
             peer["schedule"] = Value::Null;
             expected.push(peer);
@@ -519,10 +524,13 @@ fn conversion_preserves_source_financial_graphs_and_corrects_split_transfer_loss
 #[test]
 fn conversion_window_preview_matches_twenty_frozen_source_boundaries_without_writes() {
     let oracle: Value =
-        serde_json::from_str(include_str!("../../tests/fixtures/schedule-matching.json")).unwrap();
+        serde_json::from_str(include_str!("../../tests/fixtures/schedule-matching.json"))
+            .map(retirement::current)
+            .unwrap();
     let manifest: Value = serde_json::from_str(include_str!(
         "../../tests/fixtures/schedule-conversion/manifest.json"
     ))
+    .map(retirement::current)
     .unwrap();
     let archive = &manifest["archives"][0];
     let ids: BTreeMap<String, String> = serde_json::from_value(archive["ids"].clone()).unwrap();

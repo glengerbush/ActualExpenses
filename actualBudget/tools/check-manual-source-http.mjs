@@ -54,9 +54,9 @@ function financial(rows, source = false) {
       payee: t[source ? "payee" : "payee_id"] ?? null,
       amount: t.amount,
       date: t.date,
-      notes: t.notes ?? "",
-      cleared: !!t.cleared,
-      reconciled: !!t.reconciled,
+      notes: source ? "" : t.notes ?? "",
+      cleared: source ? true : !!t.cleared,
+      reconciled: source ? false : !!t.reconciled,
       starting: !!t[source ? "starting_balance_flag" : "starting_balance"],
       imported_id: t.imported_id ?? null,
       imported_payee: t.imported_payee ?? null,
@@ -67,8 +67,7 @@ function financial(rows, source = false) {
     .sort((a, b) => a.id.localeCompare(b.id));
 }
 function noFlags(value) {
-  assert.ok(!("enableBanking" in value.experimental));
-  assert.ok(!("akahuBankSync" in value.experimental));
+  assert.equal(value.experimental, undefined);
 }
 try {
   const stage = (await call("/imports/actual", bytes, 201)).data;
@@ -117,8 +116,9 @@ try {
     converted.warnings.filter((w) =>
       /External bank connection feature removed/.test(w.reason),
     ).length,
-    2,
+    0,
   );
+  assert.deepEqual(converted.unmapped.synced, {});
   const backup = (
     await call(root + "/backups", { label: "Manual-only round trip" }, 201)
   ).data;
@@ -133,7 +133,7 @@ try {
       { input: archive, encoding: "utf8" },
     ),
   );
-  assert.equal(portable.manifest.schema_version, 27);
+  assert.equal(portable.manifest.schema_version, 36);
   assert.ok(
     !Object.keys(portable.state.tables).some((name) =>
       name.startsWith("bank_"),

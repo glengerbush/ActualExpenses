@@ -185,7 +185,7 @@ pub fn record(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
 }
 /// Domain text is authoritative; marker rows distinguish empty from absent.
 /// Versioned backfill retains native domain notes written before marker support.
-pub const QUERY_FROM: &str = "FROM (SELECT n.budget_id,n.id,CASE WHEN a.id IS NOT NULL THEN a.notes ELSE n.note END AS note,n.tombstone FROM notes n LEFT JOIN accounts a ON a.budget_id=n.budget_id AND a.id=n.id WHERE n.id NOT GLOB 'budget-[0-9][0-9][0-9][0-9]-[0-9][0-9]' AND n.id<>n.budget_id AND NOT EXISTS(SELECT 1 FROM categories c WHERE c.budget_id=n.budget_id AND c.id=n.id) AND NOT EXISTS(SELECT 1 FROM category_groups g WHERE g.budget_id=n.budget_id AND g.id=n.id)) t";
+pub const QUERY_FROM: &str = "FROM (SELECT n.budget_id,n.id,CASE WHEN a.id IS NOT NULL THEN a.notes ELSE n.note END AS note,n.tombstone FROM notes n LEFT JOIN accounts a ON a.budget_id=n.budget_id AND a.id=n.id WHERE NOT (n.id GLOB 'budget-[0-9][0-9][0-9][0-9]-[0-9][0-9]' AND substr(n.id,8,4) BETWEEN '0001' AND '9999' AND substr(n.id,13,2) BETWEEN '01' AND '12') AND n.id<>n.budget_id AND NOT EXISTS(SELECT 1 FROM categories c WHERE c.budget_id=n.budget_id AND c.id=n.id) AND NOT EXISTS(SELECT 1 FROM category_groups g WHERE g.budget_id=n.budget_id AND g.id=n.id)) t";
 /// Once per migration or explicit portable restore, never a startup ledger scan.
 pub fn domain_identities(db: &Connection, only: Option<&str>) -> Result<(), Error> {
     {

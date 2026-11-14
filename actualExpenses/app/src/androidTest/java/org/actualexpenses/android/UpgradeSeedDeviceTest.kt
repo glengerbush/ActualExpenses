@@ -1,12 +1,11 @@
 package org.actualexpenses.android
 
+import com.google.gson.JsonParser
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
 import java.security.MessageDigest
-import org.actualexpenses.core.ExpenseService
 import org.actualexpenses.core.StateStore
-import org.actualexpenses.core.protocol.SnapshotDecoder
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -30,12 +29,11 @@ class UpgradeSeedDeviceTest {
         val store = clazz.getConstructor(Context::class.java).newInstance(context) as StateStore
         store.write(raw)
         assertEquals(raw, store.read())
-        val old =
-            ExpenseService(
-                store,
-                SnapshotDecoder { error("Seeding never downloads or rewrites a source archive") },
-            )
-        assertTrue(old.state().pendingCount > 0)
+        // This seed check runs against the released APK's actual encrypted store.
+        // Decoding/migrating the original payload is qualified by native upgrade tests.
+        val pendingCount = JsonParser.parseString(raw).asJsonObject.getAsJsonArray("pending")
+            .map { it.asJsonObject["transactionId"].asString }.distinct().size
+        assertTrue(pendingCount > 0)
         val original = File(context.noBackupFilesDir, "expenses.state").readBytes()
         assertEquals(1, original.first().toInt())
         val hash =
@@ -46,7 +44,7 @@ class UpgradeSeedDeviceTest {
         File(review, "android20-original.sha256").writeText(hash)
         File(review, "android20-case.txt").writeText(case)
         println(
-            "RELEASED_STATE_SEEDED case=$case pending=${old.state().pendingCount} encrypted_sha256=$hash"
+            "RELEASED_STATE_SEEDED case=$case pending=${pendingCount} encrypted_sha256=$hash"
         )
     }
 }

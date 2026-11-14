@@ -343,7 +343,7 @@ fn pinned_actual_splits_import_and_native_archive_roundtrip() {
         assert_eq!(edited.status(), 200, "{}", edited.text().unwrap());
         let edited: Value = edited.json().unwrap();
         assert_eq!(edited["data"]["children"][0]["category_id"], category);
-        assert_eq!(edited["data"]["children"][0]["notes"], key);
+        assert_eq!(edited["data"]["children"][0]["notes"], "");
     }
 }
 
@@ -606,13 +606,13 @@ fn deleted_split_parent_and_children_merge_later_fields_without_resurrection() {
             &format!("{path}/{target}"),
             target,
             C5,
-            json!({"notes":"hidden winning note"}),
+            json!({"date":"2031-01-02"}),
         );
         assert_eq!(later.status(), 200, "{}", later.text().unwrap());
         let hidden: Value = later.json().unwrap();
         assert_eq!(hidden["data"]["deleted"], true);
-        assert_eq!(hidden["data"]["notes"], "hidden winning note");
-        assert_eq!(hidden["data"]["field_versions"]["notes"], C5);
+        assert_eq!(hidden["data"]["date"], "2031-01-02");
+        assert_eq!(hidden["data"]["field_versions"]["date"], C5);
         assert_eq!(hidden["data"]["field_versions"]["tombstone"], C4);
         assert_eq!(server.get(&format!("{path}/{target}")).status(), 404);
     }
@@ -670,10 +670,7 @@ fn off_budget_split_moves_and_edits_preserve_existing_latent_categories() {
     assert_eq!(edited.status(), 200, "{}", edited.text().unwrap());
     let edited: Value = edited.json().unwrap();
     assert_eq!(edited["data"]["children"][0]["category_id"], category);
-    assert_eq!(
-        edited["data"]["children"][0]["notes"],
-        "edit latent allocation"
-    );
+    assert_eq!(edited["data"]["children"][0]["notes"], "");
     let current: Value = server.get(&format!("{path}/{id}/splits")).json().unwrap();
     children[0]["category_id"] = json!(other);
     assert_eq!(
@@ -885,7 +882,11 @@ fn imported_large_splits() -> (Server, String, Value) {
 
 #[test]
 fn imported_large_allocations_can_be_replaced_beyond_the_ordinary_body_limit() {
-    let (server, root, fixture) = imported_large_splits();
+    let (mut server, root, fixture) = imported_large_splits();
+    server.client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_secs(30))
+        .build()
+        .unwrap();
     for case in fixture["accounts"].as_array().unwrap() {
         let count = case["count"].as_u64().unwrap();
         let path = format!(
@@ -919,7 +920,7 @@ fn imported_large_allocations_can_be_replaced_beyond_the_ordinary_body_limit() {
         {
             assert_eq!(new["id"], old["id"]);
             assert_eq!(new["amount"], -1);
-            assert_eq!(new["notes"], "Edited imported allocation");
+            assert_eq!(new["notes"], "");
             assert_eq!(new["category_id"], old["category_id"]);
         }
     }
@@ -971,7 +972,7 @@ fn sparse_imported_allocations_redistribute_remove_duplicate_and_detach_atomical
     assert_eq!(changed[0]["amount"], -2);
     assert_eq!(changed[0]["payee_id"], payee);
     assert_eq!(changed[0]["category_id"], category);
-    assert_eq!(changed[0]["notes"], "Only this allocation changed");
+    assert_eq!(changed[0]["notes"], "");
     assert_eq!(changed[999]["id"], children[999]["id"]);
     assert_eq!(changed[999]["notes"], children[999]["notes"]);
     assert_eq!(after["data"]["amount"], -1001);
@@ -1022,7 +1023,7 @@ fn sparse_imported_allocations_redistribute_remove_duplicate_and_detach_atomical
         assert_eq!(source["payee_id"], copy["payee_id"]);
         assert_eq!(source["category_id"], copy["category_id"]);
         assert_eq!(copy["reconciled"], false);
-        assert_eq!(copy["cleared"], false);
+        assert_eq!(copy["cleared"], true);
     }
     let current: Value = server.get(&path).json().unwrap();
     let detached: Vec<Value> = changed[899..].iter().map(|c| c["id"].clone()).collect();
@@ -1062,28 +1063,16 @@ fn sparse_imported_allocations_redistribute_remove_duplicate_and_detach_atomical
 }
 
 #[test]
-fn sparse_large_protection_receipts_cancellation_and_native_epochs_stay_atomic() {
+fn sparse_large_receipts_cancellation_and_native_epochs_stay_atomic() {
     let (mut server, root, fixture) = imported_large_splits();
     let case = &fixture["accounts"][1];
     let path = format!(
         "{root}/transactions/{}/splits",
         case["parent"].as_str().unwrap()
     );
-    let reconciliation = format!(
-        "{root}/accounts/{}/reconciliation",
-        case["account"].as_str().unwrap()
-    );
-    let preview: Value = server.get(&reconciliation).json().unwrap();
-    let lock = server.post(&reconciliation,"lock-large",json!({"action":"lock","snapshot":preview["data"]["snapshot"],"statement_balance":-1001,"date":"2026-02-28"}));
-    assert_eq!(lock.status(), 200, "{}", lock.text().unwrap());
     let before: Value = server.get(&path).json().unwrap();
     let child = before["data"]["children"][1000]["id"].as_str().unwrap();
-    let mut body = json!({"snapshot":before["snapshot"],"changes":{"upsert":[{"id":child,"amount":-1,"notes":"Protected final allocation"}]}});
-    let refusal = server.post(&path, "no-proof", body.clone());
-    assert_eq!(refusal.status(), 409, "{}", refusal.text().unwrap());
-    assert_eq!(server.get(&path).json::<Value>().unwrap(), before);
-    body["confirm_reconciled"] = json!(true);
-    body["reconciliation_token"] = before["reconciliation_token"].clone();
+    let body = json!({"snapshot":before["snapshot"],"changes":{"upsert":[{"id":child,"amount":-2},{"id":before["data"]["children"][999]["id"],"amount":0}]}});
     let response = server.post(&path, "protected-sparse", body.clone());
     assert_eq!(response.status(), 200, "{}", response.text().unwrap());
     let receipt: Value = response.json().unwrap();
@@ -1092,12 +1081,11 @@ fn sparse_large_protection_receipts_cancellation_and_native_epochs_stay_atomic()
             .as_array()
             .unwrap()
             .iter()
-            .all(|c| c["reconciled"] == true)
+            .all(|c| c["reconciled"] == false)
     );
     let current: Value = server.get(&path).json().unwrap();
-    let mut stale = body.clone();
-    stale["snapshot"] = current["snapshot"].clone();
-    assert_eq!(server.post(&path, "stale-protection", stale).status(), 409);
+    let stale = body.clone();
+    assert_eq!(server.post(&path, "stale-snapshot", stale).status(), 409);
     assert_eq!(server.get(&path).json::<Value>().unwrap(), current);
     server = server.restart();
     assert_eq!(
@@ -1109,8 +1097,8 @@ fn sparse_large_protection_receipts_cancellation_and_native_epochs_stay_atomic()
     );
     let mut canceled = body.clone();
     canceled["snapshot"] = current["snapshot"].clone();
-    canceled["reconciliation_token"] = current["reconciliation_token"].clone();
-    canceled["changes"]["upsert"][0]["notes"] = json!("Canceled large edit");
+    canceled["changes"]["upsert"][0]["amount"] = json!(-3);
+    canceled["changes"]["upsert"][1]["amount"] = json!(1);
     let cancellation = server
         .client
         .post(format!("{}{path}", server.url))
@@ -1152,6 +1140,7 @@ fn sparse_large_protection_receipts_cancellation_and_native_epochs_stay_atomic()
         .client
         .post(format!("{}/api/v1/restores", target.url))
         .header("Idempotency-Key", "large-native-stage")
+        .timeout(Duration::from_secs(30))
         .header("Content-Type", "application/zip")
         .body(bytes.to_vec())
         .send()

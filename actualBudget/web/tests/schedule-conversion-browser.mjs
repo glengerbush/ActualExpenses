@@ -48,29 +48,24 @@ try {
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(server.url);
-  await page.evaluate(
-    ({ budget, account }) =>
-      localStorage.setItem(
-        "actualBudget.selection",
-        JSON.stringify({ budgetId: budget, accountId: account }),
-      ),
-    { budget, account },
-  );
-  await page.reload();
+  await page.goto(`${server.url}/?budget=${budget}&view=transactions`);
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("12.34");
   await page.getByLabel("Date", { exact: true }).fill(inputDate);
-  await page.getByLabel("Payee", { exact: true }).selectOption("new");
-  await page.getByLabel("New payee name").fill("Future merchant");
+  await page
+    .getByRole("combobox", { name: "Payee", exact: true })
+    .fill("Future merchant");
+  await page
+    .getByRole("option", {
+      name: "Create payee “Future merchant”",
+      exact: true,
+    })
+    .click();
   await page.getByLabel("Category", { exact: true }).selectOption("new");
   await page.getByLabel("New category name").fill("Future category");
-  await page
-    .getByLabel("Notes", { exact: true })
-    .fill("Keep original conversion identity");
-  await page.getByLabel("Cleared", { exact: true }).check();
+
   const original = await page.evaluate(
     (b) => JSON.parse(localStorage.getItem(`actualBudget.transaction.v1.${b}`)),
     budget,
@@ -93,16 +88,14 @@ try {
     (await call(`/budgets/${budget}/payees`)).data.some(
       (p) => p.name === "Future merchant",
     ),
-  ).toBe(false);
+  ).toBe(true);
   await mkdir("test-results/schedule-conversion", { recursive: true });
   await page.screenshot({
     path: "test-results/schedule-conversion/preview-desktop.png",
     fullPage: true,
   });
   await page.reload();
-  await expect(page.locator(".conversion")).toContainText(
-    "Keep original conversion identity",
-  );
+  await expect(page.locator(".conversion")).toContainText("12.34");
   const captured = [];
   let dropped = false;
   await page.route(`**/budgets/${budget}/schedules/commands`, async (route) => {
@@ -140,9 +133,7 @@ try {
     budget,
   );
   expect(pending.pending.body.transaction.id).toBe(original.id);
-  expect(pending.pending.body.transaction.new_payee.name).toBe(
-    "Future merchant",
-  );
+  expect(pending.pending.body.transaction.payee_id).toBe(original.fields.payee);
   const committedBeforeRetry = (await call(`/budgets/${budget}/schedules`)).data
     .schedules;
   expect(committedBeforeRetry).toHaveLength(1);
@@ -218,18 +209,14 @@ try {
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await (
     await transactionAction(
-      page
-        .locator(".register-table tbody tr")
-        .filter({ hasText: "Saved future entry" }),
+      page.locator(`tr[data-transaction-id="${existing}"]`),
       { name: /^Schedule future / },
     )
   ).click();
   await expect(page.locator(".conversion")).toContainText(
     "Existing entries replaced",
   );
-  await expect(page.locator(".conversion")).toContainText(
-    "Cleared · Not reconciled",
-  );
+
   const remote = await fetch(
     api + `/budgets/${budget}/transactions/${existing}`,
     {
@@ -238,7 +225,7 @@ try {
         "Content-Type": "application/json",
         "Idempotency-Key": randomUUID(),
       },
-      body: JSON.stringify({ notes: "Newer remote future note" }),
+      body: JSON.stringify({ amount: -2100 }),
     },
   );
   expect(remote.ok, await remote.clone().text()).toBe(true);
@@ -278,8 +265,8 @@ try {
     .getByRole("button", { name: "Keep original transaction", exact: true })
     .click();
   expect(
-    (await call(`/budgets/${budget}/transactions/${existing}`)).data.notes,
-  ).toBe("Newer remote future note");
+    (await call(`/budgets/${budget}/transactions/${existing}`)).data.amount,
+  ).toBe(-2100);
   // A new expense draft preserves its original identity during schedule conversion.
   await page
     .getByRole("button", { name: "Add transaction", exact: true })

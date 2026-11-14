@@ -1,4 +1,6 @@
 //! Public matching boundary checked against the independent Actual26.10 fixture.
+#[path = "support/retired_rows.rs"]
+mod retirement;
 use reqwest::blocking::Client;
 use serde_json::{Value, json};
 use std::{
@@ -74,7 +76,9 @@ impl Drop for Server {
 }
 
 fn oracle() -> Value {
-    serde_json::from_str(include_str!("../../tests/fixtures/schedule-matching.json")).unwrap()
+    serde_json::from_str(include_str!("../../tests/fixtures/schedule-matching.json"))
+        .map(retirement::current)
+        .unwrap()
 }
 
 // Source labels resolve only from the committed archive, never replacement results.

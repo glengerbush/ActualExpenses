@@ -353,7 +353,7 @@ fn static_app_and_versioned_machine_contract_are_available_on_plain_http() {
     );
     for (verb, path) in [
         (reqwest::Method::DELETE, "/api/v1/budgets"),
-        (reqwest::Method::POST, "/api/v1/themes/catalog"),
+        (reqwest::Method::POST, "/api/v1/info"),
         (reqwest::Method::POST, "/api/v1/imports"),
     ] {
         let method = server
@@ -393,7 +393,7 @@ fn budget_scoping_preserves_safe_integer_extremes_and_failed_writes_are_retryabl
     let response = server.post(
         "/api/v1/budgets",
         "second-budget",
-        json!({"id":second,"name":"Other","budget_type":"envelope"}),
+        json!({"id":second,"name":"Other","budget_type":"tracking"}),
     );
     assert_eq!(response.status(), 201);
     assert_eq!(
@@ -513,9 +513,9 @@ fn ordinary_income_expense_and_refund_have_exact_register_balances_after_restart
         .unwrap();
     assert_eq!(
         register["balances"],
-        json!({"total":29000,"cleared":30234,"uncleared":-1234})
+        json!({"total":29000,"cleared":29000,"uncleared":0})
     );
-    assert_eq!(register["data"][0]["notes"], "Refund");
+    assert_eq!(register["data"][0]["notes"], "");
     assert_eq!(register["data"][0]["running_balance"], 29000);
     assert_eq!(register["data"][1]["running_balance"], 28766);
     assert_eq!(
@@ -566,7 +566,7 @@ fn edit_duplicate_and_delete_use_stable_operations_and_keep_balances_exact() {
     );
     assert_eq!(copied.status(), 201);
     let copied: Value = copied.json().unwrap();
-    assert_eq!(copied["data"]["cleared"], false);
+    assert_eq!(copied["data"]["cleared"], true);
     assert_eq!(copied["data"]["reconciled"], false);
     assert_eq!(copied["data"]["amount"], -1200);
     assert_eq!(
@@ -802,13 +802,20 @@ fn register_mutations_and_date_cutoffs_match_independent_actual_fixture() {
             .json()
             .unwrap();
         assert_eq!(
-            register["balances"], snapshot["balances"],
+            register["balances"],
+            json!({"total": snapshot["balances"]["total"], "cleared": snapshot["balances"]["total"], "uncleared": 0}),
             "{}",
             snapshot["name"]
         );
         let mut normalized:Vec<Value>=register["data"].as_array().unwrap().iter().map(|entry|json!({"id":if entry["starting_balance"]==true {json!("opening")}else{entry["id"].clone()},"date":entry["date"],"amount":entry["amount"],"notes":entry["notes"],"cleared":entry["cleared"],"reconciled":entry["reconciled"],"starting_balance":entry["starting_balance"],"payee_name":entry["payee_name"],"category_name":entry["category_name"]})).collect();
         normalized.sort_by(|a, b| a["id"].as_str().cmp(&b["id"].as_str()));
-        assert_eq!(json!(normalized), snapshot["transactions"]);
+        let mut expected = snapshot["transactions"].clone();
+        for row in expected.as_array_mut().unwrap() {
+            row["notes"] = json!("");
+            row["cleared"] = json!(true);
+            row["reconciled"] = json!(false);
+        }
+        assert_eq!(json!(normalized), expected);
         for cutoff in snapshot["through_dates"].as_array().unwrap() {
             let rows: Value = server
                 .get(&format!(

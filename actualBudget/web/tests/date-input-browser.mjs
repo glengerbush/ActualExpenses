@@ -108,9 +108,9 @@ try {
         await expect(date).toHaveValue(
           format.replace("yyyy", year).replace("MM", month).replace("dd", day),
         );
-        await page.getByLabel("Amount", { exact: true }).fill("1");
-        const note = format + ":" + index;
-        await page.getByLabel("Notes", { exact: true }).fill(note);
+        await page
+          .getByLabel("Amount", { exact: true })
+          .fill(String(index + 1));
         await page
           .getByRole("button", { name: "Save transaction", exact: true })
           .click();
@@ -120,9 +120,9 @@ try {
         const rows = await (
           await fetch(api + `/api/v1/budgets/${budget}/transactions`)
         ).json();
-        expect(rows.data.find((row) => row.notes === note)?.date).toBe(
-          expected,
-        );
+        expect(
+          rows.data.find((row) => row.amount === -(index + 1) * 100)?.date,
+        ).toBe(expected);
       } else {
         await expect(date).toHaveValue(item.input);
         await page.getByLabel("Amount", { exact: true }).fill("1");
@@ -141,8 +141,7 @@ try {
     await page
       .getByRole("button", { name: "Add transaction", exact: true })
       .click();
-    await page.getByLabel("Amount", { exact: true }).fill("1");
-    await page.getByLabel("Notes", { exact: true }).fill("Enter commit");
+    await page.getByLabel("Amount", { exact: true }).fill("99");
     const enterCase = fixture.cases.find((item) => item.format === format);
     const date = page.getByLabel("Date", { exact: true });
     await date.fill("");
@@ -154,7 +153,7 @@ try {
     const rows = await (
       await fetch(api + `/api/v1/budgets/${budget}/transactions`)
     ).json();
-    expect(rows.data.find((row) => row.notes === "Enter commit")?.date).toBe(
+    expect(rows.data.find((row) => row.amount === -9900)?.date).toBe(
       enterCase.expected,
     );
     await context.close();

@@ -34,7 +34,7 @@ pub fn normalize(db: &Connection, only: Option<&str>) -> Result<(), Error> {
     }
     // Storage columns remain solely for decoding old archives. No active reader/writer uses them.
     db.execute("UPDATE budget_months SET buffered=0,notes='' WHERE (?1 IS NULL OR budget_id=?1) AND (buffered<>0 OR notes<>'')", [only])?;
-    db.execute("UPDATE notes SET note='',tombstone=1 WHERE (?1 IS NULL OR budget_id=?1) AND (id GLOB 'budget-[0-9][0-9][0-9][0-9]-[0-9][0-9]' OR id=budget_id)", [only])?;
+    db.execute("UPDATE notes SET note='',tombstone=1 WHERE (?1 IS NULL OR budget_id=?1) AND ((id GLOB 'budget-[0-9][0-9][0-9][0-9]-[0-9][0-9]' AND substr(id,8,4) BETWEEN '0001' AND '9999' AND substr(id,13,2) BETWEEN '01' AND '12') OR id=budget_id)", [only])?;
     db.execute("DELETE FROM history_actions WHERE (?1 IS NULL OR budget_id=?1) AND (changes LIKE '%\"budget_months\"%' OR changes LIKE '%\"budget_settings\"%')", params![only])?;
     Ok(())
 }

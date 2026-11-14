@@ -1,3 +1,4 @@
+import { savedWork, expectSavedWork } from "./saved-work-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { startServer } from "./server.mjs";
@@ -55,13 +56,12 @@ try {
       .click();
     await page.getByLabel("Amount", { exact: true }).fill("1");
     await page
-      .getByLabel("Notes", { exact: true })
-      .fill("Edited pending expense");
-    await page
       .getByRole("button", { name: "Save transaction", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "Edit pending expense", exact: true })
+      .locator(".register-table tr[data-transaction-id]")
+      .filter({ hasText: /-[123]\.00/ })
+      .first()
       .click();
     await page.getByLabel("Amount", { exact: true }).fill("2");
     const sent = [];
@@ -93,8 +93,7 @@ try {
         capture,
       );
       await page.evaluate(() => dispatchEvent(new Event("online")));
-      if (mode === "synced")
-        await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+      if (mode === "synced") await expectSavedWork(page, 0);
       else await observed;
     } else {
       await page.evaluate(() => {
@@ -110,7 +109,7 @@ try {
       .getByRole("button", { name: "Save transaction", exact: true })
       .click();
     if (mode === "claimed") {
-      await expect(page.locator(".pending-expense")).toHaveCount(2);
+      await expectSavedWork(page, 2);
       release();
       await expect(page.locator(".transaction-form")).toHaveCount(0);
     }
@@ -120,7 +119,7 @@ try {
       ).toBeVisible();
       await page.reload();
       await expect(page.locator(".transaction-form")).toHaveCount(0);
-      await expect(page.getByTestId("pending-expenses")).toContainText("-2.00");
+      await expect(page.locator(".register-table")).toContainText("-2.00");
       await context.unroute("**/api/v1/**");
       await context.route(
         `**/api/v1/budgets/${budget}/transactions**`,
@@ -134,11 +133,11 @@ try {
         console.log(mode, sent, await page.locator("body").innerText());
         throw error;
       });
-    await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+    await expectSavedWork(page, 0);
     await expect(page.locator(".transaction-form")).toHaveCount(0);
     const rows = (
       await (await fetch(api + `/api/v1/budgets/${budget}/transactions`)).json()
-    ).data.filter((row) => row.notes === "Edited pending expense");
+    ).data.filter((row) => !row.starting_balance);
     expect(rows).toHaveLength(1);
     expect(rows[0].amount).toBe(-200);
     if (mode === "handoff") {

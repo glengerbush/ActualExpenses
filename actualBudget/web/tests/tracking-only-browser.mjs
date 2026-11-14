@@ -62,6 +62,11 @@ try {
   const oldEpoch = (await call(root + "/budget?month=2026-11")).epoch;
   await server.stop();
   execFileSync("python3", [
+    "tests/historical-schema.py",
+    directory + "/actualbudget.sqlite3",
+    "30",
+  ]);
+  execFileSync("python3", [
     "-c",
     `import sqlite3,sys,json
 c=sqlite3.connect(sys.argv[1]+'/actualbudget.sqlite3');b,k=sys.argv[2:]
@@ -81,7 +86,18 @@ c.execute('PRAGMA user_version=30');c.commit()`,
     category,
   ]);
   server = await startServer({ dataDirectory: directory });
-  const replay = await fetch(api() + "/budgets", {method:"POST", headers:{"Content-Type":"application/json", "Idempotency-Key":"legacy-envelope-create"},body:JSON.stringify({id:budget,name:"Tracking only",budget_type:"envelope"})});
+  const replay = await fetch(api() + "/budgets", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Idempotency-Key": "legacy-envelope-create",
+    },
+    body: JSON.stringify({
+      id: budget,
+      name: "Tracking only",
+      budget_type: "envelope",
+    }),
+  });
   expect(replay.status).toBe(201);
   expect((await replay.json()).data.budget_type).toBe("envelope"); // Exact historical receipt, not current state.
   let view = await call(root + "/budget?month=2026-11&count=2");
@@ -222,12 +238,16 @@ c.close();os.unlink(f.name)`,
   const row = page
     .locator(".budget-month")
     .first()
-    .locator(".budget-category")
-    .filter({ hasText: "Groceries" });
-  await row.click();
-  await page.getByLabel("Amount", { exact: true }).fill("130");
-  await page.getByRole("button", { name: "Save plan", exact: true }).click();
-  await expect(page.locator(".inline-plan-row")).toHaveCount(0);
+    .locator(`.budget-category[data-id="${category}"]`);
+  const planned = row.getByRole("textbox", { name: /^Planned Groceries for/ });
+  await planned.fill("130");
+  await planned.press("Enter");
+  await expect(planned).toHaveValue("130.00");
+  expect(
+    (await call(root + "/budget?month=2026-11")).months[
+      "2026-11"
+    ].categories.find((c) => c.id === category).budgeted,
+  ).toBe(13000);
   await mkdir("test-results/tracking-only", { recursive: true });
   await page.screenshot({
     path: "test-results/tracking-only/desktop.png",

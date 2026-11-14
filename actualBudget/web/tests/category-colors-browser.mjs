@@ -100,9 +100,7 @@ try {
     (await req(root + "/tags", { id: randomUUID(), tag: "test" })).status,
   ).toBe(404);
   expect(
-    (await call(root + "/transactions")).some(
-      (t) => t.notes === "Market #oldtag",
-    ),
+    (await call(root + "/transactions")).every((t) => t.notes === ""),
   ).toBe(true);
   const backup = await call(root + "/backups", { label: "Color backup" });
   const zip = Buffer.from(
@@ -154,7 +152,7 @@ with zipfile.ZipFile(p+'/old.zip','w',zipfile.ZIP_DEFLATED) as z:
   await page.getByText("Color groups", { exact: true }).click();
   const row = page
     .locator(".register-table tbody tr")
-    .filter({ hasText: "Market #oldtag" });
+    .filter({ hasText: "Groceries" });
   await expect(row).toHaveCSS("--category-color", "#C44071");
   await mkdir("test-results/category-colors", { recursive: true });
   await page.screenshot({
@@ -165,17 +163,23 @@ with zipfile.ZipFile(p+'/old.zip','w',zipfile.ZIP_DEFLATED) as z:
     page.getByRole("button", { name: "Tags", exact: true }),
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Budget", exact: true }).click();
+  await page.getByLabel("Months displayed", { exact: true }).selectOption("1");
+  await expect(page.locator(".budget-month")).toHaveCount(1);
   await expect(
-    page.locator(".budget-group").filter({ hasText: "Everyday" }),
+    page.locator(`.budget-group[data-id="${group}"]`).first(),
   ).toBeVisible();
   await expect(
-    page.locator(".budget-category").filter({ hasText: "Groceries" }),
+    page.locator(`.budget-category[data-id="${food}"]`).first(),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Everyday", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Toggle Everyday", exact: true })
+    .click();
   await expect(
-    page.locator(".budget-category").filter({ hasText: "Groceries" }),
+    page.locator(`.budget-category[data-id="${food}"]`).first(),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "Everyday", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Toggle Everyday", exact: true })
+    .click();
   await page.getByLabel("Color for Everyday", { exact: true }).fill("#558844");
   await expect
     .poll(async () => (await call(root + "/category-groups/" + group)).color)
@@ -260,6 +264,8 @@ with zipfile.ZipFile(p+'/old.zip','w',zipfile.ZIP_DEFLATED) as z:
   ).toBe(true);
   await page.reload();
   await page.getByRole("button", { name: "Budget", exact: true }).click();
+  await page.getByLabel("Months displayed", { exact: true }).selectOption("1");
+  await expect(page.locator(".budget-month")).toHaveCount(1);
   await expect(
     page.getByLabel("Color for Everyday", { exact: true }),
   ).toHaveValue("#558844");
@@ -269,19 +275,17 @@ with zipfile.ZipFile(p+'/old.zip','w',zipfile.ZIP_DEFLATED) as z:
   browser = null;
   await server.stop();
   execFileSync("python3", [
-    "-c",
-    `import sqlite3,sys
-c=sqlite3.connect(sys.argv[1]+'/actualbudget.sqlite3');c.execute('ALTER TABLE categories DROP COLUMN color');c.execute('ALTER TABLE category_groups DROP COLUMN color');[c.execute('DROP TRIGGER IF EXISTS visible_'+t+'_'+e) for t in ['categories','category_groups'] for e in ['insert','update']];c.execute('PRAGMA user_version=28');c.commit()`,
-    directory,
+    "tests/historical-schema.py",
+    directory + "/actualbudget.sqlite3",
+    "28",
   ]);
   server = await startServer({ dataDirectory: directory });
   expect((await call(root + "/categories/" + food)).resolved_color).toMatch(
     /^#[0-9A-F]{6}$/i,
   );
   expect(
-    (await call(root + "/transactions")).find(
-      (t) => t.notes === "Market #oldtag",
-    ).amount,
+    (await call(root + "/transactions")).find((t) => t.category_id === food)
+      .amount,
   ).toBe(-2500);
   console.log(
     "PASS category shades, group changes, overrides/reset, grouped budget, tag retirement, archives, migration and mobile",

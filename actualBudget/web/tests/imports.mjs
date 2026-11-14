@@ -24,11 +24,13 @@ function byId(rows) {
   return [...rows].sort((left, right) => left.id.localeCompare(right.id));
 }
 async function open(page) {
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
-    .getByRole("button", { name: "Import Actual budget", exact: true })
+    .getByRole("navigation", { name: "Settings sections" })
+    .getByRole("button", { name: "Import", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Import Actual budget", exact: true }),
+    page.getByRole("heading", { name: "Import", exact: true }),
   ).toBeVisible();
 }
 async function lose(page, pattern) {
@@ -172,14 +174,14 @@ try {
   const activations = await lose(page, "**/api/v1/imports/*/activate");
   await page.getByRole("button", { name: "Activate imported budget" }).click();
   await expect(
-    page.getByRole("button", { name: "Retry saved activation" }),
+    page.getByRole("button", { name: "Retry saved import" }),
   ).toBeEnabled();
   await second.getByRole("button", { name: "Review another file" }).click();
   await expect(second.getByRole("alert")).toContainText("unconfirmed");
   await second.close();
   await page.reload();
   await open(page);
-  await page.getByRole("button", { name: "Retry saved activation" }).click();
+  await page.getByRole("button", { name: "Retry saved import" }).click();
   await expect(
     page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
@@ -198,10 +200,14 @@ try {
   // Source fixture: Spending 314.34 plus the other historical balance -50.00.
   await expect(page.getByTestId("register-total")).toHaveText("264.34");
   await expect(
-    page.getByText("Corrected expense", { exact: true }),
+    page.locator(
+      `[data-transaction-id="${expected.public.transactions.find((row) => row.notes === "Corrected expense").id}"]`,
+    ),
   ).toBeVisible();
   await expect(
-    page.getByText("Published deletion", { exact: true }),
+    page.locator(
+      `[data-transaction-id="04000000-0000-4000-8000-000000000004"]`,
+    ),
   ).toHaveCount(0);
   console.log(
     "PASS saved upload/activation survive lost acknowledgements, reload and stale tabs; quota failure prevents sending; financial register matches oracle",

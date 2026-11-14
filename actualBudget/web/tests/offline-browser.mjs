@@ -1,3 +1,4 @@
+import { savedWork, expectSavedWork } from "./saved-work-ui.mjs";
 import { transactionRows } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -56,51 +57,40 @@ try {
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("12.34");
-  await page.getByLabel("Notes", { exact: true }).fill("Offline purchase");
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(
-    page
-      .getByTestId("pending-expenses")
-      .getByText("Saved on this device. Waiting to sync.", { exact: true }),
-  ).toBeVisible();
+  await expectSavedWork(page, 1);
   await expect(page.getByTestId("register-total")).toHaveText("1,000.00");
-  await expect(page.getByTestId("pending-expenses")).toContainText(
-    "Offline purchase",
-  );
+  await expect(page.locator(".register-table")).toContainText("-12.34");
   await page
-    .getByRole("button", { name: "Edit pending expense", exact: true })
+    .locator(".register-table tr[data-transaction-id]")
+    .filter({ hasText: "-12.34" })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("5.67");
   await page.getByLabel("Date", { exact: true }).fill("01/01/2020");
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText("-5.67");
+  await expect(page.locator(".register-table")).toContainText("-5.67");
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("2.00");
-  await page.getByLabel("Notes", { exact: true }).fill("Delete before send");
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
   await page
-    .locator(".pending-expense")
-    .filter({ hasText: "Delete before send" })
-    .getByRole("button", { name: "Delete pending expense", exact: true })
+    .locator(".register-table tr[data-transaction-id]")
+    .filter({ hasText: "-2.00" })
+    .getByRole("button", { name: /^Delete / })
     .click();
-  await expect(page.getByTestId("pending-expenses")).not.toContainText(
-    "Delete before send",
-  );
+  await expect(page.locator(".register-table")).not.toContainText("-2.00");
   // Static app code remains available; only API connectivity is absent. Cold offline navigation is optional on HTTP.
   await page.close();
   page = await context.newPage();
   await page.goto(server.url);
-  await expect(page.getByTestId("pending-expenses")).toContainText(
-    "Offline purchase",
-  );
+  await expect(page.locator(".register-table")).toContainText("-5.67");
   await expect(page.getByTestId("register-total")).toHaveText("1,000.00");
   await expect(
     transactionRows(page.locator(".register-table"), {
@@ -115,25 +105,17 @@ try {
       console.log(await page.locator("body").innerText());
       throw error;
     });
-  await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+  await expectSavedWork(page, 0);
   console.log(
     "PASS offline capture durable pending and reconnect single delivery",
   );
   const rows = await (
     await fetch(`${api}/api/v1/budgets/${budget}/transactions`)
   ).json();
-  expect(
-    rows.data.filter((row) => row.notes === "Offline purchase"),
-  ).toHaveLength(1);
-  expect(rows.data.find((row) => row.notes === "Offline purchase").amount).toBe(
-    -567,
-  );
-  expect(rows.data.find((row) => row.notes === "Offline purchase").date).toBe(
-    "2020-01-01",
-  );
-  expect(rows.data.some((row) => row.notes === "Delete before send")).toBe(
-    false,
-  );
+  expect(rows.data.filter((row) => row.amount === -567)).toHaveLength(1);
+  expect(rows.data.find((row) => row.amount === -567).amount).toBe(-567);
+  expect(rows.data.find((row) => row.amount === -567).date).toBe("2020-01-01");
+  expect(rows.data.some((row) => row.amount === -200)).toBe(false);
   console.log(
     "PASS offline edit/delete, backdated pending, restarted loaded page and unchanged confirmed balances",
   );
@@ -163,33 +145,22 @@ try {
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("1.23");
-  await page.getByLabel("Notes", { exact: true }).fill("Lost acknowledgement");
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText(
-    "Lost acknowledgement",
-  );
-  await expect(
-    page
-      .getByText("Cannot reach the server. Check your connection and retry.", {
-        exact: true,
-      })
-      .first(),
-  ).toBeVisible();
+  await expect(page.locator(".register-table")).toContainText("-1.23");
+  await expectSavedWork(page, 1);
   const second = await context.newPage();
   await second.goto(server.url);
   await page.evaluate(() => dispatchEvent(new Event("online")));
-  await expect(second.getByTestId("pending-expenses")).toHaveCount(0);
+  await expectSavedWork(second, 0);
   await expect(page.getByTestId("register-total")).toHaveText("993.10");
   expect(attempts.length).toBeGreaterThanOrEqual(2);
   for (const attempt of attempts) expect(attempt).toEqual(attempts[0]);
   const confirmed = await (
     await fetch(`${api}/api/v1/budgets/${budget}/transactions`)
   ).json();
-  expect(
-    confirmed.data.filter((row) => row.notes === "Lost acknowledgement"),
-  ).toHaveLength(1);
+  expect(confirmed.data.filter((row) => row.amount === -123)).toHaveLength(1);
   await second.close();
   await context.unroute(onlineCreate);
   console.log(
@@ -206,7 +177,6 @@ try {
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("1.00");
-  await page.getByLabel("Notes", { exact: true }).fill("Quota retained");
   await page.evaluate(() => {
     const original = IDBDatabase.prototype.transaction;
     IDBDatabase.prototype.transaction = function (...args) {
@@ -222,9 +192,7 @@ try {
     page.getByRole("alert").filter({ hasText: "Free device space" }).first(),
   ).toBeVisible();
   expect(writes).toBe(0);
-  await expect(page.getByLabel("Notes", { exact: true })).toHaveValue(
-    "Quota retained",
-  );
+  await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("1.00");
   await page.reload();
   await page
     .getByRole("button", { name: "Retry saved transaction", exact: true })
@@ -236,23 +204,19 @@ try {
   );
   const editRow = page
     .locator(".register-table tbody tr")
-    .filter({ hasText: "Quota retained" });
+    .filter({ hasText: "-1.00" });
   await transactionRows(editRow, { name: /^Edit / }).click();
-  await page
-    .getByLabel("Notes", { exact: true })
-    .fill("Interrupted local note");
+  await page.getByLabel("Date", { exact: true }).fill("02/01/2026");
   await context.route("**/api/v1/**", (route) => route.abort());
   await page.evaluate(() => dispatchEvent(new Event("offline")));
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText(
-    "Interrupted local note",
-  );
+  await expect(page.locator(".register-table")).toContainText("02/01/2026");
   const list = await (
     await fetch(`${api}/api/v1/budgets/${budget}/transactions`)
   ).json();
-  const target = list.data.find((row) => row.notes === "Quota retained");
+  const target = list.data.find((row) => row.amount === -100);
   const checkpoint = (
     await (await fetch(`${api}/api/v1/budgets/${budget}/checkpoint`)).json()
   ).data;
@@ -267,21 +231,19 @@ try {
         "X-Actual-Edit-Clock":
           new Date(Date.now() + 1000).toISOString() + "-0000-00000000000000ff",
       },
-      body: JSON.stringify({ notes: "Newer remote note" }),
+      body: JSON.stringify({ date: "2026-02-02" }),
     },
   );
   expect(remote.status).toBe(200);
   await context.unroute("**/api/v1/**");
   await page.evaluate(() => dispatchEvent(new Event("online")));
-  await expect(page.locator(".register-table")).toContainText(
-    "Newer remote note",
-  );
+  await expect(page.locator(".register-table")).toContainText("02/02/2026");
   await expect(
-    page.getByText("A newer edit replaced these fields: Notes", {
+    page.getByText("A newer edit replaced these fields: Date", {
       exact: true,
     }),
   ).toBeVisible();
-  await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+  await expectSavedWork(page, 0);
   console.log(
     "PASS online edit interrupted offline retains intent; newer remote field wins with feedback",
   );
@@ -310,7 +272,6 @@ try {
   });
   await page.reload();
   await expect(page.getByTestId("register-total")).toHaveText("992.10");
-  await expect(page.getByText(/Saved data from/).first()).toBeVisible();
   await expect.poll(() => heldCount).toBeGreaterThan(0);
   releaseReads();
   await page.waitForLoadState("networkidle");
@@ -371,16 +332,16 @@ try {
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
-  await expect(
-    page
-      .getByLabel("Payee", { exact: true })
-      .locator("option")
-      .filter({ hasText: "New reference" }),
-  ).toHaveCount(1);
-  await page.getByLabel("Amount", { exact: true }).fill("2");
   await page
-    .getByLabel("Notes", { exact: true })
-    .fill("Mobile pending expense");
+    .getByRole("combobox", { name: "Payee", exact: true })
+    .fill("New reference");
+  await expect(
+    page.getByRole("option", { name: "New reference", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("option", { name: "New reference", exact: true })
+    .click();
+  await page.getByLabel("Amount", { exact: true }).fill("2");
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
@@ -393,22 +354,23 @@ try {
     ),
   ).toBe(true);
   await mkdir("test-results", { recursive: true });
-  await page.getByTestId("pending-expenses").scrollIntoViewIfNeeded();
+  await page.locator(".register-table").scrollIntoViewIfNeeded();
   await page.screenshot({
     path: "test-results/offline-pending-mobile-200.png",
   });
   await page
-    .getByRole("button", { name: "Edit pending expense", exact: true })
+    .locator(".register-table tr[data-transaction-id]")
+    .filter({ hasText: "-2.00" })
     .focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByLabel("Notes", { exact: true })).toHaveValue(
-    "Mobile pending expense",
-  );
+  await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("2");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page
-    .getByRole("button", { name: "Delete pending expense", exact: true })
+    .locator(".register-table tr[data-transaction-id]")
+    .filter({ hasText: "-2.00" })
+    .getByRole("button", { name: /^Delete / })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+  await expectSavedWork(page, 0);
   console.log(
     "PASS unknown change entity forces guarded reference bootstrap; offline references, keyboard editing and 320px/200% pending controls remain usable",
   );
@@ -429,9 +391,6 @@ try {
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await legacy.getByLabel("Amount", { exact: true }).fill("4.56");
-  await legacy
-    .getByLabel("Notes", { exact: true })
-    .fill("Legacy pending record");
   const original = await legacy.evaluate((budget) => {
     const key = `actualBudget.transaction.v1.${budget}`,
       draft = JSON.parse(localStorage.getItem(key));
@@ -447,7 +406,7 @@ try {
         account_id: draft.fields.account_id,
         date: draft.fields.date,
         amount: -456,
-        notes: draft.fields.notes,
+        notes: "Legacy pending record", // Exact original wire field survives retry; current projection discards notes.
         payee_id: null,
         category_id: null,
         cleared: true,
@@ -472,10 +431,9 @@ try {
   await legacy
     .getByRole("button", { name: "Retry saved transaction", exact: true })
     .click();
-  await expect(legacy.locator(".register-table")).toContainText(
-    "Legacy pending record",
-  );
-  expect(legacyAttempts).toHaveLength(1);
+  await expect(legacy.locator(".register-table")).toContainText("-4.56");
+  await expect.poll(() => legacyAttempts.length).toBe(1);
+  await expectSavedWork(legacy, 0);
   expect(legacyAttempts[0]).toEqual({
     body: original.body,
     key: original.key,

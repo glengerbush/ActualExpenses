@@ -25,7 +25,7 @@ pub(crate) use engine::validate as validate_definition;
 pub(crate) use entry::post_schedule;
 pub use import::{
     convert as convert_actual, enrich as enrich_legacy_imports, import_clock,
-    install as install_actual, validate,
+    install as install_actual, normalize_retired_notes, validate,
 };
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::{Deserialize, Serialize};

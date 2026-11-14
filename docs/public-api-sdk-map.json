@@ -5,7 +5,9 @@
   "source_file_sha256": "a8054e8635d32e77f09cd916ba9f67edfa197bbc89d75182766731d6ceb420a7",
   "operations": [
     {
-      "sdk": ["runImport"],
+      "sdk": [
+        "runImport"
+      ],
       "routes": [
         {
           "method": "POST",
@@ -27,7 +29,10 @@
       "translation": "Use a retained staged supported-format import and explicit activation. Custom construction uses typed resource commands and transaction batches; arbitrary SDK callbacks do not execute on the server. No cross-command rollback promise."
     },
     {
-      "sdk": ["loadBudget", "downloadBudget"],
+      "sdk": [
+        "loadBudget",
+        "downloadBudget"
+      ],
       "routes": [
         {
           "method": "GET",
@@ -49,7 +54,9 @@
       "translation": "Choose the native budget UUID explicitly; there is no caller-side engine/cache or source sync-ID/password handshake. Native backups are portable server-produced archives."
     },
     {
-      "sdk": ["getBudgets"],
+      "sdk": [
+        "getBudgets"
+      ],
       "routes": [
         {
           "method": "GET",
@@ -59,7 +66,9 @@
       "translation": "Native budget IDs, including source provenance where retained; never choose an ambiguous name or treat a source cloud ID as native ID."
     },
     {
-      "sdk": ["importBudget"],
+      "sdk": [
+        "importBudget"
+      ],
       "routes": [
         {
           "method": "POST",
@@ -81,7 +90,9 @@
       "translation": "Upload bytes, inspect stage/report/requirements, then activate. Explicit source format and retained original bytes replace source filesystem paths."
     },
     {
-      "sdk": ["exportBudget"],
+      "sdk": [
+        "exportBudget"
+      ],
       "routes": [
         {
           "method": "POST",
@@ -95,7 +106,9 @@
       "translation": "Native portable archive; original source archive is separately downloadable from its import stage. History is deliberately excluded and restored epochs rotate."
     },
     {
-      "sdk": ["sync"],
+      "sdk": [
+        "sync"
+      ],
       "routes": [
         {
           "method": "GET",
@@ -109,13 +122,17 @@
       "translation": "Server owns state. Read checkpoint/change pages; do not start a local sync engine or add periodic polling."
     },
     {
-      "sdk": ["runBankSync"],
+      "sdk": [
+        "runBankSync"
+      ],
       "routes": [],
       "translation": "External bank connections are removed. No replacement route or network operation exists; use manual accounts and explicit transaction file imports.",
       "status": "removed"
     },
     {
-      "sdk": ["batchBudgetUpdates"],
+      "sdk": [
+        "batchBudgetUpdates"
+      ],
       "routes": [
         {
           "method": "POST",
@@ -129,7 +146,10 @@
       "translation": "SDK helper batches spreadsheet refreshes, not rollback. Transaction batch is explicitly atomic; planning commands have their own atomic scope. No arbitrary remote callback."
     },
     {
-      "sdk": ["runQuery", "aqlQuery"],
+      "sdk": [
+        "runQuery",
+        "aqlQuery"
+      ],
       "routes": [
         {
           "method": "GET",
@@ -143,7 +163,10 @@
       "translation": "Translate serialized QueryState to version1 typed JSON and advertised resource profiles. No SQL strings, arbitrary table/column names or remote JS."
     },
     {
-      "sdk": ["getBudgetMonths", "getBudgetMonth"],
+      "sdk": [
+        "getBudgetMonths",
+        "getBudgetMonth"
+      ],
       "routes": [
         {
           "method": "GET",
@@ -172,7 +195,9 @@
       "translation": "Actions set,carryover,hold,reset_hold respectively; month/category business keys, minor-unit integers, snapshot and owned replay contract. Method remains server-authoritative."
     },
     {
-      "sdk": ["addTransactions"],
+      "sdk": [
+        "addTransactions"
+      ],
       "routes": [
         {
           "method": "POST",
@@ -190,7 +215,9 @@
       "translation": "Explicit UUIDs/native reference fields. Plain/manual writer preserves manual intent; rule-entry route is opt-in. Existing split/transfer routes own their graphs."
     },
     {
-      "sdk": ["importTransactions"],
+      "sdk": [
+        "importTransactions"
+      ],
       "routes": [
         {
           "method": "POST",
@@ -208,7 +235,9 @@
       "translation": "Retain original supported bank/CSV bytes; explicit mapping/options, read-only matching preview and selected row choices. Imported IDs are not content hashes; duplicate purchases survive."
     },
     {
-      "sdk": ["getTransactions"],
+      "sdk": [
+        "getTransactions"
+      ],
       "routes": [
         {
           "method": "GET",
@@ -222,7 +251,10 @@
       "translation": "Bounded register pages or explicit query profiles; select split policy/date/account, original snapshot on continuations."
     },
     {
-      "sdk": ["updateTransaction", "deleteTransaction"],
+      "sdk": [
+        "updateTransaction",
+        "deleteTransaction"
+      ],
       "routes": [
         {
           "method": "PATCH",
@@ -240,7 +272,9 @@
       "translation": "Captured immutable key/HLC/epoch and financial guards. Batch refuses all if any field loses; ordinary individual routes retain their documented field-level conflict behavior."
     },
     {
-      "sdk": ["mergeTransactions"],
+      "sdk": [
+        "mergeTransactions"
+      ],
       "routes": [
         {
           "method": "POST",
@@ -254,7 +288,9 @@
       "translation": "Preview complete keeper/affected graph then captured commit, preserving split/transfer/reconciliation safeguards."
     },
     {
-      "sdk": ["getAccounts"],
+      "sdk": [
+        "getAccounts"
+      ],
       "routes": [
         {
           "method": "GET",
@@ -268,7 +304,9 @@
       "translation": "Ordered native account objects or closed accounts profile. Native positions/IDs replace private source storage ranks."
     },
     {
-      "sdk": ["createAccount"],
+      "sdk": [
+        "createAccount"
+      ],
       "routes": [
         {
           "method": "POST",
@@ -278,7 +316,9 @@
       "translation": "Name, explicit native UUID and optional opening balance/date; opening rows remain server-owned financial operations."
     },
     {
-      "sdk": ["updateAccount"],
+      "sdk": [
+        "updateAccount"
+      ],
       "routes": [
         {
           "method": "PATCH",
@@ -288,7 +328,11 @@
       "translation": "Send only edited native fields using documented revision/clock/epoch conditions."
     },
     {
-      "sdk": ["closeAccount", "reopenAccount", "deleteAccount"],
+      "sdk": [
+        "closeAccount",
+        "reopenAccount",
+        "deleteAccount"
+      ],
       "routes": [
         {
           "method": "POST",
@@ -306,7 +350,9 @@
       "translation": "Explicit lifecycle commands; protected financial peers remain guarded. Closing and deleting are distinct operations."
     },
     {
-      "sdk": ["getAccountBalance"],
+      "sdk": [
+        "getAccountBalance"
+      ],
       "routes": [
         {
           "method": "POST",
@@ -401,7 +447,10 @@
       "translation": "Native metadata fields and replacement actions; query filter IDs remain literal, mutation references resolve via existing domain rules."
     },
     {
-      "sdk": ["getNote", "updateNote"],
+      "sdk": [
+        "getNote",
+        "updateNote"
+      ],
       "routes": [
         {
           "method": "POST",
@@ -415,7 +464,9 @@
       "translation": "Arbitrary bounded string IDs including known domain aliases; explicit empty vs missing. Captured note generation/epoch/HLC and history are retained."
     },
     {
-      "sdk": ["getCommonPayees"],
+      "sdk": [
+        "getCommonPayees"
+      ],
       "routes": [
         {
           "method": "POST",
@@ -457,8 +508,15 @@
       "translation": "Native payee metadata and merge action; merged references/cached simple defaults retain existing guards. Removal uses POST payees/batch action remove, not HTTP DELETE."
     },
     {
-      "sdk": ["getTags", "createTag", "updateTag", "deleteTag"],
-      "routes": [
+      "sdk": [
+        "getTags",
+        "createTag",
+        "updateTag",
+        "deleteTag"
+      ],
+      "translation": "Tag management is retired. Original imported archives retain source tags for audit; active tag routes are absent.",
+      "status": "removed",
+      "retired_routes": [
         {
           "method": "GET",
           "path": "/api/v1/budgets/{budget}/tags"
@@ -476,7 +534,7 @@
           "path": "/api/v1/budgets/{budget}/tags/batch"
         }
       ],
-      "translation": "Use typed tag management routes; tags are not unrestricted query tables. Removal uses POST tags/batch action remove, not HTTP DELETE."
+      "routes": []
     },
     {
       "sdk": [
@@ -526,7 +584,9 @@
       "translation": "Explicit create/update/delete commands, captured schedule generation, next-date reset behavior and bounded read pages. Posting/catch-up is a separate foreground command; reads never post."
     },
     {
-      "sdk": ["getIDByName"],
+      "sdk": [
+        "getIDByName"
+      ],
       "routes": [
         {
           "method": "POST",
@@ -536,7 +596,9 @@
       "translation": "Exact name equality on allowed profiles. SDK returns first match; callers should keep known UUIDs and handle ambiguous matches explicitly rather than silently choosing another financial identity."
     },
     {
-      "sdk": ["getServerVersion"],
+      "sdk": [
+        "getServerVersion"
+      ],
       "routes": [
         {
           "method": "GET",
@@ -546,7 +608,10 @@
       "translation": "Public build/API version plus capability discovery; no engine startup."
     },
     {
-      "sdk": ["getPreferences", "setPreference"],
+      "sdk": [
+        "getPreferences",
+        "setPreference"
+      ],
       "routes": [
         {
           "method": "GET",
@@ -663,7 +728,8 @@
         "method": "get",
         "path": "/api/v1/budgets/{budget}/budget/templates"
       },
-      "representation": "Typed feature resource, not a raw query table; see served schema and guide."
+      "representation": "Budget templates and cleanup execution are retired. Original source records remain in retained archives.",
+      "status": "removed"
     },
     {
       "source": "preferences",

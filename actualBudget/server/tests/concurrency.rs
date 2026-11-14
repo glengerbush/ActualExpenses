@@ -146,7 +146,7 @@ fn receipt_only_reconciles_original_outcomes_without_applying_unknown_work() {
         )
         .json::<Value>()
         .unwrap();
-    let patch = json!({"notes":"Committed before lost acknowledgement"});
+    let patch = json!({"date":"2026-02-02"});
     let edited = s
         .write("PATCH", &path, "edit", Some(C1), patch.clone())
         .json::<Value>()
@@ -202,7 +202,7 @@ fn receipt_only_reconciles_original_outcomes_without_applying_unknown_work() {
         edited
     );
     assert_eq!(
-        probe("PATCH", &path, "edit", C1, json!({"notes":"Different"})).status(),
+        probe("PATCH", &path, "edit", C1, json!({"date":"2026-02-03"})).status(),
         409
     );
     let original = probe(
@@ -281,9 +281,9 @@ fn field_ordering_merges_independent_edits_and_replays_original_clock() {
         s.write(
             "PATCH",
             &path,
-            "new-notes",
+            "new-date",
             Some(C2),
-            json!({"notes":"newest"})
+            json!({"date":"2026-02-10"})
         )
         .status(),
         200
@@ -294,13 +294,13 @@ fn field_ordering_merges_independent_edits_and_replays_original_clock() {
             &path,
             "late-old",
             Some(C1),
-            json!({"notes":"older","amount":-250}),
+            json!({"date":"2026-02-11","amount":-250}),
         )
         .json()
         .unwrap();
-    assert_eq!(result["data"]["notes"], "newest");
+    assert_eq!(result["data"]["date"], "2026-02-10");
     assert_eq!(result["data"]["amount"], -250);
-    assert_eq!(result["conflicts"][0]["field"], "notes");
+    assert_eq!(result["conflicts"][0]["field"], "date");
     assert_eq!(result["data"]["field_versions"]["amount"], C1);
     let s = s.restart();
     assert_eq!(
@@ -309,7 +309,7 @@ fn field_ordering_merges_independent_edits_and_replays_original_clock() {
             &path,
             "late-old",
             Some(C1),
-            json!({"notes":"older","amount":-250})
+            json!({"date":"2026-02-11","amount":-250})
         )
         .json::<Value>()
         .unwrap(),
@@ -321,13 +321,13 @@ fn field_ordering_merges_independent_edits_and_replays_original_clock() {
             &path,
             "late-old",
             Some(C3),
-            json!({"notes":"older","amount":-250})
+            json!({"date":"2026-02-11","amount":-250})
         )
         .status(),
         409
     );
     let current = s.get(&path);
-    assert_eq!(current["data"]["notes"], "newest");
+    assert_eq!(current["data"]["date"], "2026-02-10");
     assert_eq!(current["data"]["amount"], -250);
 }
 #[test]
@@ -340,7 +340,7 @@ fn unpublished_delete_has_durable_rejection_but_published_tombstone_never_resurr
             &path,
             "new-edit",
             Some(C2),
-            json!({"notes":"retain"})
+            json!({"date":"2026-02-14"})
         )
         .status(),
         200
@@ -349,7 +349,7 @@ fn unpublished_delete_has_durable_rejection_but_published_tombstone_never_resurr
     assert_eq!(rejection.status(), 409);
     let rejected: Value = rejection.json().unwrap();
     assert_eq!(rejected["error"]["code"], "deletion_superseded");
-    assert_eq!(rejected["data"]["notes"], "retain");
+    assert_eq!(rejected["data"]["date"], "2026-02-14");
     let deletion = s.write("DELETE", &path, "published", Some(C3), Value::Null);
     assert_eq!(deletion.status(), 200);
     let published: Value = deletion.json().unwrap();
@@ -371,12 +371,12 @@ fn unpublished_delete_has_durable_rejection_but_published_tombstone_never_resurr
         &path,
         "after-deletion",
         Some("2026-01-05T00:00:00.000Z-0000-0000000000000001"),
-        json!({"notes":"must stay deleted"}),
+        json!({"date":"2026-02-09"}),
     );
     assert_eq!(later.status(), 200);
     let hidden: Value = later.json().unwrap();
     assert_eq!(hidden["data"]["deleted"], true);
-    assert_eq!(hidden["data"]["notes"], "must stay deleted");
+    assert_eq!(hidden["data"]["date"], "2026-02-09");
     assert!(
         s.get(&format!("/api/v1/budgets/{B}/transactions"))["data"]
             .as_array()
@@ -398,9 +398,9 @@ fn change_cursor_finds_late_old_edits_and_empty_refresh_does_not_advance() {
         s.write(
             "PATCH",
             &path,
-            "new-notes",
+            "new-date",
             Some(C3),
-            json!({"notes":"recent"})
+            json!({"date":"2026-02-13"})
         )
         .status(),
         200
@@ -433,8 +433,44 @@ fn change_cursor_finds_late_old_edits_and_empty_refresh_does_not_advance() {
 }
 #[test]
 fn pinned_actual_clock_ordering_and_published_hidden_fields_match() {
-    let fixture: Value =
+    let mut fixture: Value =
         serde_json::from_str(include_str!("../../tests/fixtures/concurrency.json")).unwrap();
+    // Notes are retired. Replay the pinned field-clock workload on dates,
+    // preserving every clock, amount, deletion policy and expected winner.
+    let mut values = std::collections::BTreeSet::new();
+    for scenario in fixture["scenarios"].as_array().unwrap() {
+        values.insert(scenario["initial"]["notes"].as_str().unwrap().to_owned());
+        values.insert(scenario["expected"]["notes"].as_str().unwrap().to_owned());
+        for mutation in scenario["mutations"].as_array().unwrap() {
+            if let Some(value) = mutation["fields"]["notes"].as_str() {
+                values.insert(value.to_owned());
+            }
+        }
+    }
+    let dates: std::collections::BTreeMap<_, _> = values
+        .into_iter()
+        .enumerate()
+        .map(|(i, value)| (value, format!("2026-02-{:02}", i + 1)))
+        .collect();
+    for scenario in fixture["scenarios"].as_array_mut().unwrap() {
+        for key in ["initial", "expected"] {
+            let row = scenario[key].as_object_mut().unwrap();
+            let note = row.remove("notes").unwrap();
+            row.insert("date".into(), json!(dates[note.as_str().unwrap()]));
+        }
+        let versions = scenario["expected"]["field_versions"]
+            .as_object_mut()
+            .unwrap();
+        if let Some(clock) = versions.remove("notes") {
+            versions.insert("date".into(), clock);
+        }
+        for mutation in scenario["mutations"].as_array_mut().unwrap() {
+            let fields = mutation["fields"].as_object_mut().unwrap();
+            if let Some(note) = fields.remove("notes") {
+                fields.insert("date".into(), json!(dates[note.as_str().unwrap()]));
+            }
+        }
+    }
     let mut s = Server::start();
     setup(&s);
     let off = "30000000-0000-4000-8000-000000000020";
@@ -455,7 +491,7 @@ fn pinned_actual_clock_ordering_and_published_hidden_fields_match() {
     for scenario in fixture["scenarios"].as_array().unwrap() {
         let id = scenario["id"].as_str().unwrap();
         let initial = &scenario["initial"];
-        let response=s.write("POST",&base,id,initial["clock"].as_str(),json!({"id":id,"account_id":A,"amount":initial["amount"],"notes":initial["notes"],"date":initial["date"],"cleared":initial["cleared"]}));
+        let response=s.write("POST",&base,id,initial["clock"].as_str(),json!({"id":id,"account_id":A,"amount":initial["amount"],"date":initial["date"],"cleared":initial["cleared"]}));
         assert_eq!(response.status(), 201);
         let path = format!("{base}/{id}");
         let mut last: Value = Value::Null;
@@ -501,7 +537,7 @@ fn pinned_actual_clock_ordering_and_published_hidden_fields_match() {
         }
         let expected = &scenario["expected"];
         assert_eq!(last["data"]["amount"], expected["amount"]);
-        assert_eq!(last["data"]["notes"], expected["notes"]);
+        assert_eq!(last["data"]["date"], expected["date"]);
         if expected.get("account").is_some() {
             assert_eq!(last["data"]["account_id"], off);
             assert_eq!(last["data"]["category_id"], category);
@@ -547,7 +583,7 @@ fn skew_and_malformed_clocks_fail_without_consuming_identity_or_advancing_cursor
             &path,
             "bad-clock",
             Some(clock),
-            json!({"notes":"valid after correction"}),
+            json!({"date":"2026-02-17"}),
         );
         assert_eq!(r.status(), 400);
         assert_eq!(
@@ -561,7 +597,7 @@ fn skew_and_malformed_clocks_fail_without_consuming_identity_or_advancing_cursor
             &path,
             "bad-clock",
             Some(C2),
-            json!({"notes":"valid after correction"})
+            json!({"date":"2026-02-17"})
         )
         .status(),
         200
@@ -599,7 +635,7 @@ fn cursor_coalescing_during_pagination_retains_every_latest_entity() {
                 &format!("{base}/{id}"),
                 &format!("patch-{id}"),
                 Some(C1),
-                json!({"notes":"one"})
+                json!({"date":"2026-02-12"})
             )
             .status(),
             200
@@ -614,7 +650,7 @@ fn cursor_coalescing_during_pagination_retains_every_latest_entity() {
     for entry in page["data"].as_array().unwrap() {
         seen.insert(
             entry["id"].as_str().unwrap().to_owned(),
-            entry["data"]["notes"].clone(),
+            entry["data"]["date"].clone(),
         );
     }
     assert_eq!(
@@ -623,7 +659,7 @@ fn cursor_coalescing_during_pagination_retains_every_latest_entity() {
             &format!("{base}/{}", ids[1]),
             "coalesced-unseen",
             Some(C2),
-            json!({"notes":"two"})
+            json!({"date":"2026-02-16"})
         )
         .status(),
         200
@@ -634,7 +670,7 @@ fn cursor_coalescing_during_pagination_retains_every_latest_entity() {
             &path,
             "coalesced-seen",
             Some(C2),
-            json!({"notes":"two"})
+            json!({"date":"2026-02-16"})
         )
         .status(),
         200
@@ -646,7 +682,7 @@ fn cursor_coalescing_during_pagination_retains_every_latest_entity() {
         for entry in page["data"].as_array().unwrap() {
             seen.insert(
                 entry["id"].as_str().unwrap().to_owned(),
-                entry["data"]["notes"].clone(),
+                entry["data"]["date"].clone(),
             );
         }
         cursor = page["next_cursor"].as_str().unwrap().to_owned();
@@ -654,9 +690,9 @@ fn cursor_coalescing_during_pagination_retains_every_latest_entity() {
             break;
         }
     }
-    assert_eq!(seen[T], "two");
-    assert_eq!(seen[ids[1]], "two");
-    assert_eq!(seen[ids[2]], "one");
+    assert_eq!(seen[T], "2026-02-16");
+    assert_eq!(seen[ids[1]], "2026-02-16");
+    assert_eq!(seen[ids[2]], "2026-02-12");
     assert!(
         s.get(&format!("/api/v1/budgets/{B}/changes?cursor={cursor}"))["data"]
             .as_array()
@@ -743,7 +779,7 @@ fn bounded_future_counter_overflow_is_recoverable_without_consuming_operation() 
         &path,
         "overflow",
         Some(&clock),
-        json!({"notes":"after correction"}),
+        json!({"date":"2026-02-05"}),
     );
     assert_eq!(response.status(), 400);
     assert_eq!(
@@ -760,7 +796,7 @@ fn bounded_future_counter_overflow_is_recoverable_without_consuming_operation() 
             &path,
             "overflow",
             Some(C3),
-            json!({"notes":"after correction"})
+            json!({"date":"2026-02-05"})
         )
         .status(),
         200
@@ -837,12 +873,18 @@ fn concurrent_account_and_category_edits_converge_in_both_orders() {
             .status(),
             201
         );
-        let older = json!({"account_id":OFF,"category_id":null,"notes":"Independent older note"});
+        let older = json!({"account_id":OFF,"category_id":null,"date":"2026-02-04"});
         let newer = json!({"category_id":CATEGORY});
         let operations = if newer_first {
-            vec![("newer", C2, newer.clone()), ("older", C1, older.clone())]
+            vec![
+                ("newer", C2, newer.clone()),
+                ("2026-02-11", C1, older.clone()),
+            ]
         } else {
-            vec![("older", C1, older.clone()), ("newer", C2, newer.clone())]
+            vec![
+                ("2026-02-11", C1, older.clone()),
+                ("newer", C2, newer.clone()),
+            ]
         };
         let mut outcomes = vec![];
         for (key, clock, body) in &operations {
@@ -864,17 +906,17 @@ fn concurrent_account_and_category_edits_converge_in_both_orders() {
         assert_eq!(row["account_id"], OFF);
         assert_eq!(row["category_id"], CATEGORY);
         assert_eq!(row["category_name"], "Food");
-        assert_eq!(row["notes"], "Independent older note");
+        assert_eq!(row["date"], "2026-02-04");
         assert_eq!(row["field_versions"]["account_id"], C1);
         assert_eq!(row["field_versions"]["category_id"], C2);
-        assert_eq!(row["field_versions"]["notes"], C1);
+        assert_eq!(row["field_versions"]["date"], C1);
         for (account, total) in [(A, 0), (OFF, -100)] {
             let page = s.get(&format!(
                 "/api/v1/budgets/{B}/transactions?account_id={account}"
             ));
             assert_eq!(
                 page["balances"],
-                json!({"total":total,"cleared":0,"uncleared":total})
+                json!({"total":total,"cleared":total,"uncleared":0})
             );
         }
         let s = s.restart();
@@ -927,7 +969,7 @@ fn cancellation_atomically_fences_late_originals_and_replays_committed_outcomes(
             "PATCH",
             path.clone(),
             "cancel-patch",
-            json!({"notes":"must not apply"}),
+            json!({"date":"2026-02-08"}),
         ),
         ("DELETE", path.clone(), "cancel-delete", Value::Null),
         (
@@ -961,14 +1003,14 @@ fn cancellation_atomically_fences_late_originals_and_replays_committed_outcomes(
         assert_eq!(response.json::<Value>().unwrap(), outcome);
     }
     assert_eq!(s.get(&create_path)["data"].as_array().unwrap().len(), 1);
-    assert_eq!(s.get(&path)["data"]["notes"], "");
+    assert_eq!(s.get(&path)["data"]["date"], "2026-01-01");
     let original = s
         .write(
             "PATCH",
             &path,
             "already-saved",
             Some(C2),
-            json!({"notes":"saved before cancel"}),
+            json!({"date":"2026-02-15"}),
         )
         .json::<Value>()
         .unwrap();
@@ -978,7 +1020,7 @@ fn cancellation_atomically_fences_late_originals_and_replays_committed_outcomes(
         .header("Idempotency-Key", "already-saved")
         .header("X-Actual-Edit-Clock", C2)
         .header("X-Actual-Cancel-If-Uncommitted", "true")
-        .json(&json!({"notes":"saved before cancel"}))
+        .json(&json!({"date":"2026-02-15"}))
         .send()
         .unwrap();
     assert_eq!(canceled.status(), 200);
@@ -988,7 +1030,7 @@ fn cancellation_atomically_fences_late_originals_and_replays_committed_outcomes(
         .patch(format!("{}{path}", s.url))
         .header("Idempotency-Key", "bad-cancel-header")
         .header("X-Actual-Cancel-If-Uncommitted", "false")
-        .json(&json!({"notes":"invalid"}))
+        .json(&json!({"date":"2026-02-07"}))
         .send()
         .unwrap();
     assert_eq!(invalid.status(), 400);
@@ -1011,7 +1053,7 @@ fn cancellation_atomically_fences_late_originals_and_replays_committed_outcomes(
         .header("Idempotency-Key", "already-saved")
         .header("X-Actual-Edit-Clock", C2)
         .header("X-Actual-Cancel-If-Uncommitted", "true")
-        .json(&json!({"notes":"different payload"}))
+        .json(&json!({"date":"2026-02-06"}))
         .send()
         .unwrap();
     assert_eq!(changed.status(), 409);
@@ -1019,5 +1061,5 @@ fn cancellation_atomically_fences_late_originals_and_replays_committed_outcomes(
         changed.json::<Value>().unwrap()["error"]["code"],
         "idempotency_conflict"
     );
-    assert_eq!(s.get(&path)["data"]["notes"], "saved before cancel");
+    assert_eq!(s.get(&path)["data"]["date"], "2026-02-15");
 }

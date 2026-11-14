@@ -142,11 +142,11 @@ fn legacy_identity_maps_only_exact_source_and_each_field_keeps_original_order() 
             "X-Actual-Edit-Clock",
             "2026-11-08T23:50:11.000Z-0000-aaaaaaaaaaaaaaaa",
         )
-        .json(&json!({"amount":-1100,"notes":"remote"}))
+        .json(&json!({"amount":-1100,"date":"2026-02-01"}))
         .send()
         .unwrap();
     assert_eq!(patch.status(), 200);
-    let body = json!({"source":{"file_id":source["cloudFileId"],"group_id":source["groupId"]},"epoch":epoch,"operation":{"id":"10000000-0000-4000-8000-000000000020","transactionId":id,"creates":false,"deletes":false,"createdOffline":false,"attempted":true,"changes":[{"dataset":"transactions","row":id,"column":"amount","value":-1000,"timestamp":"2026-11-08T23:50:10.000Z-0000-bbbbbbbbbbbbbbbb"},{"dataset":"transactions","row":id,"column":"notes","value":"local note","timestamp":"2026-11-08T23:50:12.000Z-0000-bbbbbbbbbbbbbbbb"}]}});
+    let body = json!({"source":{"file_id":source["cloudFileId"],"group_id":source["groupId"]},"epoch":epoch,"operation":{"id":"10000000-0000-4000-8000-000000000020","transactionId":id,"creates":false,"deletes":false,"createdOffline":false,"attempted":true,"changes":[{"dataset":"transactions","row":id,"column":"amount","value":-1000,"timestamp":"2026-11-08T23:50:10.000Z-0000-bbbbbbbbbbbbbbbb"},{"dataset":"transactions","row":id,"column":"date","value":20260202,"timestamp":"2026-11-08T23:50:12.000Z-0000-bbbbbbbbbbbbbbbb"}]}});
     let response = server.post(&path, "10000000-0000-4000-8000-000000000020", body.clone());
     assert_eq!(response.status(), 200, "{}", response.text().unwrap());
     let receipt: Value = response.json().unwrap();
@@ -155,9 +155,9 @@ fn legacy_identity_maps_only_exact_source_and_each_field_keeps_original_order() 
     assert_eq!(receipt["conflicts"][0]["field"], "amount");
     let tx = server.get(&endpoint).json::<Value>().unwrap();
     assert_eq!(tx["data"]["amount"], -1100);
-    assert_eq!(tx["data"]["notes"], "local note");
+    assert_eq!(tx["data"]["date"], "2026-02-02");
     assert_eq!(
-        tx["data"]["field_versions"]["notes"],
+        tx["data"]["field_versions"]["date"],
         "2026-11-08T23:50:12.000Z-0000-bbbbbbbbbbbbbbbb"
     );
     let server = server.restart();
@@ -204,12 +204,12 @@ fn observed_source_field_is_acknowledged_before_current_split_guard_but_unknown_
     assert_eq!(split.status(), 200, "{}", split.text().unwrap());
     let before = server.get(&endpoint).json::<Value>().unwrap();
     let path = format!("/api/v1/budgets/{budget}/android-upgrade/operations");
-    let mut body = json!({"source":{"file_id":source["cloudFileId"],"group_id":source["groupId"]},"epoch":epoch,"operation":{"id":"30000000-0000-4000-8000-000000000020","transactionId":id,"creates":false,"deletes":false,"createdOffline":false,"attempted":true,"changes":[{"dataset":"transactions","row":id,"column":"notes","value":original["data"]["notes"],"timestamp":original["data"]["field_versions"]["notes"]}]}});
+    let mut body = json!({"source":{"file_id":source["cloudFileId"],"group_id":source["groupId"]},"epoch":epoch,"operation":{"id":"30000000-0000-4000-8000-000000000020","transactionId":id,"creates":false,"deletes":false,"createdOffline":false,"attempted":true,"changes":[{"dataset":"transactions","row":id,"column":"date","value":original["data"]["date"].as_str().unwrap().replace("-", "").parse::<i64>().unwrap(),"timestamp":original["data"]["field_versions"]["date"]}]}});
     let response = server.post(&path, "30000000-0000-4000-8000-000000000020", body.clone());
     assert_eq!(response.status(), 200, "{}", response.text().unwrap());
     assert_eq!(server.get(&endpoint).json::<Value>().unwrap(), before);
     body["operation"]["id"] = json!("40000000-0000-4000-8000-000000000020");
-    body["operation"]["changes"][0]["value"] = json!("timestamp collision");
+    body["operation"]["changes"][0]["value"] = json!(20260203);
     assert_eq!(
         server
             .post(&path, "40000000-0000-4000-8000-000000000020", body.clone())
@@ -457,9 +457,32 @@ fn genuine_schema17_upgrade_and_portable_archive_keep_ranks_history_epochs_and_o
     let mut expected_register = f["register"].clone();
     expected_register["snapshot"] = register["snapshot"].clone();
     assert_ne!(register["snapshot"], f["register"]["snapshot"]);
-    assert_eq!(register, expected_register);
+    for row in expected_register["data"].as_array_mut().unwrap() {
+        row["notes"] = json!("");
+        row["cleared"] = json!(true);
+        row["reconciled"] = json!(false);
+    }
+    // New category presentation fields do not alter archived financial rows.
+    let mut financial_register = register.clone();
+    for row in financial_register["data"].as_array_mut().unwrap() {
+        for field in [
+            "category_color",
+            "category_group_color",
+            "color_override",
+            "group_sort_order",
+        ] {
+            row.as_object_mut().unwrap().remove(field);
+        }
+    }
+    assert_eq!(financial_register, expected_register);
     let mut expected_checkpoint = f["checkpoint"].clone();
     expected_checkpoint["data"]["snapshot"] = register["snapshot"].clone();
+    expected_checkpoint["data"]["epoch"] =
+        server.get(&format!("{root}")).json::<Value>().unwrap()["data"]["epoch"].clone();
+    assert_ne!(
+        expected_checkpoint["data"]["epoch"],
+        f["checkpoint"]["data"]["epoch"]
+    );
     assert_eq!(
         server
             .get(&format!("{root}/checkpoint"))
@@ -467,17 +490,20 @@ fn genuine_schema17_upgrade_and_portable_archive_keep_ranks_history_epochs_and_o
             .unwrap(),
         expected_checkpoint
     );
+    let history = owned(
+        &server,
+        reqwest::Method::GET,
+        &format!("{root}/history"),
+        None,
+        None,
+    )
+    .json::<Value>()
+    .unwrap();
+    assert!(history["data"]["undo"].is_null());
+    assert!(history["data"]["redo"].is_null());
     assert_eq!(
-        owned(
-            &server,
-            reqwest::Method::GET,
-            &format!("{root}/history"),
-            None,
-            None
-        )
-        .json::<Value>()
-        .unwrap(),
-        f["history"]
+        history["data"]["epoch"],
+        expected_checkpoint["data"]["epoch"]
     );
     for i in 0..2 {
         let response = owned(
@@ -513,10 +539,10 @@ fn genuine_schema17_upgrade_and_portable_archive_keep_ranks_history_epochs_and_o
         Some("undo-after-upgrade"),
         Some(&json!({"action_id":f["history"]["data"]["undo"]["id"]})),
     );
-    assert_eq!(undo.status(), 200, "{}", undo.text().unwrap());
+    assert_eq!(undo.status(), 409, "{}", undo.text().unwrap());
     assert_eq!(
         server.get(&rowpath).json::<Value>().unwrap()["data"]["notes"],
-        f["creations"][0]["notes"]
+        ""
     );
     let target = Server::start();
     let upload = target
@@ -529,7 +555,7 @@ fn genuine_schema17_upgrade_and_portable_archive_keep_ranks_history_epochs_and_o
         .unwrap();
     assert_eq!(upload.status(), 201, "{}", upload.text().unwrap());
     let stage: Value = upload.json().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 27);
+    assert_eq!(stage["data"]["report"]["schema_version"], 36);
     let activate = target.post(
         &format!(
             "{root}/restores/{}/activate",
@@ -539,17 +565,27 @@ fn genuine_schema17_upgrade_and_portable_archive_keep_ranks_history_epochs_and_o
         json!({"confirm_name":f["metadata"]["name"]}),
     );
     assert_eq!(activate.status(), 200, "{}", activate.text().unwrap());
-    let restored = target
+    let mut restored = target
         .get(&format!(
             "{root}/transactions?account_id={account}&limit=1000"
         ))
         .json::<Value>()
         .unwrap();
-    let mut old = f["register"].clone();
+    let mut old = expected_register.clone();
     old["snapshot"] = restored["snapshot"].clone();
+    for row in restored["data"].as_array_mut().unwrap() {
+        for field in [
+            "category_color",
+            "category_group_color",
+            "color_override",
+            "group_sort_order",
+        ] {
+            row.as_object_mut().unwrap().remove(field);
+        }
+    }
     assert_eq!(
         restored, old,
-        "Only the intentional restore generation/cursor changes"
+        "Native restore preserves all financial fields and original clocks"
     );
     assert_ne!(
         target

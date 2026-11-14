@@ -5,13 +5,53 @@ import { startServer } from "./server.mjs";
 const server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1");
 let browser;
-async function editCategory(tab, name) {
-  const row = tab.locator(".budget-category").filter({ hasText: name });
-  await expect(row).toHaveAttribute("tabindex", "0");
-  await row.click();
-  await tab
-    .getByRole("button", { name: "Category settings", exact: true })
-    .click();
+// Seed the released editor journal: full category forms now exist for recovery.
+async function editCategory(tab, name, kind = "categories") {
+  await tab.evaluate(
+    async ({ name, kind }) => {
+      const budget = JSON.parse(
+        localStorage.getItem("actualBudget.selection"),
+      ).budgetId;
+      const root = `/api/v1/budgets/${budget}`;
+      const rows = (
+        await (await fetch(`${root}/${kind}?include_deleted=true`)).json()
+      ).data;
+      const row = rows.find((row) => row.name === name);
+      if (!row) throw Error(`Missing fixture ${name}`);
+      const checkpoint = (await (await fetch(root + "/checkpoint")).json())
+        .data;
+      const key = `actualBudget.categories.v1.${budget}`;
+      if (localStorage.getItem(key))
+        throw Error("Cannot overwrite saved category work");
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          draft: {
+            kind,
+            id: row.id,
+            new_id: row.id,
+            name: row.name,
+            group_id: row.group_id ?? "",
+            color: row.color,
+            is_income: row.is_income,
+            sort_order: row.sort_order,
+            epoch: checkpoint.epoch,
+            original: row,
+          },
+          pending: null,
+          deleting: false,
+          replacement: "",
+          revision: `fixture-${Date.now()}`,
+          owner: "released-client-fixture",
+        }),
+      );
+    },
+    { name, kind },
+  );
+  await tab.reload();
+  await tab.getByRole("button", { name: "Budget", exact: true }).click();
+  await tab.getByLabel(/Months displayed/).selectOption("1");
+  await expect(tab.getByLabel("Name", { exact: true })).toHaveValue(name);
 }
 
 async function call(path, body, method = body === undefined ? "GET" : "POST") {
@@ -90,9 +130,7 @@ try {
   await expect(page.locator(".budget-month")).toHaveCount(1);
   await editCategory(page, "Food");
   await page.getByLabel("Name", { exact: true }).fill("Meals");
-  await page
-    .getByLabel("Notes", { exact: true })
-    .fill("Keep receipts\nReimbursements stay here");
+  await expect(page.getByLabel("Notes", { exact: true })).toHaveCount(0);
   await expect(page.getByLabel("Hidden", { exact: true })).toHaveCount(0);
   const attempts = [];
   await page.route(`**/api/v1${base}/categories/${food.id}`, async (route) => {
@@ -135,7 +173,7 @@ try {
   await expect(page.locator(".budget-month")).toHaveCount(1);
   await page.getByRole("button", { name: "Retry unchanged request" }).click();
   await expect(
-    page.locator(".budget-category").filter({ hasText: "Meals" }),
+    page.getByRole("textbox", { name: "Category name Meals", exact: true }),
   ).toBeVisible();
   expect(attempts).toHaveLength(2);
   expect(attempts[1]).toEqual(attempts[0]);
@@ -147,34 +185,35 @@ try {
     .getByRole("button", { name: "Delete and reassign", exact: true })
     .click();
   await expect(
-    page.locator(".budget-category").filter({ hasText: "Meals" }),
+    page.getByRole("textbox", { name: "Category name Meals", exact: true }),
   ).toHaveCount(0);
-  await page.getByLabel("Budget month", { exact: true }).fill("2026-01");
-  await page.getByLabel("Budget month", { exact: true }).press("Tab");
-  await page.locator(".budget-category").filter({ hasText: "Dining" }).click();
+  await page.getByLabel("Budget month", { exact: true }).fill("Jan-26");
+  await page.getByLabel("Budget month", { exact: true }).press("Enter");
+  await page
+    .getByRole("button", { name: "Edit Dining for January 2026", exact: true })
+    .click();
   await page.getByRole("button", { name: "Transactions", exact: true }).click();
-  await expect(page.locator(".category-detail tbody tr")).toHaveCount(3);
-  await expect(page.getByText("refund", { exact: true })).toBeVisible();
-  await expect(page.getByText("reimbursement", { exact: true })).toBeVisible();
-  await expect(page.locator(".category-detail > p").first()).toContainText(
-    "6.00",
-  );
+  await expect(
+    page.locator(".register-table tbody tr[data-transaction-id]"),
+  ).toHaveCount(3);
+  await expect(page.getByTestId("filtered-totals")).toContainText("-6.00");
+  await expect(page.locator(".register-table")).toContainText("+2.50");
+  await expect(page.locator(".register-table")).toContainText("+4.00");
   await mkdir("test-results", { recursive: true });
   await page.screenshot({
     path: "test-results/categories-desktop.png",
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Close category detail" }).click();
-  await page
-    .getByRole("button", { name: "Discard budget draft", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Budget", exact: true }).click();
+  await page.getByLabel(/Months displayed/).selectOption("1");
+  await expect(page.locator(".budget-month")).toHaveCount(1);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "Add group", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Travel");
-  await page.getByLabel("Order", { exact: true }).fill("0.5");
+  await expect(page.getByLabel("Order", { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Travel", exact: true }),
+    page.getByRole("button", { name: "Toggle Travel", exact: true }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Add category to Travel", exact: true })
@@ -183,18 +222,17 @@ try {
   await expect(page.getByLabel("Group", { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(
-    page.locator(".budget-category").filter({ hasText: "Train" }),
+    page.getByRole("textbox", { name: "Category name Train", exact: true }),
   ).toBeVisible();
   await expect(
-    page.locator(".budget-category").filter({ hasText: "Train" }),
+    page.getByRole("textbox", { name: "Category name Train", exact: true }),
   ).toBeEnabled();
-  await page.locator(".budget-category").filter({ hasText: "Train" }).focus();
-  await page.keyboard.press("Enter");
   await page
-    .getByRole("button", { name: "Category settings", exact: true })
-    .click();
-  await expect(page.getByLabel("Name", { exact: true })).toBeFocused();
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+    .getByRole("textbox", { name: "Category name Train", exact: true })
+    .focus();
+  await expect(
+    page.getByRole("textbox", { name: "Category name Train", exact: true }),
+  ).toBeFocused();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -204,32 +242,19 @@ try {
     path: "test-results/categories-mobile.png",
     fullPage: true,
   });
-  expect((await call(base + "/categories/" + food.id)).notes).toContain(
-    "Keep receipts",
-  );
-  await page.route("https://example.com/**", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "image/png",
-      body: Buffer.from(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aBZkAAAAASUVORK5CYII=",
-        "base64",
-      ),
-    }),
+  expect(await call(base + "/categories/" + food.id)).not.toHaveProperty(
+    "notes",
   );
   const nullGroup = await call(base + "/category-groups", {
     id: randomUUID(),
     name: "Null group",
     sort_order: null,
-    notes: "**Group note**",
   });
   const nullCategory = await call(base + "/categories", {
     id: randomUUID(),
     name: "Null order",
     group_id: nullGroup.id,
     sort_order: null,
-    notes:
-      "**Formatted note** and [Receipt](https://example.com/receipt)\n\n<script>window.notesExecuted=true</script>\n\n[Unsafe](javascript:alert(1))\n\n![Receipt image](https://example.com/receipt.png)\n\n~~Old plan~~\n\n- [x] Reimbursed\n- [ ] Pending\n\n| Month | Total |\n| --- | --- |\n| Jan | 12.50 |\n\nhttps://example.com/autolink\n\nLine one\nLine two\n\n\nAfter blank lines\n\n![Unsafe image](javascript:alert(2))",
   });
   await page
     .getByRole("button", { name: "Refresh budget", exact: true })
@@ -238,36 +263,36 @@ try {
   await page.getByLabel(/Months displayed/).selectOption("1");
   await expect(page.locator(".budget-month")).toHaveCount(1);
   await editCategory(page, "Null order");
-  await expect(page.getByLabel("Order", { exact: true })).toHaveValue("");
+  await expect(page.getByLabel("Order", { exact: true })).toHaveCount(0);
   await page.getByLabel("Name", { exact: true }).fill("Null order renamed");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(
-    page.locator(".budget-category").filter({ hasText: "Null order renamed" }),
+    page.getByRole("textbox", {
+      name: "Category name Null order renamed",
+      exact: true,
+    }),
   ).toBeVisible();
   expect(
     (await call(base + "/categories/" + nullCategory.id)).sort_order,
   ).toBeNull();
-  await page
-    .getByRole("button", { name: "Edit group Null group", exact: true })
-    .click();
+  await editCategory(page, "Null group", "category-groups");
   await page.getByLabel("Name", { exact: true }).fill("Null group renamed");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(
-    page.getByRole("button", {
-      name: "Edit group Null group renamed",
+    page.getByRole("textbox", {
+      name: "Group name Null group renamed",
       exact: true,
     }),
   ).toBeVisible();
   expect(
     (await call(base + "/category-groups/" + nullGroup.id)).sort_order,
   ).toBeNull();
-  // Notes remain editable here; shared Markdown rendering is covered by notes-browser.
-  expect((await call(base + "/categories/" + nullCategory.id)).notes).toEqual(
-    nullCategory.notes,
-  );
-  expect((await call(base + "/category-groups/" + nullGroup.id)).notes).toBe(
-    "**Group note**",
-  );
+  expect(
+    await call(base + "/categories/" + nullCategory.id),
+  ).not.toHaveProperty("notes");
+  expect(
+    await call(base + "/category-groups/" + nullGroup.id),
+  ).not.toHaveProperty("notes");
   await editCategory(page, "Null order renamed");
   await page
     .getByRole("button", { name: "Merge or delete", exact: true })
@@ -275,8 +300,8 @@ try {
   await page
     .getByRole("button", { name: "Delete and reassign", exact: true })
     .click();
-  expect((await call(base + "/categories/" + nullCategory.id)).notes).toEqual(
-    nullCategory.notes,
+  expect((await call(base + "/categories/" + nullCategory.id)).deleted).toBe(
+    true,
   );
   // Category metadata is online-only. Synthetic submits must not create intents.
   await editCategory(page, "Train");
@@ -339,7 +364,7 @@ try {
     await tab.getByLabel(/Months displayed/).selectOption("1");
     await expect(tab.locator(".budget-month")).toHaveCount(1);
     await expect(
-      tab.locator(".budget-category").filter({ hasText: "Train" }),
+      tab.getByRole("textbox", { name: "Category name Train", exact: true }),
     ).toBeVisible();
   }
   await openCategories(first);
@@ -364,9 +389,7 @@ try {
     } else await route.fulfill({ response });
   });
   await editCategory(first, "Train");
-  await first
-    .getByLabel("Notes", { exact: true })
-    .fill("First tab retained note");
+  await first.getByLabel("Category shade", { exact: true }).fill("#337755");
   await first.getByRole("button", { name: "Save", exact: true }).click();
   await expect(
     first.getByRole("button", { name: "Retry unchanged request" }),
@@ -393,13 +416,11 @@ try {
   ).toBeVisible();
   await first.getByRole("button", { name: "Retry unchanged request" }).click();
   await expect(
-    first.locator(".budget-category").filter({ hasText: "Train" }),
+    first.getByRole("textbox", { name: "Category name Train", exact: true }),
   ).toBeVisible();
   expect(concurrentAttempts[1]).toEqual(concurrentAttempts[0]);
   await editCategory(first, "Train");
-  await first
-    .getByLabel("Notes", { exact: true })
-    .fill("Newer durable request");
+  await first.getByLabel("Category shade", { exact: true }).fill("#446688");
   loseResponse = true;
   await first.getByRole("button", { name: "Save", exact: true }).click();
   await expect(
@@ -424,13 +445,13 @@ try {
   await expect(first.locator(".budget-month")).toHaveCount(1);
   await first.getByRole("button", { name: "Retry unchanged request" }).click();
   await expect(
-    first.locator(".budget-category").filter({ hasText: "Train" }),
+    first.getByRole("textbox", { name: "Category name Train", exact: true }),
   ).toBeVisible();
   expect(concurrentAttempts[3]).toEqual(concurrentAttempts[2]);
   await shared.close();
   expect(errors).toEqual([]);
   console.log(
-    "PASS categories browser: durable retries and stale-tab ownership, offline boundaries, null order, retained notes, merges, groups, keyboard, desktop/mobile plain HTTP",
+    "PASS categories browser: durable retries and stale-tab ownership, offline boundaries, null order, notes retirement, merges, groups, keyboard, desktop/mobile plain HTTP",
   );
 } finally {
   await browser?.close();

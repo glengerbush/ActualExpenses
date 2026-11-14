@@ -14,6 +14,18 @@ const source = JSON.parse(
 const directory = process.env.ACTUALBUDGET_TEST_URL
   ? null
   : await mkdtemp(tmpdir() + "/public-batch-http-");
+// Historical observations retain their bytes; these live projections follow completed-entry semantics.
+source.fields = source.fields.filter((field) => field !== "notes");
+for (const state of [source.before, source.after])
+  for (const row of state) {
+    delete row.notes;
+    row.cleared = true;
+    row.reconciled = false;
+  }
+for (const op of source.operations) {
+  if (op.transaction) delete op.transaction.notes;
+  if (op.fields) delete op.fields.notes;
+}
 let server = await startServer(directory ? { dataDirectory: directory } : {}),
   api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
 async function call(path, body, status = 200, headers = {}) {
@@ -93,7 +105,7 @@ try {
         {
           action: "update",
           id: source.before.find((r) => r.is_parent).id,
-          fields: { notes: "Must not expand unbounded children" },
+          fields: { date: "2026-11-10" },
         },
       ],
     },
@@ -132,7 +144,6 @@ try {
       clock,
       "Original caller amount HLC, not a per-operation server clock",
     );
-    assert.equal(row.field_versions.notes, clock);
   }
   assert.deepEqual(
     await query(),
@@ -194,9 +205,7 @@ try {
     hist = (await call(root + "/history", undefined, 200, headers)).data,
     newId = randomUUID(),
     create = { ...source.operations[0].transaction, id: newId },
-    locked = source.before.find(
-      (r) => r.reconciled && !r.transfer_id && !r.is_parent && !r.is_child,
-    ).id;
+    locked = randomUUID();
   const failing = {
       snapshot: now.snapshot,
       operations: [
@@ -204,7 +213,7 @@ try {
         {
           action: "update",
           id: locked,
-          fields: { notes: "Must not cross lock" },
+          fields: { amount: -10 },
         },
       ],
     },
@@ -214,7 +223,7 @@ try {
       "X-Actual-Edit-Clock":
         new Date(Date.now() + 2000).toISOString() + "-0000-4747474747474747",
     };
-  await call(root + "/transactions/batch", failing, 409, failureHeaders);
+  await call(root + "/transactions/batch", failing, 404, failureHeaders);
   assert.deepEqual(await call(root + "/transactions?limit=1000"), rows);
   assert.deepEqual(await checkpoint(), now);
   assert.deepEqual(
@@ -244,7 +253,7 @@ try {
       {
         action: "update",
         id: source.operations[1].id,
-        fields: { notes: "Old intent cannot win" },
+        fields: { amount: -1235 },
       },
     ],
   };
@@ -263,8 +272,12 @@ try {
     overlap = {
       snapshot: now.snapshot,
       operations: [
-        { action: "update", id: pair.id, fields: { notes: "First" } },
-        { action: "update", id: pair.transfer_id, fields: { notes: "Second" } },
+        { action: "update", id: pair.id, fields: { date: "2026-11-10" } },
+        {
+          action: "update",
+          id: pair.transfer_id,
+          fields: { date: "2026-11-11" },
+        },
       ],
     };
   await call(root + "/transactions/batch", overlap, 409, {

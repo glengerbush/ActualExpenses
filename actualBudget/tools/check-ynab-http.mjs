@@ -82,7 +82,7 @@ function compareLedger(snapshot, actual, refs) {
       account: reference(r, "account_id"),
       date: r.date,
       amount: r.amount,
-      notes: r.notes ?? "",
+      notes: source ? "" : (r.notes ?? ""),
       parent: !!r[source ? "is_parent" : "is_parent"],
     });
     const byId = new Map(rows.map((r) => [r.id, identity(r)]));
@@ -91,8 +91,8 @@ function compareLedger(snapshot, actual, refs) {
         ...identity(r),
         payee: reference(r, "payee_id"),
         category: reference(r, "category_id"),
-        cleared: !!r.cleared,
-        reconciled: !!r.reconciled,
+        cleared: source ? true : !!r.cleared,
+        reconciled: source ? false : !!r.reconciled,
         starting_balance:
           !!r[source ? "starting_balance_flag" : "starting_balance"],
         imported_payee: r.imported_payee ?? null,
@@ -116,11 +116,11 @@ function compareLedger(snapshot, actual, refs) {
       rows.map((row) => ({
         amount: row.amount,
         date: row.date,
-        notes: row.notes ?? "",
+        notes: childKey === "subtransactions" ? "" : (row.notes ?? ""),
         parent: !!row.is_parent,
         children: (row[childKey] ?? []).map((child) => ({
           amount: child.amount,
-          notes: child.notes ?? "",
+          notes: childKey === "subtransactions" ? "" : (child.notes ?? ""),
         })),
       }));
     assert.deepEqual(
@@ -238,6 +238,23 @@ try {
         .data;
       assert.ok(response.months[expected.month]);
       const view = response.months[expected.month];
+      // Tracking keeps source allocations and actuals; missing cells carry by default.
+      // Envelope-only available-funds/buffering totals have no current equivalent.
+      const cells = (
+        await call(root + "/query", {
+          version: 1,
+          table: "budget_cells",
+          select: ["category", "carryover"],
+          filter: [{ month: expected.month, method: "tracking" }],
+        })
+      ).data;
+      const [year, month] = expected.month.split("-").map(Number),
+        priorMonth =
+          month === 1
+            ? `${year - 1}-12`
+            : `${year}-${String(month - 1).padStart(2, "0")}`;
+      const previous = (await call(root + "/budget?month=" + priorMonth)).data
+        .months[priorMonth];
       for (const group of expected.data.categoryGroups)
         for (const category of group.categories) {
           const row = view.categories.find(
@@ -254,28 +271,32 @@ try {
             {
               budgeted: category.budgeted ?? 0,
               actual: category.received ?? category.spent ?? 0,
-              balance: category.balance ?? 0,
-              carryover: category.carryover ?? false,
+              balance:
+                (category.budgeted ?? 0) +
+                (row.is_income ? -1 : 1) *
+                  (category.received ?? category.spent ?? 0) +
+                (previous.categories.find((p) => p.id === row.id)?.carryover
+                  ? previous.categories.find((p) => p.id === row.id).balance
+                  : 0),
+              carryover: cells.some((cell) => cell.category === row.id)
+                ? (category.carryover ?? false)
+                : true,
             },
             `${expected.month}:${category.id}`,
           );
         }
       const keys = {
-        available_funds: "incomeAvailable",
-        last_month_overspent: "lastMonthOverspent",
-        buffered_selected: "forNextMonth",
         total_budgeted: "totalBudgeted",
-        to_budget: "toBudget",
-        from_last_month: "fromLastMonth",
         total_income: "totalIncome",
         total_spent: "totalSpent",
-        total_leftover: "totalBalance",
       };
       for (const [native, source] of Object.entries(keys)) {
         assert.equal(typeof expected.data[source], "number", source);
         assert.equal(
           view.summary[native],
-          expected.data[source],
+          native === "total_budgeted"
+            ? -expected.data[source] || 0
+            : expected.data[source],
           `${expected.month}:${native}`,
         );
       }
@@ -324,7 +345,7 @@ try {
           "Baseline learned category for " + expected.payee,
         );
         assert.equal(after.amount, expected.amount);
-        assert.equal(after.notes, expected.notes);
+        assert.equal(after.notes, "");
       }
       assert.deepEqual(
         await call(root + "/transactions?limit=1000"),
@@ -391,7 +412,13 @@ try {
         );
         assert.deepEqual(
           normalize(row.actions),
-          normalize(expected.actions),
+          normalize(
+            expected.actions.filter(
+              (action) =>
+                action.field !== "notes" &&
+                !["append-notes", "prepend-notes"].includes(action.op),
+            ),
+          ),
           "Exact schedule actions and indexed split allocations",
         );
         assert.equal(row.posts_transaction, false);
@@ -406,20 +433,9 @@ try {
         );
         assert.equal(row.next_date, next, expected.name);
       }
-      const tags = (await call(root + "/tags?include_hidden=true")).data;
-      const clean = (rows) =>
-        rows
-          .map(({ tag, color, description, hidden }) => ({
-            tag,
-            color,
-            description,
-            hidden,
-          }))
-          .sort((a, b) => a.tag.localeCompare(b.tag));
-      assert.deepEqual(
-        clean(tags),
-        clean(item.snapshot.tags),
-        "Source flag names, collision suffixes and colors",
+      assert.equal(
+        (await fetch(api + root + "/tags?include_hidden=true")).status,
+        404,
       );
       for (const expected of behavior.effects) {
         const p = refs.payees.find((p) => "payee:" + p.name === expected.payee);
@@ -446,7 +462,7 @@ try {
           expected.category,
         );
         assert.equal(after.amount, expected.amount);
-        assert.equal(after.notes, expected.notes);
+        assert.equal(after.notes, "");
       }
       assert.deepEqual(
         (await call(root + "/checkpoint")).data,
@@ -610,7 +626,16 @@ try {
         .sort((a, b) => a.amount - b.amount);
       assert.deepEqual(
         actual,
-        normalize(expected.definitions),
+        normalize(
+          expected.definitions.map((row) => ({
+            ...row,
+            actions: row.actions.filter(
+              (action) =>
+                action.field !== "notes" &&
+                !["append-notes", "prepend-notes"].includes(action.op),
+            ),
+          })),
+        ),
         "Exact null/trim/case schedule names, predicates and financial actions",
       );
       assert.deepEqual(
@@ -653,9 +678,19 @@ try {
         groups = (await call(root + "/category-groups")).data,
         categories = (await call(root + "/categories")).data;
       const ledger = await call(root + "/transactions?limit=1000");
+      // Recompute tracking carry from independent source monthly amounts and explicit carry flags.
+      const trackingBalances = new Map();
       for (const source of expected.months) {
         const view = (await call(root + "/budget?month=" + source.month)).data
           .months[source.month];
+        const cells = (
+          await call(root + "/query", {
+            version: 1,
+            table: "budget_cells",
+            select: ["category", "carryover"],
+            filter: [{ month: source.month, method: "tracking" }],
+          })
+        ).data;
         for (const c of source.categories) {
           const category = categories.find(
             (row) =>
@@ -666,6 +701,15 @@ try {
           );
           assert.ok(category, c.category);
           const row = view.categories.find((row) => row.id === category.id);
+          const carryover = cells.some((cell) => cell.category === category.id)
+            ? c.carryover
+            : true;
+          const previous = trackingBalances.get(category.id);
+          const balance =
+            c.budgeted +
+            (category.is_income ? -c.actual : c.actual) +
+            (previous?.carryover ? previous.balance : 0);
+          trackingBalances.set(category.id, { balance, carryover });
           assert.deepEqual(
             {
               category: c.category,
@@ -674,25 +718,21 @@ try {
               balance: row.balance,
               carryover: row.carryover,
             },
-            c,
+            { ...c, balance, carryover },
             expected.id + ":" + source.month + ":" + c.category,
           );
         }
         const keys = {
-          available_funds: "incomeAvailable",
-          last_month_overspent: "lastMonthOverspent",
-          buffered_selected: "forNextMonth",
           total_budgeted: "totalBudgeted",
-          to_budget: "toBudget",
-          from_last_month: "fromLastMonth",
           total_income: "totalIncome",
           total_spent: "totalSpent",
-          total_leftover: "totalBalance",
         };
         for (const [k, v] of Object.entries(keys))
           assert.equal(
             view.summary[k],
-            source.summary[v],
+            k === "total_budgeted"
+              ? -source.summary[v] || 0
+              : source.summary[v],
             source.month + ":" + k,
           );
       }

@@ -65,9 +65,8 @@ try {
   await page.goto(server.url);
   await page.getByRole("button", { name: /Recovery browser.*Open/ }).click();
   await expect(page.getByTestId("register-total")).toHaveText("99.99");
-  await page
-    .getByRole("button", { name: "Recovery tools", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Recovery tools", exact: true }),
   ).toBeVisible();
@@ -218,7 +217,9 @@ try {
   await expect(
     page.getByRole("link", { name: "Download pre-repair backup", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await expect(page.getByTestId("register-total")).toHaveText("10.00");
   // Explicit HTTP fault injection: a stale cursor is rejected, then bootstrap
   // must recover real current references without changing pending-work identity.
@@ -243,9 +244,8 @@ try {
       });
     } else await route.continue();
   });
-  await page
-    .getByRole("button", { name: "Recovery tools", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
     .getByRole("button", { name: "Reconnect and refresh", exact: true })
     .click();
@@ -267,36 +267,30 @@ try {
     .getByLabel("Category", { exact: true })
     .selectOption(recoveredCategory);
   await page
-    .getByLabel("Notes", { exact: true })
-    .fill("Purchase survives cache recovery");
-  await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText(
-    "Purchase survives cache recovery",
-  );
-  await page
-    .getByRole("button", { name: "Recovery tools", exact: true })
-    .click();
+  await expect(page.getByRole("row", { name: /Edit -1.23/ })).toBeVisible();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
     .getByRole("button", { name: "Reset downloaded data", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Confirm cache reset", exact: true })
     .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
-    .getByRole("button", { name: "Review pending expenses", exact: true })
+    .getByRole("button", { name: "Troubleshoot saved changes", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText(
-    "Purchase survives cache recovery",
-  );
+  await expect(page.getByTestId("pending-expenses")).toContainText("1.23");
   await page.reload();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
-    .getByRole("button", { name: "Review pending expenses", exact: true })
+    .getByRole("button", { name: "Troubleshoot saved changes", exact: true })
     .click();
-  await expect(page.getByTestId("pending-expenses")).toContainText(
-    "Purchase survives cache recovery",
-  );
+  await expect(page.getByTestId("pending-expenses")).toContainText("1.23");
   await page.setViewportSize({ width: 390, height: 844 });
   expect(
     await page.evaluate(
@@ -317,12 +311,10 @@ try {
         `/api/v1/budgets/${budget}/transactions`,
     )
   ).json();
-  expect(
-    data.data.filter((r) => r.notes === "Purchase survives cache recovery"),
-  ).toHaveLength(1);
+  expect(data.data.filter((r) => r.amount === -123)).toHaveLength(1);
   // A legacy lifecycle request shares the cache store but is NOT downloaded data.
   // Its original body/key must remain recoverable after this new reset tool.
-  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
   await page.getByRole("button", { name: /Recovery browser.*Open/ }).click();
   await page
     .getByRole("button", { name: "Manage budget", exact: true })
@@ -360,9 +352,14 @@ try {
     page.getByRole("button", { name: "Retry saved operation", exact: true }),
   ).toBeEnabled();
   await page.reload();
-  await page
-    .getByRole("button", { name: "Recovery tools", exact: true })
-    .click();
+  await expect(
+    page.getByRole("button", { name: "Retry saved operation", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Recovery", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
     .getByRole("button", { name: "Reset downloaded data", exact: true })
     .click();

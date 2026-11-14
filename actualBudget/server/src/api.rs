@@ -196,15 +196,11 @@ async fn cancellation_scope(
                 "POST",
                 "/api/v1/budgets/{budget}/payees"
                     | "/api/v1/budgets/{budget}/payee-locations"
-                    | "/api/v1/budgets/{budget}/tags"
                     | "/api/v1/budgets/{budget}/payees/batch"
-                    | "/api/v1/budgets/{budget}/tags/batch"
-                    | "/api/v1/budgets/{budget}/tags/discover"
             ) | (
                 "PATCH",
                 "/api/v1/budgets/{budget}/payees/{id}"
                     | "/api/v1/budgets/{budget}/payee-locations/{id}"
-                    | "/api/v1/budgets/{budget}/tags/{id}"
             ) | ("PATCH" | "DELETE", "/api/v1/budgets/{budget}")
                 | (
                     "POST",
@@ -351,10 +347,9 @@ async fn list_transactions(
     if let Some(id) = &query.payee_id {
         validate_id(id)?;
     }
-    if let Some(tag) = &query.tag {
-        let _ = tag;
+    if query.tag.is_some() {
         return Err(Error::invalid(
-            "Tag filtering has been removed; search notes instead",
+            "Tag filtering has been removed",
         ));
     }
     if let Some(date) = &query.as_of {
@@ -395,7 +390,6 @@ async fn list_transactions(
                         account: query.account_id.as_deref(),
                         as_of: query.as_of.as_deref(),
                         payee: query.payee_id.as_deref(),
-                        tag: query.tag.as_deref(),
                     },
                     query.limit,
                     query.offset,

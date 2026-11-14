@@ -1,3 +1,9 @@
+import {
+  savedWork,
+  expectSavedWork,
+  openSavedWork,
+  history,
+} from "./saved-work-ui.mjs";
 import { transactionRows, transactionAction } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { fileURLToPath } from "node:url";
@@ -59,42 +65,40 @@ try {
     .click();
   await page.getByLabel("Amount", { exact: true }).fill("10+2.34");
   await page.getByLabel("Date", { exact: true }).fill("01/02/2026");
-  await page.getByLabel("Payee", { exact: true }).selectOption("new");
-  await page.getByLabel("New payee name").fill("Café");
+  await page.getByRole("combobox", { name: "Payee", exact: true }).fill("Café");
+  await page.getByRole("option", { name: /Create payee/ }).click();
   await page.getByLabel("Category", { exact: true }).selectOption("new");
   await page.getByLabel("New category name").fill("Food");
-  await page.getByLabel("Notes", { exact: true }).fill("Receipt");
-  await page.getByLabel("Cleared", { exact: true }).check();
   await page.reload();
   await expect(page.getByLabel("Amount", { exact: true })).toHaveValue(
     "10+2.34",
   );
-  await expect(page.getByLabel("New payee name")).toHaveValue("Café");
+  await expect(
+    page.getByRole("combobox", { name: "Payee", exact: true }),
+  ).toHaveValue("Café");
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
   await expect(page.getByTestId("register-total")).toHaveText("987.66");
   let row = page
     .locator(".register-table tbody tr")
-    .filter({ hasText: "Receipt" });
+    .filter({ hasText: "Café" });
   await expect(row).toContainText("Food");
   await expect(row).toContainText("Café");
   await transactionRows(row, { name: /^Edit / }).click();
-  await page.getByLabel("Notes", { exact: true }).fill("Edited receipt");
+  await page.getByLabel("Date", { exact: true }).fill("01/04/2026");
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
   await expect(page.getByTestId("register-total")).toHaveText("987.66");
-  row = page
-    .locator(".register-table tbody tr")
-    .filter({ hasText: "Edited receipt" });
+  row = page.locator(".register-table tbody tr").filter({ hasText: "Café" });
   await (await transactionAction(row, { name: /^Duplicate / })).click();
   await expect(page.getByTestId("register-total")).toHaveText("975.32");
-  await expect(page.getByTestId("register-cleared")).toHaveText("987.66");
-  await expect(page.getByTestId("register-uncleared")).toHaveText("-12.34");
+  await expect(page.getByTestId("register-cleared")).toHaveCount(0);
+  await expect(page.getByTestId("register-uncleared")).toHaveCount(0);
   await page
     .locator(".register-table tbody tr")
-    .filter({ hasText: "Edited receipt" })
+    .filter({ hasText: "Café" })
     .first()
     .getByRole("button", { name: /^Delete / })
     .click();
@@ -112,7 +116,6 @@ try {
   await page.getByLabel("Amount", { exact: true }).fill("2.34");
   await page.getByRole("radio", { name: "Income", exact: true }).check();
   await page.getByLabel("Date", { exact: true }).fill("01/03/2026");
-  await page.getByLabel("Notes", { exact: true }).fill("Refund");
   let dropped = false;
   await page.route(transactionCreatePattern(budget), async (route) => {
     if (!dropped && route.request().method() === "POST") {
@@ -128,41 +131,28 @@ try {
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(
-    page.getByRole("button", { name: "Retry pending expense" }),
-  ).toBeVisible();
-  await expect(
-    page
-      .getByText("Cannot reach the server. Check your connection and retry.", {
-        exact: true,
-      })
-      .first(),
-  ).toBeVisible();
+  await expectSavedWork(page, 1);
+
   await page.reload();
-  await expect(page.getByTestId("pending-expenses"))
-    .toHaveCount(0)
-    .catch(async (error) => {
-      console.log(await page.locator("body").innerText());
-      throw error;
-    });
+  await expectSavedWork(page, 0);
   await expect(page.getByTestId("register-total")).toHaveText("990.00");
   const rows = await (
     await fetch(
       `${api}/api/v1/budgets/${budget}/transactions?account_id=${account}`,
     )
   ).json();
-  expect(rows.data.filter((row) => row.notes === "Refund")).toHaveLength(1);
+  expect(rows.data.filter((row) => row.amount === 234)).toHaveLength(1);
 
   // Two tabs cannot replace an unconfirmed edit; quota failures retain its original operation.
   let refundRow = page
     .locator(".register-table tbody tr")
-    .filter({ hasText: "Refund" });
+    .filter({ hasText: "+2.34" });
   await transactionRows(refundRow, { name: /^Edit / }).click();
-  await page.getByLabel("Notes", { exact: true }).fill("Edit survives");
+  await page.getByLabel("Date", { exact: true }).fill("01/05/2026");
   const second = await context.newPage();
   await second.goto(server.url);
-  await expect(second.getByLabel("Notes", { exact: true })).toHaveValue(
-    "Edit survives",
+  await expect(second.getByLabel("Date", { exact: true })).toHaveValue(
+    "01/05/2026",
   );
   await second.route("**/api/v1/**", (route) => route.abort());
   await second.evaluate(() => dispatchEvent(new Event("offline")));
@@ -190,10 +180,8 @@ try {
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(
-    page.getByRole("button", { name: "Retry pending expense" }),
-  ).toBeVisible();
-  await expect(second.getByLabel("Notes", { exact: true })).toBeDisabled();
+  await expectSavedWork(page, 1);
+  await expect(second.getByLabel("Date", { exact: true })).toBeDisabled();
   await expect(
     second
       .getByRole("alert")
@@ -208,8 +196,9 @@ try {
       return window.originalOfflineTransaction.apply(this, args);
     };
   });
+  await openSavedWork(page);
   await page
-    .getByRole("button", { name: "Retry pending expense", exact: true })
+    .getByRole("button", { name: "Retry saved expense", exact: true })
     .click();
   await expect(
     page.getByRole("alert").filter({ hasText: "Free device space" }).first(),
@@ -218,12 +207,11 @@ try {
   await page.evaluate(() => {
     IDBDatabase.prototype.transaction = window.originalOfflineTransaction;
   });
+  await history(page);
   await page.reload();
-  await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+  await expectSavedWork(page, 0);
   await expect(
-    page
-      .locator(".register-table tbody tr")
-      .filter({ hasText: "Edit survives" }),
+    page.locator(".register-table tbody tr").filter({ hasText: "01/05/2026" }),
   ).toHaveCount(1);
   expect(new Set(editAttempts).size).toBe(1);
   // Duplicate and deletion acknowledgements can also be recovered after a reload.
@@ -254,7 +242,7 @@ try {
     });
     const row = page
       .locator(".register-table tbody tr")
-      .filter({ hasText: "Edit survives" })
+      .filter({ hasText: "01/05/2026" })
       .first();
     await (
       action === "duplicate"
@@ -265,9 +253,7 @@ try {
       await page
         .getByRole("button", { name: "Confirm delete", exact: true })
         .click();
-    await expect(
-      page.getByRole("button", { name: "Retry pending expense" }),
-    ).toBeVisible();
+    await expectSavedWork(page, 1);
     await expect(
       page
         .getByText(
@@ -277,7 +263,7 @@ try {
         .first(),
     ).toBeVisible();
     await page.reload();
-    await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+    await expectSavedWork(page, 0);
     await expect(
       page.getByRole("button", { name: "Retry pending expense" }),
     ).toHaveCount(0);
@@ -355,32 +341,25 @@ try {
   expect(hidden.ok).toBe(true);
   await page.reload();
   await transactionRows(
-    page
-      .locator(".register-table tbody tr")
-      .filter({ hasText: "Edit survives" }),
+    page.locator(".register-table tbody tr").filter({ hasText: "01/05/2026" }),
     { name: /^Edit / },
   ).click();
   await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("2.34");
-  await page
-    .getByLabel("Notes", { exact: true })
-    .fill("Hidden fractions preserved");
+  await page.getByLabel("Date", { exact: true }).fill("01/06/2026");
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
   await expect(
-    page
-      .locator(".register-table tbody tr")
-      .filter({ hasText: "Hidden fractions preserved" }),
+    page.locator(".register-table tbody tr").filter({ hasText: "01/06/2026" }),
   ).toHaveCount(1);
   const afterHidden = await (
     await fetch(
       `${api}/api/v1/budgets/${budget}/transactions?account_id=${account}`,
     )
   ).json();
-  expect(
-    afterHidden.data.find((row) => row.notes === "Hidden fractions preserved")
-      .amount,
-  ).toBe(234);
+  expect(afterHidden.data.find((row) => row.date === "2026-01-06").amount).toBe(
+    234,
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
@@ -397,8 +376,9 @@ try {
       () => document.documentElement.scrollWidth <= innerWidth + 1,
     ),
   ).toBe(true);
+  await page.locator('summary[aria-label="Filters and columns"]').click();
   await page.getByLabel("Show through date").fill("01/01/2026");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await page.getByRole("button", { name: "Apply date", exact: true }).click();
   await expect(page.getByTestId("register-total")).toHaveText("1,000");
   await expect(page.locator(".register-table tbody tr")).toHaveCount(1);
   await page.getByRole("button", { name: "All dates", exact: true }).click();
@@ -446,7 +426,7 @@ try {
   });
   expect(errors).toEqual([]);
   console.log(
-    "PASS register CRUD, calculator, references, statuses, exact balances, draft/retry recovery, mobile and failure retention",
+    "PASS register CRUD, calculator, references, completed entries, exact balances, draft/retry recovery, mobile and failure retention",
   );
 } finally {
   await browser?.close();

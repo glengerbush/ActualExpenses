@@ -351,7 +351,7 @@
     "/api/v1/budgets/{budget}/notes/commands": {
       "post": {
         "summary": "Write a captured note with immutable receipt/history identity",
-        "description": "Snapshot, original HLC, epoch and optional owner. Empty clears without deleting identity. Domain fields remain authoritative; inactive history markers stay private. Fresh writes revive month notes with retained buffered values. Old-generation exact receipts replay before epoch checks; changed epoch conflicts. Receipt-only and cancel reuse original request. Explicit native reference-ID collision refuses rather than hiding standalone text.",
+        "description": "Snapshot, original HLC, epoch and optional owner. Empty clears without deleting identity. Domain fields remain authoritative; inactive history markers stay private. Budget and month note identities are retired and reject writes. Old-generation exact receipts replay before epoch checks; changed epoch conflicts. Receipt-only and cancel reuse original request. Explicit native reference-ID collision refuses rather than hiding standalone text.",
         "parameters": [
           {
             "name": "budget",
@@ -752,7 +752,8 @@
           "category_groups",
           "rules",
           "schedules",
-          "budget_cells"
+          "budget_cells",
+          "notes"
         ]
       },
       "BoundQueryExpression": {

@@ -120,7 +120,7 @@ fn category_groups_are_durable_ordered_and_field_merged() {
         &path,
         "category",
         Some("2026-11-06T00:00:00.000Z-0000-0000000000000001"),
-        json!({"id":C,"name":"Food","group_id":G,"notes":"Keep receipts","sort_order":3}),
+        json!({"id":C,"name":"Food","group_id":G,"sort_order":3}),
     );
     assert_eq!(r.status(), 201, "{}", r.text().unwrap());
     let path = format!("{path}/{C}");
@@ -130,24 +130,24 @@ fn category_groups_are_durable_ordered_and_field_merged() {
         &path,
         "rename",
         Some(clock),
-        json!({"name":"Meals","hidden":true}),
+        json!({"name":"Meals"}),
     );
     assert_eq!(r.status(), 200, "{}", r.text().unwrap());
     let first = s.get(&path);
     assert_eq!(first["data"]["name"], "Meals");
-    assert_eq!(first["data"]["notes"], "Keep receipts");
+    assert_eq!(first["data"]["sort_order"], 3.0);
     let r = s.write(
         "PATCH",
         &path,
         "stale",
         Some("2026-11-07T00:00:00.000Z-0000-0000000000000001"),
-        json!({"name":"Old","notes":"Independent note"}),
+        json!({"name":"Old","sort_order":4}),
     );
     assert_eq!(r.status(), 200);
     assert_eq!(r.json::<Value>().unwrap()["conflicts"][0]["field"], "name");
     let current = s.get(&path);
     assert_eq!(current["data"]["name"], "Meals");
-    assert_eq!(current["data"]["notes"], "Independent note");
+    assert_eq!(current["data"]["sort_order"], 4.0);
     assert_eq!(s.restart().get(&path), current);
 }
 fn ok(r: Response) -> Value {
@@ -211,6 +211,7 @@ fn long_category_merge_history_remains_restorable_and_resolves_delayed_reference
     let stage = ok(s
         .client
         .post(format!("{}/api/v1/restores", s.url))
+        .timeout(Duration::from_secs(30))
         .header("Idempotency-Key", "stage")
         .header("Content-Type", "application/zip")
         .body(bytes)
@@ -315,7 +316,13 @@ fn lifecycle_matches_published_actual_oracle_and_archives_history() {
     for step in 0..4 {
         match step {
             1 => {
-                ok(s.write("PATCH",&format!("{base}/categories/{C}"),"edit",None,json!({"name":"Meals","group_id":id("other"),"hidden":true,"notes":"Keep receipts\nReimbursements stay here"})));
+                ok(s.write(
+                    "PATCH",
+                    &format!("{base}/categories/{C}"),
+                    "edit",
+                    None,
+                    json!({"name":"Meals","group_id":id("other")}),
+                ));
             }
             2 => {
                 let before = s.get(&format!("{base}/transactions"));
@@ -376,7 +383,11 @@ fn lifecycle_matches_published_actual_oracle_and_archives_history() {
         let data = s.get(&format!("{base}/transactions"));
         let mut txs=data["data"].as_array().unwrap().iter().map(|t|{let n=t["id"].as_str().unwrap().rsplit('-').next().unwrap().parse::<u32>().unwrap();json!({"id":format!("transaction-{n}"),"amount":t["amount"],"category":label(&t["category_id"]),"notes":t["notes"]})}).collect::<Vec<_>>();
         txs.sort_by_key(|t| t["id"].as_str().unwrap().to_owned());
-        assert_eq!(json!(txs), fixture["snapshots"][step]["transactions"]);
+        let mut expected = fixture["snapshots"][step]["transactions"].clone();
+        for row in expected.as_array_mut().unwrap() {
+            row["notes"] = json!("");
+        }
+        assert_eq!(json!(txs), expected);
         assert_eq!(
             s.get(&format!("{base}/accounts"))["data"][0]["balance"],
             9301
@@ -384,7 +395,7 @@ fn lifecycle_matches_published_actual_oracle_and_archives_history() {
     }
     assert_eq!(
         s.get(&format!("{base}/categories/{C}"))["data"]["notes"],
-        "Keep receipts\nReimbursements stay here"
+        Value::Null
     );
     let drill = s.get(&format!("{base}/categories/uncategorized/transactions"));
     assert_eq!(drill["total"], -699);
@@ -435,7 +446,7 @@ fn lifecycle_matches_published_actual_oracle_and_archives_history() {
     );
 }
 #[test]
-fn published_category_metadata_imports_with_notes_order_hidden_and_financial_drilldowns() {
+fn published_category_metadata_imports_with_visible_ordered_financial_drilldowns() {
     let s = Server::start();
     let fixture: Value = serde_json::from_str(include_str!(
         "../../tests/fixtures/category-import-26.10.0.json"
@@ -472,14 +483,14 @@ fn published_category_metadata_imports_with_notes_order_hidden_and_financial_dri
             .0;
         let actual = s.get(&format!("{base}/categories/{id}"))["data"].clone();
         assert_eq!(actual["name"], expected["name"]);
-        assert_eq!(actual["hidden"], expected["hidden"]);
+        assert_eq!(actual["hidden"], false);
         assert_eq!(actual["is_income"], expected["income"]);
         assert_eq!(
             fixture["aliases"][actual["group_id"].as_str().unwrap()],
             expected["group"]
         );
         if expected["id"] == "food" {
-            assert_eq!(actual["notes"], fixture["snapshot"]["note"]);
+            assert!(actual.get("notes").is_none());
             let drill = s.get(&format!("{base}/categories/{id}/transactions"));
             assert_eq!(drill["count"], 3);
             assert_eq!(drill["total"], -600);
@@ -535,7 +546,7 @@ fn genuine_schema6_archive_restores_and_legacy_creation_receipt_replays() {
     ));
     let row = s.get(&format!("{base}/categories/{c}"));
     assert_eq!(row["data"]["name"], "Legacy food");
-    assert_eq!(row["data"]["notes"], "");
+    assert!(row["data"].get("notes").is_none());
     assert_eq!(row["data"]["hidden"], false);
     assert_eq!(s.get(&format!("{base}/category-groups"))["data"], json!([]));
     let r = s.write(
@@ -560,7 +571,7 @@ fn genuine_schema6_archive_restores_and_legacy_creation_receipt_replays() {
     assert_eq!(nullable["data"]["name"], "Legacy food");
 }
 #[test]
-fn retired_actual_categories_keep_notes_and_uncategorized_references() {
+fn retired_actual_categories_drop_notes_and_keep_uncategorized_references() {
     let s = Server::start();
     let stage = ok(s
         .client
@@ -591,7 +602,7 @@ fn retired_actual_categories_keep_notes_and_uncategorized_references() {
         .find(|r| r["name"] == "Meals")
         .unwrap();
     assert_eq!(meals["deleted"], true);
-    assert_eq!(meals["notes"], "Keep receipts\nReimbursements stay here");
+    assert!(meals.get("notes").is_none());
     assert_eq!(
         s.get(&format!("{base}/categories/uncategorized/transactions"))["total"],
         -699
@@ -766,7 +777,7 @@ fn assert_legacy_import_metadata(s: &Server, budget: &str, post_import: Option<&
             "{base}/categories/{}",
             source["id"].as_str().unwrap()
         ));
-        for field in ["name", "is_income", "hidden", "group_id"] {
+        for field in ["name", "is_income", "group_id"] {
             assert_eq!(category["data"][field], source[field], "{field}");
         }
     }
@@ -833,6 +844,8 @@ fn assert_legacy_import_metadata(s: &Server, budget: &str, post_import: Option<&
             assert_eq!(after["reconciled"], false);
             original_shape["cleared"] = before["cleared"].clone();
             original_shape["reconciled"] = before["reconciled"].clone();
+            assert_eq!(after["notes"], "");
+            original_shape["notes"] = before["notes"].clone();
             original_shape["running_balance"] = before["running_balance"].clone();
             assert_eq!(&original_shape, before);
         }
@@ -951,8 +964,8 @@ fn new_upload_intent_reviews_old_blocked_categories_without_changing_original_re
         .iter()
         .find(|r| r["name"] == "Meals")
         .unwrap();
-    assert_eq!(meals["hidden"], true);
-    assert_eq!(meals["notes"], "Keep receipts\nReimbursements stay here");
+    assert_eq!(meals["hidden"], false);
+    assert!(meals.get("notes").is_none());
 }
 #[test]
 fn category_order_preserves_null_negative_fractional_positions_and_snapshot_guard() {
@@ -990,7 +1003,7 @@ fn category_order_preserves_null_negative_fractional_positions_and_snapshot_guar
         &format!("{base}/category-groups/19000000-0000-4000-8000-000000000003"),
         "group-note",
         None,
-        json!({"notes":"Group history","hidden":true,"name":"Trips"}),
+        json!({"name":"Trips","sort_order":0.5}),
     ));
     let response = s
         .client
@@ -1009,6 +1022,6 @@ fn category_order_preserves_null_negative_fractional_positions_and_snapshot_guar
     let group = s.get(&format!(
         "{base}/category-groups/19000000-0000-4000-8000-000000000003"
     ));
-    assert_eq!(group["data"]["notes"], "Group history");
-    assert_eq!(group["data"]["hidden"], true);
+    assert_eq!(group["data"]["sort_order"], 0.5);
+    assert_eq!(group["data"]["hidden"], false);
 }

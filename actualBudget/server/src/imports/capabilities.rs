@@ -3,7 +3,7 @@
 //! re-imported, so user edits never get replaced by historical source rules.
 use super::*;
 
-pub(crate) const RULES_VERSION: i64 = 2;
+pub(crate) const RULES_VERSION: i64 = 3;
 
 pub(crate) fn refresh_rules(db: &Connection, budget: Option<&str>) -> Result<(), Error> {
     let mut query = db.prepare(

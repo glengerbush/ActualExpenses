@@ -121,7 +121,9 @@ try {
   await page.reload();
   await expect(page.getByTestId("register-total")).toHaveText("-8.35");
   await expect(
-    page.locator(".register-table tbody tr").filter({ hasText: "=literal" }),
+    page.locator(
+      `tr[data-transaction-id="${source.operations.find((op) => op.action === "delete").id}"]`,
+    ),
   ).toHaveCount(1);
   const body = directory + "/reviewed.json",
     outbox = directory + "/pending.json";
@@ -142,27 +144,34 @@ try {
   await python(["send", "--outbox", outbox]);
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(page.getByTestId("register-total")).toHaveText("-12.34");
-  const corrected = page
-      .locator(".register-table tbody tr")
-      .filter({ hasText: "External batch correction" }),
-    added = page
-      .locator(".register-table tbody tr")
-      .filter({ hasText: "External batch purchase" });
+  const corrected = page.locator(
+      `tr[data-transaction-id="${source.operations.find((op) => op.action === "update").id}"]`,
+    ),
+    added = page.locator(
+      `tr[data-transaction-id="${source.operations.find((op) => op.action === "create").transaction.id}"]`,
+    );
   await expect(corrected).toContainText("13.00");
   await expect(added).toContainText("3.33");
   await expect(
-    page.locator(".register-table tbody tr").filter({ hasText: "=literal" }),
+    page.locator(
+      `tr[data-transaction-id="${source.operations.find((op) => op.action === "delete").id}"]`,
+    ),
   ).toHaveCount(0);
+  const expectedFinancial = source.after.map(
+    ({ notes, cleared, reconciled, ...row }) => row,
+  );
   const financial = (
     await call(root + "/query", {
       version: 1,
       table: "transactions",
       splits: "all",
-      select: source.fields,
+      select: source.fields.filter(
+        (field) => !["notes", "cleared", "reconciled"].includes(field),
+      ),
       order_by: ["id"],
     })
   ).data;
-  assert.deepEqual(financial, source.after);
+  assert.deepEqual(financial, expectedFinancial);
   await mkdir(artifacts, { recursive: true });
   await page.screenshot({ path: artifacts + "/desktop.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -174,8 +183,8 @@ try {
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
   ).toHaveCount(0);
-  await expect(corrected.locator('td[data-label="Payment"]')).toHaveText(
-    "13.00",
+  await expect(corrected.locator('td[data-label="Amount"]')).toHaveText(
+    "-13.00",
   );
   await page.emulateMedia({ colorScheme: "dark" });
   await page.addStyleTag({ content: ":root{font-size:200%}" });
@@ -196,11 +205,13 @@ try {
         version: 1,
         table: "transactions",
         splits: "all",
-        select: source.fields,
+        select: source.fields.filter(
+          (field) => !["notes", "cleared", "reconciled"].includes(field),
+        ),
         order_by: ["id"],
       })
     ).data,
-    source.after,
+    expectedFinancial,
     "Rendering never modifies financial results",
   );
   assert.deepEqual(errors, []);

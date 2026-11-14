@@ -43,19 +43,7 @@ try {
     errors.push(e.message);
     console.error("Browser error", e.message);
   });
-  await page.goto(server.url);
-  await page.evaluate(
-    ({ budget, account }) =>
-      localStorage.setItem(
-        "actualBudget.selection",
-        JSON.stringify({ budgetId: budget, accountId: account }),
-      ),
-    { budget, account },
-  );
-  await page.reload();
-  await page
-    .getByRole("button", { name: "Schedules", exact: true })
-    .click({ timeout: 2500 });
+  await page.goto(`${server.url}/?budget=${budget}&view=schedules`);
   await expect(
     page.getByRole("heading", { name: "Scheduled transactions", exact: true }),
   ).toBeVisible();
@@ -102,10 +90,9 @@ try {
     .getByRole("button", { name: "Edit Monthly rent", exact: true })
     .click();
   await page.getByRole("button", { name: "Add action", exact: true }).click();
-  await page.getByLabel(/^Action 1/).selectOption("append-notes");
-  await page
-    .getByLabel("Notes text 1", { exact: false })
-    .fill(" / revised terms");
+  await page.getByLabel(/^Action 1/).selectOption("set");
+  await page.getByLabel(/^Set field 1/).selectOption("amount");
+  await page.getByLabel(/^Set amount 1/).fill("-15.00");
   await page.getByLabel("Completed", { exact: true }).check();
   await page
     .getByRole("button", { name: "Save schedule", exact: true })
@@ -115,7 +102,7 @@ try {
     .schedules[0];
   expect(revised.actions).toEqual([
     { op: "link-schedule", value: revised.id },
-    { op: "append-notes", value: " / revised terms" },
+    { op: "set", field: "amount", value: -1500 },
   ]);
   await page.screenshot({
     path: "test-results/schedules/list-desktop.png",
@@ -231,7 +218,9 @@ try {
       ],
     });
   }
-  await page.getByRole("button", { name: "Close", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   const upcoming = page.locator(
     'section[aria-labelledby="scheduled-preview-title"]',
   );

@@ -280,7 +280,6 @@ pub struct RegisterFilters<'a> {
     pub account: Option<&'a str>,
     pub as_of: Option<&'a str>,
     pub payee: Option<&'a str>,
-    pub tag: Option<&'a str>,
 }
 pub fn validate_patch(previous: &Value, patch: &Value) -> Result<NewTransaction, Error> {
     let id = previous["id"]
@@ -468,13 +467,7 @@ fn resolve_new_references(
                 return Err(Error::conflict("The new reference ID already exists"));
             }
             if table == "payees" {
-                crate::payees_tags::duplicate(
-                    db,
-                    budget,
-                    "payees",
-                    &reference.id,
-                    &reference.name,
-                )?;
+                crate::payees_tags::duplicate(db, budget, &reference.id, &reference.name)?;
                 db.execute(
                     "INSERT INTO payees(budget_id,id,name) VALUES(?1,?2,?3)",
                     params![budget, reference.id, reference.name],

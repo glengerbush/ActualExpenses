@@ -93,7 +93,7 @@ function reconcile(source, archive) {
       tombstone: r.tombstone,
     }),
   );
-  map("category_groups", ["id", "name", "is_income", "hidden", "tombstone"]);
+  map("category_groups", ["id", "name", "is_income", "hidden", "tombstone"], (r) => ({...fields(r, ["id", "name", "is_income", "tombstone"]), hidden: 0}));
   map(
     "categories",
     ["id", "name", "is_income", "group_id", "hidden", "tombstone"],
@@ -102,7 +102,7 @@ function reconcile(source, archive) {
       name: r.name,
       is_income: r.is_income,
       group_id: r.cat_group,
-      hidden: r.hidden,
+      hidden: 0,
       tombstone: r.tombstone,
     }),
   );
@@ -172,9 +172,9 @@ function reconcile(source, archive) {
     date: String(r.date).replace(/^(\d{4})(\d{2})(\d{2})$/, "$1-$2-$3"),
     payee_id: resolve(s.payee_mapping, r.description, "targetId"),
     category_id: resolve(s.category_mapping, r.category, "transferId"),
-    notes: r.notes ?? "",
-    cleared: r.cleared ?? 0,
-    reconciled: r.reconciled ?? 0,
+    notes: "", // Transaction notes were explicitly retired.
+    cleared: 1,
+    reconciled: 0,
     starting_balance: r.starting_balance_flag ?? 0,
     is_parent: r.isParent ?? 0,
     parent_id: r.parent_id,
@@ -247,7 +247,7 @@ function reconcile(source, archive) {
       ])
         if (typeof config[key] === "string" && config[key] !== "")
           config[key] = parse(config[key]);
-      reports.push({ id, kind, tombstone, config });
+      reports.push({ id, kind, tombstone: kind === "widget" && ["formula-card", "monte-carlo-card", "sankey-card", "budget-analysis-card", "balance-forecast-card"].includes(config.type) ? 1 : tombstone, config });
     }
   compareRows(
     n("reporting_documents").map((r) => ({
@@ -277,6 +277,15 @@ function reconcile(source, archive) {
         long_goal: row.long_goal,
       });
     }
+  const sourceMethod = s.preferences?.find((row) => row.id === "budgetType")?.value ?? "envelope";
+  if (sourceMethod === "envelope") {
+    // The formerly active envelope plan becomes tracking. Preserve its exact
+    // allocations/carryover and the historical envelope rows in the archive.
+    const active = cells.filter((row) => row.method === "envelope");
+    cells.splice(0, cells.length, ...active, ...active.map((row) => ({
+      ...row, id: row.id.replace(/^envelope:/, "tracking:"), method: "tracking",
+    })));
+  }
   compareRows(
     n("budget_cells").map((r) => ({
       ...fields(r, [
@@ -311,7 +320,7 @@ function reconcile(source, archive) {
   for (const row of s.notes) {
     const category = n("categories").find((c) => c.id === row.id);
     assert.ok(category, "composite notes belong to categories");
-    assert.equal(category.notes, row.note);
+    assert.equal(category.notes, "");
   }
   const settings = parse(n("register_settings")[0].settings);
   compareRows(
@@ -386,7 +395,7 @@ try {
       const prefs = (await call(path + "/preferences")).data;
       assert.equal(prefs.date_format, "dd/MM/yyyy");
       assert.equal(prefs.hide_fraction, false);
-      assert.equal(prefs.experimental.monteCarloReport, false);
+      assert.equal(prefs.experimental, undefined);
     }
     for (const expected of fixture.balances) {
       const actual = (await call(`${path}/accounts/${expected.id}`)).data;

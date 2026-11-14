@@ -3,7 +3,6 @@ package org.actualexpenses.core.api
 import com.google.gson.*
 import java.security.MessageDigest
 import org.actualexpenses.core.*
-import org.actualexpenses.core.protocol.*
 
 /** Read-only interpretation of released expenses.state. The original remains recoverable. */
 internal class LegacyUpgrade(val raw: String) {
@@ -26,17 +25,7 @@ internal class LegacyUpgrade(val raw: String) {
         }
     val operations = json.getAsJsonArray("pending") ?: JsonArray()
     val fingerprint = fingerprint(raw)
-    val view: AppState by lazy {
-        ExpenseService(
-                object : StateStore {
-                    override fun read() = raw
-
-                    override fun write(value: String): Unit = error("Original state is read only")
-                },
-                SnapshotDecoder { error("Migration never downloads a source snapshot") },
-            )
-            .state()
-    }
+    val view: LegacyView by lazy { LegacyStateDecoder(raw).view() }
 
     fun rows(table: String): List<JsonObject> =
         json

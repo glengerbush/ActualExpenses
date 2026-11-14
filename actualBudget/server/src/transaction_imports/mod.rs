@@ -300,6 +300,9 @@ fn plan_input(
                 continue;
             }
         };
+        // Memo parsing may still supply a payee, but retired notes never become
+        // proposed ledger edits or advance clocks on an unchanged repeated import.
+        transaction["notes"] = json!("");
         let name = transaction["payee_name"]
             .as_str()
             .map(|s| s.trim_matches(crate::payees_tags::js_whitespace))
@@ -754,7 +757,7 @@ fn apply_plan(
                 continue;
             }
             let mut patch = serde_json::Map::new();
-            for field in ["payee_id", "category_id", "notes"] {
+            for field in ["payee_id", "category_id"] {
                 let empty = before[field].is_null() || before[field] == "";
                 if empty && !transaction[field].is_null() && before[field] != transaction[field] {
                     patch.insert(field.into(), transaction[field].clone());

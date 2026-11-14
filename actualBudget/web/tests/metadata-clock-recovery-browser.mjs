@@ -47,8 +47,7 @@ try {
       opening_balance: 0,
       opening_date: "2026-01-01",
     });
-    const isAccount = kind.startsWith("account");
-    const journalKey = `actualBudget.${isAccount ? "accounts" : "categories"}.v1.${budget}`;
+    const journalKey = `actualBudget.categories.v1.${budget}`;
     const context = await browser.newContext({
       viewport: { width: 1280, height: 900 },
     });
@@ -60,45 +59,25 @@ try {
     const page = await context.newPage();
     await page.goto(server.url);
     await page
-      .getByRole("button", { name: `${name} Tracking Open`, exact: true })
+      .getByRole("button", { name: `${name} Open`, exact: true })
       .click();
     await page
       .getByRole("button", {
-        name: isAccount ? "Organize accounts" : "Budget",
+        name: "Budget",
         exact: true,
       })
       .click();
-    if (!isAccount)
-      await page
-        .getByRole("button", {
-          name: kind === "category" ? "Add category to Ungrouped" : "Add group",
-          exact: true,
-        })
-        .click();
-    const field = () =>
-      page.getByLabel(
-        kind === "account"
-          ? "Account notes"
-          : kind === "account-group"
-            ? "Group name"
-            : "Name",
-        { exact: true },
-      );
-    const save = () =>
-      page.getByRole("button", {
-        name:
-          kind === "account"
-            ? "Save account"
-            : kind === "account-group"
-              ? "Create group"
-              : "Save",
+    await page
+      .getByRole("button", {
+        name: kind === "category" ? "Add category to Ungrouped" : "Add group",
         exact: true,
-      });
+      })
+      .first()
+      .click();
+    const field = () => page.getByLabel("Name", { exact: true });
+    const save = () => page.getByRole("button", { name: "Save", exact: true });
     const retry = (p) =>
-      p.getByRole("button", {
-        name: isAccount ? "Retry saved change" : "Retry unchanged request",
-        exact: true,
-      });
+      p.getByRole("button", { name: "Retry unchanged request", exact: true });
     const cancel = () =>
       page.getByRole("button", {
         name: "Cancel pending request and keep fields",
@@ -110,14 +89,7 @@ try {
     );
     const attempts = [];
     let dropCancel = true;
-    const resource =
-      kind === "account"
-        ? `accounts/${account}`
-        : kind === "account-group"
-          ? "account-groups"
-          : kind === "category"
-            ? "categories"
-            : "category-groups";
+    const resource = kind === "category" ? "categories" : "category-groups";
     await context.route(`**/api/v1${base}/${resource}`, async (route) => {
       const request = route.request();
       if (request.method() === "GET") return route.continue();
@@ -133,13 +105,17 @@ try {
       if (attempts.at(-1).cancel && dropCancel) {
         dropCancel = false;
         // Alternate lost request and lost acknowledgement, always using real API responses.
-        if (kind === "account" || kind === "category") await forward(route);
+        if (kind === "category") await forward(route);
         return route.abort();
       }
       return route.continue();
     });
     await save().click();
-    await expect(page.getByRole("alert")).toContainText("five minutes ahead");
+    await expect(
+      page
+        .getByRole("region", { name: "Category and group editor" })
+        .getByRole("alert"),
+    ).toContainText("five minutes ahead");
     await expect(retry(page)).toBeVisible();
     const original = JSON.parse(
       await page.evaluate((key) => localStorage.getItem(key), journalKey),
@@ -148,8 +124,7 @@ try {
     await page.evaluate(() => sessionStorage.setItem("test-clock-offset", "0"));
     const stale = await context.newPage();
     await stale.goto(server.url);
-    if (!isAccount)
-      await stale.getByRole("button", { name: "Budget", exact: true }).click();
+    await stale.getByRole("button", { name: "Budget", exact: true }).click();
     await expect(retry(stale)).toBeVisible();
     await page.screenshot({
       path: new URL(
@@ -187,7 +162,11 @@ try {
     await expect(retry(page)).toBeDisabled();
     await expect(cancel()).toBeDisabled();
     releaseInfo();
-    await expect(page.getByRole("alert")).toContainText("Cannot reach");
+    await expect(
+      page
+        .getByRole("region", { name: "Category and group editor" })
+        .getByRole("alert"),
+    ).toContainText("Cannot reach");
     await page.unroute("**/api/v1/info");
     expect(
       JSON.parse(
@@ -207,21 +186,21 @@ try {
       (key) => localStorage.getItem(key),
       journalKey,
     );
-    if (isAccount) {
-      await retry(page).click();
-      await expect(page.getByRole("alert")).toContainText("Another tab");
-    } else await expect(retry(page)).toBeDisabled();
+    await expect(retry(page)).toBeDisabled();
     expect(
       await page.evaluate((key) => localStorage.getItem(key), journalKey),
     ).toBe(resolved);
     expect(attempts).toHaveLength(3);
     await stale.close();
     await page.reload();
-    if (!isAccount)
-      await page.getByRole("button", { name: "Budget", exact: true }).click();
+    await page.getByRole("button", { name: "Budget", exact: true }).click();
     // Correcting OS time alone leaves the captured local HLC ahead. No request may be sent.
     await save().click();
-    await expect(page.getByRole("alert")).toContainText("five minutes ahead");
+    await expect(
+      page
+        .getByRole("region", { name: "Category and group editor" })
+        .getByRole("alert"),
+    ).toContainText("five minutes ahead");
     expect(attempts).toHaveLength(3);
     await expect(field()).toHaveValue(`Retained ${kind}`);
     await expect(
@@ -245,23 +224,18 @@ try {
     expect(attempts).toHaveLength(4);
     expect(attempts[3].key).not.toBe(attempts[0].key);
     expect(attempts[3].clock).not.toBe(attempts[0].clock);
-    const rows = await call(
-      base + "/" + (kind === "account" ? "accounts" : resource),
+    const rows = await call(base + "/" + resource);
+    expect(rows.filter((row) => row.name === `Retained ${kind}`)).toHaveLength(
+      1,
     );
-    expect(
-      rows.filter(
-        (row) =>
-          (kind === "account" ? row.notes : row.name) === `Retained ${kind}`,
-      ),
-    ).toHaveLength(1);
     // A request already committed before its lost response must win over cancellation.
-    if (!isAccount)
-      await page
-        .getByRole("button", {
-          name: kind === "category" ? "Add category to Ungrouped" : "Add group",
-          exact: true,
-        })
-        .click();
+    await page
+      .getByRole("button", {
+        name: kind === "category" ? "Add category to Ungrouped" : "Add group",
+        exact: true,
+      })
+      .first()
+      .click();
     await field().fill(`Already committed ${kind}`);
     await context.unroute(`**/api/v1${base}/${resource}`);
     let dropOriginal = true;
@@ -278,26 +252,25 @@ try {
     await expect(retry(page)).toBeVisible();
     await cancel().click();
     await expect(retry(page)).toHaveCount(0);
-    const committed = await call(
-      base + "/" + (kind === "account" ? "accounts" : resource),
-    );
+    const committed = await call(base + "/" + resource);
     expect(
-      committed.filter(
-        (row) =>
-          (kind === "account" ? row.notes : row.name) ===
-          `Already committed ${kind}`,
-      ),
+      committed.filter((row) => row.name === `Already committed ${kind}`),
     ).toHaveLength(1);
-    if (!isAccount) {
+    {
       await page
         .getByRole("button", {
           name: kind === "category" ? "Add category to Ungrouped" : "Add group",
           exact: true,
         })
+        .first()
         .click();
       await field().fill("   ");
       await save().click();
-      await expect(page.getByRole("alert")).toContainText("name must contain");
+      await expect(
+        page
+          .getByRole("region", { name: "Category and group editor" })
+          .getByRole("alert"),
+      ).toContainText("name must contain");
       await cancel().click();
       await expect(retry(page)).toHaveCount(0);
       await expect(field()).toHaveValue("   ");

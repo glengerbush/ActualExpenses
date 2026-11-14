@@ -74,6 +74,19 @@ class ExpenseWorkflowTest {
         compose.onNodeWithText("Amount (USD)").assertExists()
     }
 
+    @Test fun newPayeeIsDiscoverableAndSavedOfflineWithExpense() {
+        compose.setContent { ActualExpensesTheme { ExpensesScreen(state.copy(online = false), actions) } }
+        compose.onNodeWithContentDescription("Add expense").performClick()
+        compose.onNodeWithText("Amount (USD)").performTextInput("4.50")
+        compose.onNodeWithText("Payee (optional)").performTextInput("Street cart")
+        compose.onNodeWithText("Create payee “Street cart”").performScrollTo().assertIsDisplayed()
+        val directory = File(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null), "review").apply { mkdirs() }
+        File(directory, "create-payee.png").outputStream().use { compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it) }
+        compose.onNodeWithText("Create payee “Street cart”").performClick()
+        compose.onNodeWithText("Save expense").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals("Street cart", actions.saved?.payee); assertEquals("4.50", actions.saved?.amount) }
+    }
+
     @Test fun payeeAssociationAutofillsAndOverrideRemainsExpenseOnly() {
         val known = state.copy(payees = listOf(Choice("cafe", "Corner Coffee")), categories = listOf(Choice("food", "Food"), Choice("gifts", "Gifts")), associations = mapOf("cafe" to "food"))
         compose.setContent { ActualExpensesTheme { ExpensesScreen(known, actions) } }
@@ -163,7 +176,7 @@ class ExpenseWorkflowTest {
         compose.runOnIdle {live.value=state.copy(currency="JPY",decimalPlaces=0,expenses=listOf(row.copy(amountMinor=999,notes="Remote notes")),expenseContext=context.copy(epoch="restored-epoch",currency="JPY",decimalPlaces=0))}
         restoration.emulateSavedInstanceStateRestore()
         compose.onNodeWithText("Amount (USD)").assertExists()
-        compose.onNodeWithText("Original notes").assertExists()
+        compose.onNodeWithText("Original notes").assertDoesNotExist()
         compose.onNodeWithText("Save expense").performScrollTo().performClick()
         compose.runOnIdle {assertEquals(session,actions.saved?.edit);assertEquals("3.25",actions.saved?.amount)}
         compose.onNodeWithContentDescription("Delete expense").performClick()

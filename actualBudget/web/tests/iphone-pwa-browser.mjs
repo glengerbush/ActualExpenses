@@ -261,7 +261,14 @@ try {
   await page
     .getByRole("combobox", { name: "Payee", exact: true })
     .fill("Street cart");
-  await page.getByRole("option", { name: /Create payee/ }).click();
+  await expect(
+    page.getByRole("option", { name: /Create payee/ }),
+  ).toBeInViewport();
+  await page.screenshot({
+    path: `test-results/iphone-pwa/${useWebKit ? "webkit" : "chromium"}-create-payee.png`,
+    fullPage: true,
+  });
+  await page.getByRole("option", { name: /Create payee/ }).tap();
 
   await page
     .getByRole("button", { name: "Save transaction", exact: true })

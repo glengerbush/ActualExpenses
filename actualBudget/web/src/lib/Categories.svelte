@@ -230,6 +230,7 @@
           return;
         }
         await begin(launch.kind, row);
+        if (row && launch.delete) deleting = true;
       }
     });
   });
@@ -598,12 +599,27 @@
         ><button type="button" onclick={closeEditor}>{t("Cancel")}</button
         >{#if draft.id && !deleting}<button
             type="button"
+            class="delete-category-icon"
+            aria-label={`Delete ${draft.kind === "categories" ? "category" : "group"} ${draft.name}`}
+            title={`Delete ${draft.kind === "categories" ? "category" : "group"}`}
             disabled={offline}
             onclick={() => {
               if (!offlineStatus.reachable || !ownsSavedDraft()) return;
               deleting = true;
               replacement = "";
-            }}>{t("Merge or delete")}</button
+            }}
+            ><svg
+              aria-hidden="true"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              ><path
+                d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 10v8m4-8v8"
+              /></svg
+            ></button
           >{/if}
       </div>
     </fieldset>
@@ -693,7 +709,6 @@
                     kind="categories"
                     name={row.name}
                     color={row.resolved_color}
-                    automatic={!row.color}
                     disabled={busy ||
                       loading ||
                       offline ||
@@ -723,6 +738,20 @@
 {/if}
 
 <style>
+  .delete-category-icon {
+    margin-left: auto;
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    background: transparent;
+    border-color: transparent;
+    color: var(--muted);
+  }
+  .delete-category-icon:hover {
+    color: var(--error-text);
+  }
   .sr-only {
     position: absolute;
     width: 1px;

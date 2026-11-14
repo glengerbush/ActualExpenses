@@ -764,6 +764,26 @@
         disabled={busy || !!draft || disconnected}
         onclick={() => ontransactions(c.id, m.month)}>Transactions</button
       >
+      <button
+        class="add-icon delete-category-icon"
+        aria-label={`Delete category ${c.name}`}
+        title="Delete category"
+        disabled={busy || !!draft || disconnected || !!categoryEditor}
+        onclick={() => {
+          selectedCategory = null;
+          categoryEditor = { kind: "categories", id: c.id, delete: true };
+        }}
+        ><svg
+          aria-hidden="true"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          ><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 10v8m4-8v8" /></svg
+        ></button
+      >
     </div>
   </section>
 {/snippet}
@@ -1164,6 +1184,31 @@
                             disabled={busy || disconnected || !!draft}
                             onchanged={refresh}
                           />{/if}
+                        {#if record}<button
+                            class="add-icon"
+                            aria-label={`Edit group ${group.name}`}
+                            title={`Edit group ${group.name}`}
+                            disabled={arrangementLocked}
+                            onclick={() => {
+                              selectedCategory = null;
+                              categoryEditor = {
+                                kind: "category-groups",
+                                id: group.id,
+                              };
+                            }}
+                            ><svg
+                              aria-hidden="true"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.75"
+                              ><path
+                                d="m16 3 5 5-12 12-6 1 1-6Z M14 5l5 5"
+                              /></svg
+                            ></button
+                          >{/if}
                         <button
                           class="add-icon"
                           aria-label={`Add category to ${group.name}`}
@@ -1242,7 +1287,6 @@
                               kind="categories"
                               name={c.name}
                               color={c.category_color ?? group.color}
-                              automatic={!c.color_override}
                               compact
                               disabled={busy ||
                                 disconnected ||
@@ -1342,6 +1386,13 @@
 </section>
 
 <style>
+  .delete-category-icon {
+    margin-left: auto;
+    color: var(--muted);
+  }
+  .delete-category-icon:hover {
+    color: var(--error-text);
+  }
   .category-controls {
     display: flex;
     flex-wrap: wrap;

@@ -187,12 +187,7 @@ with zipfile.ZipFile(p+'/old.zip','w',zipfile.ZIP_DEFLATED) as z:
   await expect(
     page.getByLabel("Color for Everyday", { exact: true }),
   ).toBeEnabled();
-  await page
-    .getByLabel("Use automatic shade for Groceries", { exact: true })
-    .click();
-  await expect
-    .poll(async () => (await call(root + "/categories/" + food)).color)
-    .toBe(null);
+
   await expect(
     page.getByLabel("Use automatic shade for Groceries", { exact: true }),
   ).toHaveCount(0);
@@ -236,9 +231,7 @@ with zipfile.ZipFile(p+'/old.zip','w',zipfile.ZIP_DEFLATED) as z:
   ).toBeEnabled();
   expect(retried).toEqual(attempted);
   expect((await call(root + "/categories/" + food)).color).toBe("#337755");
-  await page
-    .getByLabel("Use automatic shade for Groceries", { exact: true })
-    .click();
+
   await expect(
     page.getByLabel("Use automatic shade for Groceries", { exact: true }),
   ).toHaveCount(0);

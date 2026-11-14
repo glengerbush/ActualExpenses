@@ -39,6 +39,7 @@ export function categoryShade(base: string, id: string): string {
 export type CategoryLaunch = {
   kind: "categories" | "category-groups";
   id?: string;
+  delete?: boolean;
   groupId?: string;
   income?: boolean;
 };

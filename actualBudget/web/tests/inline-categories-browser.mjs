@@ -102,16 +102,13 @@ try {
   await expect
     .poll(async () => (await call(root + "/categories/" + category.id)).color)
     .toBe("#cc2244");
-  await page
-    .getByRole("button", {
+  await expect(
+    page.getByRole("button", {
       name: "Use automatic shade for Groceries",
       exact: true,
-    })
-    .click();
-  await expect
-    .poll(async () => (await call(root + "/categories/" + category.id)).color)
-    .toBeNull();
-  await expect(color).toHaveValue(shade);
+    }),
+  ).toHaveCount(0);
+  await expect(color).toHaveValue("#cc2244");
   await page.getByRole("button", { name: "Add group", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Income");
   await page
@@ -148,9 +145,75 @@ try {
     path: "test-results/inline-categories/mobile.png",
     fullPage: true,
   });
+  // Destructive actions appear only after the pencil, not while typing names or amounts.
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await expect(
+    page.getByRole("button", { name: /^Delete (category|group)/ }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("textbox", { name: "Category name Groceries", exact: true })
+    .focus();
+  await expect(
+    page.getByRole("button", { name: /^Delete (category|group)/ }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: /^Edit Groceries for/ }).click();
+  await expect(
+    page.getByRole("button", {
+      name: "Delete category Groceries",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/inline-categories/category-editor.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", { name: "Delete category Groceries", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Delete and reassign", exact: true }),
+  ).toBeVisible();
+  expect((await call(root + "/categories/" + category.id)).deleted).toBe(false);
+  await page
+    .getByRole("button", { name: "Delete and reassign", exact: true })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "Category name Groceries", exact: true }),
+  ).toHaveCount(0);
+  expect((await call(root + "/categories/" + category.id)).deleted).toBe(true);
+  await page
+    .getByRole("button", { name: "Edit group Everyday", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Delete group Everyday", exact: true }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/inline-categories/group-editor.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "test-results/inline-categories/group-editor-mobile.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", { name: "Delete group Everyday", exact: true })
+    .click();
+  expect((await call(root + "/category-groups/" + group.id)).deleted).toBe(
+    false,
+  );
+  await page
+    .getByRole("button", { name: "Delete and reassign", exact: true })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "Group name Everyday", exact: true }),
+  ).toHaveCount(0);
+  expect((await call(root + "/category-groups/" + group.id)).deleted).toBe(
+    true,
+  );
   expect(errors).toEqual([]);
   console.log(
-    "PASS inline group/category creation, empty groups, inherited type/group, draft reload, automatic preview/server match, reset and mobile",
+    "PASS inline group/category creation, empty groups, inherited type/group, draft reload, automatic preview/server match, compact colors, pencil-only deletion and mobile",
   );
 } finally {
   await browser?.close();

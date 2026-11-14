@@ -162,7 +162,7 @@
       : undefined}
     autocomplete="off"
     maxlength="120"
-    placeholder="Search payees"
+    placeholder="Search or add a payee"
     {disabled}
     value={search ?? selectedName}
     oninput={(e) => type(e.currentTarget.value)}
@@ -204,6 +204,7 @@
         <button
           type="button"
           role="option"
+          class:create-payee={option.id === "create"}
           tabindex="-1"
           id={`${id}-option-${index}`}
           aria-selected={index === active}
@@ -245,6 +246,12 @@
     border-radius: 8px;
     background: var(--surface, white);
     color: var(--text);
+  }
+  .payee-menu .create-payee {
+    position: sticky;
+    bottom: 0;
+    background: var(--surface, white);
+    border-top: 1px solid var(--line);
   }
   .payee-menu button {
     display: block;

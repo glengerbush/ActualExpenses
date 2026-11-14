@@ -319,14 +319,22 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
                     textStyle = MaterialTheme.typography.headlineMedium, singleLine = true, enabled = !saving, isError = submitted && !valid,
                     supportingText = { if (submitted && !valid) Text(validation.exceptionOrNull()?.message ?: "Enter a valid expense amount.") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next), modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(payee, { payee = it; payeeSuggestions = true }, label = { Text("Payee (optional)") }, singleLine = true, enabled = !saving,
+                OutlinedTextField(payee, { payee = it; payeeSuggestions = true }, label = { Text("Payee (optional)") }, placeholder = { Text("Search or add a payee") }, singleLine = true, enabled = !saving,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next), modifier = Modifier.fillMaxWidth())
                 if (payeeSuggestions && payee.isNotBlank()) {
                     val matches = state.payees.filter { it.name.contains(payee, ignoreCase = true) }.take(5)
-                    if (matches.isNotEmpty()) Column {
+                    Column {
                         matches.forEach { choice ->
                             TextButton(onClick = { payee = choice.name; payeeSuggestions = false; categoryId = state.associations[choice.id] }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                                 Text(choice.name, modifier = Modifier.fillMaxWidth())
+                            }
+                        }
+                        if (state.payees.none { it.name.equals(payee.trim(), ignoreCase = true) }) {
+                            TextButton(onClick = { payee = payee.trim(); payeeSuggestions = false }, enabled = !saving,
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                                Icon(Icons.Outlined.Add, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Create payee “${payee.trim()}”", modifier = Modifier.weight(1f))
                             }
                         }
                     }

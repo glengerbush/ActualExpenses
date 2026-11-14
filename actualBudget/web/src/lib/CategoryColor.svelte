@@ -11,7 +11,6 @@
     kind,
     name,
     color,
-    automatic = false,
     compact = false,
     disabled = false,
     onchanged,
@@ -21,7 +20,6 @@
     kind: "categories" | "category-groups";
     name: string;
     color: string;
-    automatic?: boolean;
     compact?: boolean;
     disabled?: boolean;
     onchanged: () => Promise<void>;
@@ -29,6 +27,18 @@
   let busy = $state(false),
     error = $state("");
   let pending = $state.raw<PendingMutation | null>(null);
+  let preview = $state<string | null>(null);
+  let queuedColor: string | undefined;
+  function changeColor(value: string) {
+    preview = value;
+    // Safari emits change while its native picker is open; keep the input enabled
+    // and serialize writes, coalescing intermediate slider positions.
+    if (busy) {
+      queuedColor = value;
+      return;
+    }
+    void save(value);
+  }
   const key = $derived(`actualBudget.color.v1.${budgetId}.${kind}.${id}`);
   onMount(() => {
     try {
@@ -68,6 +78,8 @@
         }
       }
       if (cancel && pending) {
+        queuedColor = undefined;
+        preview = null;
         pending = { ...pending, cancelRequested: true };
         localStorage.setItem(key, JSON.stringify(pending));
       }
@@ -75,8 +87,11 @@
       localStorage.removeItem(key);
       pending = null;
       await onchanged();
-      if (result.conflicts?.length)
+      if (result.conflicts?.length) {
+        queuedColor = undefined;
+        preview = null;
         error = "A newer color was kept. Review it before changing it again.";
+      }
     } catch (e) {
       if (e instanceof RequestError && e.code === "operation_canceled") {
         localStorage.removeItem(key);
@@ -84,6 +99,11 @@
       } else error = errorMessage(e);
     } finally {
       busy = false;
+      if (!pending && queuedColor !== undefined) {
+        const next = queuedColor;
+        queuedColor = undefined;
+        void save(next);
+      } else if (!pending) preview = null;
     }
   }
 </script>
@@ -91,28 +111,12 @@
 <span class="color-control" class:compact>
   <input
     type="color"
-    value={color}
+    value={preview ?? color}
     aria-label={`Color for ${name}`}
     title={`Color for ${name}`}
-    disabled={disabled || busy || !!pending}
-    onchange={(e) => save(e.currentTarget.value)}
+    disabled={disabled || (!!pending && !busy)}
+    onchange={(e) => changeColor(e.currentTarget.value)}
   />
-  {#if kind === "categories" && !automatic}<button
-      class="reset-color"
-      title="Use automatic shade"
-      aria-label={`Use automatic shade for ${name}`}
-      onclick={() => save(null)}
-      disabled={disabled || busy || !!pending}
-      ><svg
-        aria-hidden="true"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.75"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6" /></svg
-      ></button
-    >{/if}
   {#if pending}<button onclick={() => save(null)} disabled={disabled || busy}
       >Retry color</button
     ><button onclick={() => save(null, true)} disabled={disabled || busy}
@@ -158,15 +162,6 @@
   input::-moz-color-swatch {
     border: 1px solid var(--line);
     border-radius: 50%;
-  }
-  .reset-color {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    min-height: 44px;
-    padding: 0;
-    background: transparent;
-    border: 0;
   }
   [role="alert"] {
     max-width: 24rem;

@@ -478,7 +478,7 @@ fn genuine_schema17_upgrade_and_portable_archive_keep_ranks_history_epochs_and_o
     let mut expected_checkpoint = f["checkpoint"].clone();
     expected_checkpoint["data"]["snapshot"] = register["snapshot"].clone();
     expected_checkpoint["data"]["epoch"] =
-        server.get(&format!("{root}")).json::<Value>().unwrap()["data"]["epoch"].clone();
+        server.get(&root).json::<Value>().unwrap()["data"]["epoch"].clone();
     assert_ne!(
         expected_checkpoint["data"]["epoch"],
         f["checkpoint"]["data"]["epoch"]

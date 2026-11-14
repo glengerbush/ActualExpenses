@@ -88,15 +88,10 @@ def verify_web_assets(base):
             assert response.read(), f"Empty bundled asset: {path}"
 
 
-def verify_receipts(base):
+def verify_receipts(base, budget_id, account_id):
     assert "transaction_receipt_lookup" in request(base, "/api/v1/info")["data"]["capabilities"]
-    budget_id, account_id = str(uuid.uuid4()), str(uuid.uuid4())
     root = f"/api/v1/budgets/{budget_id}"
-    request(base, "/api/v1/budgets", {"id": budget_id, "name": "Container receipts"},
-            {"Idempotency-Key": str(uuid.uuid4())})
-    request(base, root + "/accounts", {
-        "id": account_id, "name": "Cash", "opening_balance": 0, "opening_date": "2026-01-01",
-    }, {"Idempotency-Key": str(uuid.uuid4())})
+    existing_ids = {row["id"] for row in request(base, root + "/transactions")["data"]}
     body = {"id": str(uuid.uuid4()), "account_id": account_id,
             "amount": -125, "date": "2026-01-01"}
     headers = {"Idempotency-Key": str(uuid.uuid4()),
@@ -114,7 +109,7 @@ def verify_receipts(base):
     after = request(base, root + "/checkpoint")
     assert request(base, root + "/transactions", body, probe_headers) == saved
     assert request(base, root + "/checkpoint") == after
-    assert len(request(base, root + "/transactions")["data"]) == 1
+    assert {row["id"] for row in request(base, root + "/transactions")["data"]} == existing_ids | {body["id"]}
     print("PASS: read-only receipt miss preserves identity; committed outcome replays without writes")
 
 
@@ -179,11 +174,10 @@ def main():
         base = start(image, container, volume)
         verify_web_assets(base)
 
-        budget_id, account_id = str(uuid.uuid4()), str(uuid.uuid4())
-        budget = request(base, "/api/v1/budgets", {
-            "id": budget_id, "name": "Container persistence", "budget_type": "tracking",
-        }, {"Idempotency-Key": str(uuid.uuid4())})["data"]
-        assert budget["id"] == budget_id, budget
+        # New installations open directly into their single budget.
+        budget = request(base, "/api/v1/budget")["data"]
+        budget_id, account_id = budget["id"], str(uuid.uuid4())
+        assert request(base, "/api/v1/budget")["data"]["id"] == budget_id
         account_path = f"/api/v1/budgets/{budget_id}/accounts"
         account_key = {"Idempotency-Key": str(uuid.uuid4())}
         account_body = {
@@ -199,7 +193,8 @@ def main():
         base = start(image, container, volume)
         assert request(base, account_path, account_body, account_key)["data"] == account
         budgets = request(base, "/api/v1/budgets")["data"]
-        assert any(item["id"] == budget_id for item in budgets), budgets
+        assert [item["id"] for item in budgets] == [budget_id], budgets
+        assert request(base, "/api/v1/budget")["data"]["id"] == budget_id
         accounts = request(base, f"/api/v1/budgets/{budget_id}/accounts")["data"]
         restored = next(item for item in accounts if item["id"] == account_id)
         assert restored["name"] == "Spending" and restored["balance"] == 123456, restored
@@ -209,7 +204,7 @@ def main():
         opening = transactions[0]
         assert opening["amount"] == 123456 and opening["date"] == "2026-11-08", opening
         assert opening["starting_balance"] is True, opening
-        verify_receipts(base)
+        verify_receipts(base, budget_id, account_id)
         if args.browser or args.browser_test:
             environment = dict(os.environ, ACTUALBUDGET_TEST_URL=f"http://actualbudget.test:{urlsplit(base).port}")
             # Recovery fault-injection needs a disposable database it can stop and

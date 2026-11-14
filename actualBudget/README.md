@@ -35,6 +35,18 @@ A draft's UUID also identifies its operation and resulting entity. Two tabs subm
 
 Previously opened budgets and bounded register views are cached with visible saved dates. A loaded page can record ordinary expenses while disconnected and edit/delete its own pending expenses. Confirmed balances exclude pending work. Durable queued requests resume on reconnect or foreground; interrupted edits retain their original identity and budget generation. Calculator expressions, new reference data, and beginning edits to confirmed transactions require a connection. Plain HTTP does not guarantee cold offline navigation or OS background execution. See [offline behavior and verification](../docs/offline-web-validation.md).
 
+## iPhone Home Screen companion
+
+In Safari, open this server, choose **Share → Add to Home Screen**, and enable **Open as Web App** if offered. Launch the saved icon. Only an installed iPhone web app uses the compact expense view; ordinary browser tabs, iPad and desktop retain the full app.
+
+Choose a budget, add expenses, and edit/delete its ten most recent ordinary expenses. A newly added backdated expense stays available below the list. Payee search supports creating a payee inline. Accounts, budget editing, reports and recurrence controls are absent from this view.
+
+Open a budget online once to cache it. Offline additions (including new payees) remain editable until delivery; existing expenses need a connection to begin editing. An edit interrupted by disconnection is saved and retried, with the server resolving newer edits. Delivery resumes when the app reconnects or returns to the foreground; it does not poll while idle or depend on iOS background execution.
+
+HTTP supports online use and offline capture while the page remains loaded. Reopening from scratch without a connection requires HTTPS trusted by the iPhone, because the offline shell uses a service worker. Do not clear website storage while unsent expenses remain.
+
+Run `npm run test:iphone-pwa --prefix actualBudget/web` after building. Set `PWA_BROWSER=webkit` to exercise WebKit (install the Playwright WebKit browser first). These isolated tests cover platform routing, ten recent expenses, backdated retention, offline reload/new payees/edit delivery, conflict handling, draft isolation, idle network behavior and small-screen layouts. Browser emulation does not replace a physical iPhone installation check.
+
 ## Verify the runtime
 
 ```sh

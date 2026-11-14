@@ -42,6 +42,16 @@ async function drain() {
       const entry = await claimNext();
       if (!entry) break;
       try {
+        if (
+          entry.pending.expenseOnly &&
+          !info.capabilities?.includes("expense_kind_precondition")
+        ) {
+          await release(
+            entry,
+            "Update actualBudget before syncing this expense. Saved work is retained.",
+          );
+          continue;
+        }
         const response = await mutate<Transaction>(
           structuredClone(entry.pending),
           entry.cancelRequested,

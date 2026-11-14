@@ -1,0 +1,24 @@
+{
+  "id": "/",
+  "name": "actualBudget",
+  "short_name": "actualExpenses",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#226044",
+  "icons": [
+    {
+      "src": "/expense-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/expense-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

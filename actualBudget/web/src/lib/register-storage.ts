@@ -26,6 +26,7 @@ export interface TransactionFields {
   manualCategory?: string;
 }
 export interface TransactionDraft {
+  companion?: true;
   payeeCreation?: PendingMutation;
   version: 1;
   origin: string;
@@ -99,6 +100,8 @@ export function validPending(
     typeof value.cancelRequested !== "boolean"
   )
     return false;
+  if (value.expenseOnly !== undefined && typeof value.expenseOnly !== "boolean")
+    return false;
   if (value.historyOwner !== undefined && !uuid(value.historyOwner))
     return false;
   if (value.attemptId !== undefined && !uuid(value.attemptId)) return false;
@@ -155,6 +158,18 @@ function validDraft(value: unknown, budget: string): value is TransactionDraft {
   )
     return false;
   const f = value.fields;
+  if (value.companion !== undefined && value.companion !== true) return false;
+  if (
+    value.companion === true &&
+    (f.direction !== "expense" ||
+      (isObject(value.original) &&
+        (value.original.transfer_id ||
+          value.original.is_parent ||
+          value.original.parent_id)) ||
+      (value.pending &&
+        (!isObject(value.pending) || value.pending.expenseOnly !== true)))
+  )
+    return false;
   if (
     f.recurrence !== undefined &&
     (!isObject(f.recurrence) ||
@@ -260,10 +275,13 @@ function validDraft(value: unknown, budget: string): value is TransactionDraft {
       (isObject(value.pending.body) && value.pending.body.id === value.id))
   );
 }
-export function readTransactionDraft(budget: string): TransactionDraft | null {
-  const stored = read(draftKey(budget));
+export function readTransactionDraft(
+  budget: string,
+  companion = false,
+): TransactionDraft | null {
+  const stored = read(draftKey(budget, companion));
   if (stored === null) return null;
-  if (!validDraft(stored, budget))
+  if (!validDraft(stored, budget) || !!stored.companion !== companion)
     throw new Error(
       "The saved transaction draft could not be validated for this budget and server. It has been kept unchanged; no mutation will be sent.",
     );
@@ -279,7 +297,7 @@ export function saveTransactionDraft(
     throw new Error(
       "This transaction draft is invalid. Correct its fields before saving.",
     );
-  const stored = readTransactionDraft(draft.budgetId);
+  const stored = readTransactionDraft(draft.budgetId, !!draft.companion);
   if (stored && stored.draftId !== draft.draftId)
     throw new Error(
       "Another transaction draft is saved. Reload to recover it before changing this form.",
@@ -304,13 +322,16 @@ export function saveTransactionDraft(
     throw new Error(
       "Another retry may have reached the server. Reload and retry the saved transaction.",
     );
-  localStorage.setItem(draftKey(draft.budgetId), JSON.stringify(draft));
+  localStorage.setItem(
+    draftKey(draft.budgetId, !!draft.companion),
+    JSON.stringify(draft),
+  );
 }
 export function clearTransactionDraft(
   draft: TransactionDraft,
   acknowledged = false,
 ): void {
-  const stored = readTransactionDraft(draft.budgetId);
+  const stored = readTransactionDraft(draft.budgetId, !!draft.companion);
   if (!stored) return;
   if (stored.draftId !== draft.draftId)
     throw new Error(
@@ -325,7 +346,7 @@ export function clearTransactionDraft(
     throw new Error(
       "Resolve the saved payee creation before discarding this draft.",
     );
-  localStorage.removeItem(draftKey(draft.budgetId));
+  localStorage.removeItem(draftKey(draft.budgetId, !!draft.companion));
   if (acknowledged && draft.pending) clearCancellation(draft.pending);
 }
 export function readRegisterAction(budget: string): SavedAction | null {

@@ -11,10 +11,10 @@ Confirmed in ADR 0005: Svelte 5/TypeScript static frontend, Rust/Axum API, autho
 Trusted household devices accessing a personal budget over LAN or tailnet, including mobile browsers.
 
 ## Product Purpose
-Manage accounts and finances with Actual 26.10.0 financial behavior and a simpler, resource-conscious architecture. actualExpenses remains the focused Android expense companion.
+Manage accounts and finances with Actual 26.10.0 financial behavior and a simpler, resource-conscious architecture. actualExpenses is the focused Android expense companion. The installed iPhone web app uses the same focused expense workflow: budget selection, adding expenses, and editing/deleting the latest ten plus the most recent backdated addition. Normal browser access, iPad and other platforms retain the full budget interface.
 
 ## Operating Context
-Plain HTTP is supported. No application login, identity, roles or sessions. Server persistence is authoritative. Full offline budgeting and desktop packaging are excluded.
+Plain HTTP is supported. No application login, identity, roles or sessions. Server persistence is authoritative. Full offline budgeting and desktop packaging are excluded. The iPhone companion supports cached expense entry and silent queued delivery; a service-worker shell enables offline reopening on HTTPS. Plain HTTP still supports online installed use and offline capture while the loaded page remains open. No background polling is added.
 
 Accounts are fully manual: no external bank connectors. Retain manual file imports,
 internal rules/schedules and Android delivery. Previously linked account history survives migration.

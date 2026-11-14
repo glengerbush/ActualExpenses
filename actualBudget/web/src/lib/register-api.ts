@@ -54,6 +54,7 @@ export interface RegisterPage {
   snapshot: string;
 }
 export interface PendingMutation {
+  expenseOnly?: boolean;
   historyOwner?: string;
   path: string;
   method: "POST" | "PATCH" | "DELETE";
@@ -76,6 +77,7 @@ export function sameMutation(
     value.edit_clock ?? null,
     value.budgetEpoch ?? null,
     value.historyOwner ?? null,
+    value.expenseOnly ?? false,
     value.body ?? null,
   ];
   return JSON.stringify(identity(a)) === JSON.stringify(identity(b));
@@ -163,10 +165,12 @@ export async function mutate<T>(
     cancelIfUncommitted,
     pending.budgetEpoch,
     pending.historyOwner,
+    false,
+    pending.expenseOnly ?? false,
   );
 }
-export function draftKey(budgetId: string) {
-  return `actualBudget.transaction.v1.${budgetId}`;
+export function draftKey(budgetId: string, companion = false) {
+  return `${companion ? "actualExpenses.transaction" : "actualBudget.transaction"}.v1.${budgetId}`;
 }
 export function actionKey(budgetId: string) {
   return `actualBudget.register-action.v1.${budgetId}`;

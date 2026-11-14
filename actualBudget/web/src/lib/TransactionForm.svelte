@@ -64,6 +64,8 @@
   } from "./register-storage";
   let {
     inline = false,
+    expenseOnly = false,
+    oncaptured,
     columns = ["date", "payee", "category", "amount", "balance"],
     budgetId,
     accounts,
@@ -79,6 +81,8 @@
     onschedule,
   }: {
     inline?: boolean;
+    expenseOnly?: boolean;
+    oncaptured?: (row: Transaction, created: boolean) => Promise<void>;
     columns?: string[];
     budgetId: string;
     accounts: Account[];
@@ -151,6 +155,11 @@
     draft = resolved;
   }
   async function createPayee(name: string, cancel = false) {
+    if (expenseOnly && draft && !busy && !externalChanged && !draft.pending) {
+      update("payee", "new");
+      update("newPayee", name.trim());
+      return;
+    }
     if (!draft || busy || disconnected || externalChanged) return;
     busy = true;
     error = "";
@@ -290,7 +299,7 @@
     error = "";
     openedFields = null;
     try {
-      const saved = readTransactionDraft(budgetId);
+      const saved = readTransactionDraft(budgetId, expenseOnly);
       if (!saved && queued?.draft && !queued.attempted) {
         draft = {
           ...structuredClone(queued.draft),
@@ -324,6 +333,7 @@
           );
         const format = queued?.format ?? captureAmountFormat();
         draft = {
+          ...(expenseOnly ? { companion: true as const } : {}),
           version: 1,
           origin: location.origin,
           budgetId,
@@ -373,6 +383,7 @@
   let alive = true;
   let rulesCapability: Promise<void> | null = null;
   function checkRulesCapability(): Promise<void> {
+    if (expenseOnly) return Promise.resolve();
     if (rulesCapability) return rulesCapability;
     rulesCapability = request<{ data: { capabilities?: string[] } }>("/info")
       .then((info) => {
@@ -465,6 +476,7 @@
     }
   }
   async function applyAutomaticRules(force: boolean) {
+    if (expenseOnly) return;
     if (
       !draft ||
       draft.pending ||
@@ -699,8 +711,9 @@
         format: $state.snapshot(draft.format),
         dateFormat: draft.dateFormat,
         clock: draft.editClock,
-        sourceDraftKey: draftKey(budgetId),
-        sourceDraftRaw: localStorage.getItem(draftKey(budgetId)) ?? undefined,
+        sourceDraftKey: draftKey(budgetId, expenseOnly),
+        sourceDraftRaw:
+          localStorage.getItem(draftKey(budgetId, expenseOnly)) ?? undefined,
       });
     } catch (e) {
       error = errorMessage(e);
@@ -726,13 +739,14 @@
     }
     await applyAutomaticRules(true);
     const useAutomaticRules =
+      !expenseOnly &&
       onlineAtSave &&
       draft.automaticRules &&
       rulesAvailable &&
       !draft.original &&
       !draft.replaces &&
       !!draft.ruleSnapshot;
-    const saved = readTransactionDraft(budgetId);
+    const saved = readTransactionDraft(budgetId, expenseOnly);
     if (saved?.draftId === draft.draftId && saved.pending) {
       throw new Error(
         t(
@@ -756,13 +770,15 @@
       persist(draft);
     }
     const f = draft.fields;
+    if (expenseOnly && f.direction !== "expense")
+      throw new Error("Only expenses can be saved here.");
     if (
       !onlineAtSave &&
       (!draft.original || draft.replaces || queued?.offlineCreated)
     ) {
       if (
         f.direction !== "expense" ||
-        f.payee === "new" ||
+        (!expenseOnly && f.payee === "new") ||
         f.category === "new"
       )
         throw new Error(
@@ -796,6 +812,8 @@
     };
     if (!draft.original || draft.amountDirty) {
       const amount = await entryAmount(f.amount);
+      if (expenseOnly && amount === 0)
+        throw new Error("Enter an amount greater than zero.");
       body.amount = (f.direction === "expense" ? -1 : 1) * Math.abs(amount);
     }
     if (f.payee === "new") {
@@ -839,6 +857,7 @@
     }
     const recurrence = f.recurrence;
     if (
+      !expenseOnly &&
       recurrence &&
       (recurrence.enabled ||
         (draft.original?.recurrence?.enabled &&
@@ -891,6 +910,7 @@
       historyOwner: await historyOwner(),
       edit_clock: draft.editClock,
       budgetEpoch: draft.budgetEpoch,
+      ...(expenseOnly ? { expenseOnly: true } : {}),
       body,
     };
   }
@@ -1052,6 +1072,10 @@
           : submittedDraft.original,
         pending: savedEntry.pending,
       };
+      await oncaptured?.(
+        savedEntry.row,
+        !submittedDraft.original && !submittedDraft.replaces,
+      );
       await deliverPending();
       const receipt = (await receipts(budgetId)).find((r) =>
         sameMutation(r.pending, savedEntry.pending),
@@ -1219,25 +1243,25 @@
         maxlength="256"
         aria-describedby="calculator-hint"
         bind:value={() => draft!.fields.amount, (v) => update("amount", v)}
-      /><button
-        type="button"
-        onclick={calculate}
-        disabled={disconnected}
-        aria-label={t("Calculate")}
-        title={t("Calculate")}
-        >{#if inline}<svg
-            aria-hidden="true"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.75"
-            ><path d="M5 3h14v18H5zM8 7h8M8 12h2m4 0h2M8 16h2m4 0h2" /></svg
-          >{:else}{t("Calculate")}{/if}</button
-      >
+      />{#if !expenseOnly}<button
+          type="button"
+          onclick={calculate}
+          disabled={disconnected}
+          aria-label={t("Calculate")}
+          title={t("Calculate")}
+          >{#if inline}<svg
+              aria-hidden="true"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              ><path d="M5 3h14v18H5zM8 7h8M8 12h2m4 0h2M8 16h2m4 0h2" /></svg
+            >{:else}{t("Calculate")}{/if}</button
+        >{/if}
     </div>
-    <p id="calculator-hint" class="hint">
+    <p id="calculator-hint" class="hint" hidden={expenseOnly}>
       {t(
         disconnected
           ? "Offline: enter a plain amount. Calculator expressions require a connection."
@@ -1259,12 +1283,12 @@
         !!draft.pending ||
         !!draft.payeeCreation ||
         externalChanged}
-      canCreate={!disconnected}
+      canCreate={expenseOnly || !disconnected}
       onselect={(value) => update("payee", value)}
       oncreate={createPayee}
       onsearch={(searching) => (payeeSearching = searching)}
     />
-    {#if !inline}<PayeeLocations
+    {#if !inline && !expenseOnly}<PayeeLocations
         {budgetId}
         payeeId={draft.fields.payee}
         newPayee={{
@@ -1291,9 +1315,9 @@
       ><option value="">{t("Uncategorized")}</option
       >{#each categories.filter((c) => !c.deleted || c.id === draft?.fields.category) as category (category.id)}<option
           value={category.id}>{category.name}</option
-        >{/each}<option value="new" disabled={disconnected}
-        >{t("Create category…")}</option
-      ></select
+        >{/each}{#if !expenseOnly}<option value="new" disabled={disconnected}
+          >{t("Create category…")}</option
+        >{/if}</select
     >
     {#if draft.fields.category === "new" && !selectedAccount?.off_budget}<label
         for="new-category-name">{t("New category name")}</label
@@ -1412,7 +1436,7 @@
         {:else}
           <div class="entry-pair"><div>{@render dateField()}</div></div>
           <div class="entry-pair">
-            <div>{@render directionField()}</div>
+            {#if !expenseOnly}<div>{@render directionField()}</div>{/if}
             <div>{@render amountField()}</div>
           </div>
           <div class="entry-pair">
@@ -1420,7 +1444,7 @@
             <div>{@render categoryField()}</div>
           </div>
         {/if}
-        {#if !inline}<RecurrenceFields
+        {#if !inline && !expenseOnly}<RecurrenceFields
             value={draft.fields.recurrence ??
               transactionRecurrence(
                 draft.original?.recurrence,
@@ -1428,7 +1452,7 @@
               )}
             onchange={(value) => update("recurrence", value)}
           />
-        {:else if draft.fields.recurrence?.enabled}<div
+        {:else if !expenseOnly && draft.fields.recurrence?.enabled}<div
             class="inline-recurrence-options"
           >
             {@render recurrence("options")}

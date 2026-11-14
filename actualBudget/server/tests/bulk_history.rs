@@ -184,7 +184,13 @@ fn bulk_update_is_one_replay_safe_undo_group_and_preserves_another_devices_amoun
     );
     let register: Value = server.get(&path).json().unwrap();
     assert_eq!(register["balances"]["cleared"], -7178);
-    assert!(register["data"].as_array().unwrap().iter().all(|r| r["date"] == "2026-01-03"));
+    assert!(
+        register["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|r| r["date"] == "2026-01-03")
+    );
 }
 
 const OWNER: &str = "20000000-0000-4000-8000-000000000001";
@@ -626,7 +632,13 @@ fn selected_split_children_update_and_undo_together() {
     assert_eq!(row["data"]["amount"], -5000);
     assert_eq!(s.step("redo", "redo-children").status(), 200);
     let row: Value = s.get(&format!("{path}/{ENTRY}")).json().unwrap();
-    assert!(row["data"]["children"].as_array().unwrap().iter().all(|c| c["amount"] == -2500));
+    assert!(
+        row["data"]["children"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|c| c["amount"] == -2500)
+    );
 }
 
 #[test]
@@ -887,7 +899,7 @@ fn transfer_history_uses_saved_graph_and_refuses_remote_peer_edits() {
             200
         );
         let path = format!("{root}/transactions/{ENTRY}");
-        let edited=s.owned("PATCH",&path,"confirmed",json!({"amount":-125}));
+        let edited = s.owned("PATCH", &path, "confirmed", json!({"amount":-125}));
         assert_eq!(edited.status(), 200, "{}", edited.text().unwrap());
         for (direction, key, amount) in [("undo", "u", -100), ("redo", "r", -125)] {
             let r = s.step(direction, key);
@@ -904,7 +916,13 @@ fn transfer_history_uses_saved_graph_and_refuses_remote_peer_edits() {
             );
         }
         let peer_path = format!("{root}/transactions/{peer}");
-        let r=s.client.patch(format!("{}{peer_path}",s.url)).header("Idempotency-Key","remote-amount").json(&json!({"amount":remote_amount})).send().unwrap();
+        let r = s
+            .client
+            .patch(format!("{}{peer_path}", s.url))
+            .header("Idempotency-Key", "remote-amount")
+            .json(&json!({"amount":remote_amount}))
+            .send()
+            .unwrap();
         assert_eq!(r.status(), 200, "{}", r.text().unwrap());
         let before = s.get(&path).json::<Value>().unwrap();
         let peer_before = s.get(&peer_path).json::<Value>().unwrap();
@@ -983,9 +1001,15 @@ fn imported_thousand_child_sparse_history_undo_and_redo_preserve_exact_aggregate
         assert_eq!(r.status(), 200, "{}", r.text().unwrap());
         let actual = s.get(&path).json::<Value>().unwrap();
         assert_eq!(actual["data"]["children"].as_array().unwrap().len(), 1001);
-        assert_eq!(actual["data"]["children"][1000]["amount"], if direction == "undo" { -1 } else { -2 });
+        assert_eq!(
+            actual["data"]["children"][1000]["amount"],
+            if direction == "undo" { -1 } else { -2 }
+        );
         assert_eq!(actual["data"]["amount"], -1001);
-        assert_eq!(actual["data"]["children"][999]["amount"], if direction == "undo" { -1 } else { 0 });
+        assert_eq!(
+            actual["data"]["children"][999]["amount"],
+            if direction == "undo" { -1 } else { 0 }
+        );
     }
     assert_eq!(
         s.owned("POST", &path, "large-owned-sparse", body)
@@ -1014,10 +1038,7 @@ fn genuine_schema14_upgrade_and_archive_keep_original_receipts_without_portable_
     current_row["reconciled"] = json!(false);
     let peer = fixture["rows"][0]["id"].as_str().unwrap();
     let path = format!("{root}/transactions/{peer}");
-    assert_eq!(
-        s.get(&path).json::<Value>().unwrap()["data"],
-        current_row
-    );
+    assert_eq!(s.get(&path).json::<Value>().unwrap()["data"], current_row);
     for (route, key, body, result) in [
         ("transfers", "transfer13", "transfer_body", "transfer"),
         ("payee-locations", "location14", "location_body", "location"),
@@ -1047,7 +1068,7 @@ fn genuine_schema14_upgrade_and_archive_keep_original_receipts_without_portable_
         .json::<Value>()
         .unwrap();
     assert!(history["data"]["undo"].is_null());
-    let r=s.owned("PATCH",&path,"post-upgrade",json!({"date":"2026-03-01"}));
+    let r = s.owned("PATCH", &path, "post-upgrade", json!({"date":"2026-03-01"}));
     assert_eq!(r.status(), 200, "{}", r.text().unwrap());
     let history = s
         .client
@@ -1181,7 +1202,15 @@ fn selecting_both_transfer_legs_matches_pinned_bulk_duplicate_and_delete() {
 fn sequential_split_history_walks_multiple_edits_without_false_conflicts() {
     let s = Server::setup();
     let root = format!("/api/v1/budgets/{BUDGET}");
-    assert_eq!(s.post(&format!("{root}/transactions"),"parent",json!({"id":ENTRY,"account_id":ACCOUNT,"amount":-500,"date":"2026-01-02"})).status(),201);
+    assert_eq!(
+        s.post(
+            &format!("{root}/transactions"),
+            "parent",
+            json!({"id":ENTRY,"account_id":ACCOUNT,"amount":-500,"date":"2026-01-02"})
+        )
+        .status(),
+        201
+    );
     let path = format!("{root}/transactions/{ENTRY}/splits");
     let first = "13000000-0000-4000-8000-000000000020";
     let second = "13000000-0000-4000-8000-000000000021";
@@ -1193,13 +1222,18 @@ fn sequential_split_history_walks_multiple_edits_without_false_conflicts() {
         let r = s.owned("POST", &path, key, body);
         assert_eq!(r.status(), 200, "{}", r.text().unwrap());
     }
-    for (direction, key, amount) in [("undo","undo-second",-210),("undo","undo-first",-200),("redo","redo-first",-210),("redo","redo-second",-220)] {
-        let r = s.step(direction,key);
-        assert_eq!(r.status(),200,"{}",r.text().unwrap());
+    for (direction, key, amount) in [
+        ("undo", "undo-second", -210),
+        ("undo", "undo-first", -200),
+        ("redo", "redo-first", -210),
+        ("redo", "redo-second", -220),
+    ] {
+        let r = s.step(direction, key);
+        assert_eq!(r.status(), 200, "{}", r.text().unwrap());
         let row = s.get(&path).json::<Value>().unwrap();
-        assert_eq!(row["data"]["children"][0]["amount"],amount);
-        assert_eq!(row["data"]["children"][1]["amount"],-500-amount);
-        assert_eq!(row["data"]["amount"],-500);
-        assert_eq!(row["data"]["children"].as_array().unwrap().len(),2);
+        assert_eq!(row["data"]["children"][0]["amount"], amount);
+        assert_eq!(row["data"]["children"][1]["amount"], -500 - amount);
+        assert_eq!(row["data"]["amount"], -500);
+        assert_eq!(row["data"]["children"].as_array().unwrap().len(), 2);
     }
 }

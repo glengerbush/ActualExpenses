@@ -348,9 +348,7 @@ async fn list_transactions(
         validate_id(id)?;
     }
     if query.tag.is_some() {
-        return Err(Error::invalid(
-            "Tag filtering has been removed",
-        ));
+        return Err(Error::invalid("Tag filtering has been removed"));
     }
     if let Some(date) = &query.as_of {
         crate::models::validate_date(date)?;

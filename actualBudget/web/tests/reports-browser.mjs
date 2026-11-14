@@ -234,7 +234,10 @@ try {
       exact: true,
     }),
   ).toBeVisible();
-  await expect(zoomPage.locator("html")).toHaveAttribute("data-theme", "midnight");
+  await expect(zoomPage.locator("html")).toHaveAttribute(
+    "data-theme",
+    "midnight",
+  );
   expect(
     await zoomPage.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

@@ -275,6 +275,9 @@ try {
     fullPage: true,
   });
   await page.getByRole("button", { name: "Recombine", exact: true }).click();
+  // Wait for the refreshed ordinary row before selecting it; the old split row
+  // remains briefly visible while the confirmed register is loading.
+  await expect(page.getByText("2 splits", { exact: true })).toHaveCount(0);
   await expect(
     await transactionAction(page, { name: "Split transaction", exact: true }),
   ).toBeVisible();

@@ -121,14 +121,13 @@ try {
     .poll(async () => (await call(root + `/categories/${c}`)).data.color)
     .toBe("#112233");
   await expect(color).toHaveValue("#112233");
-  await page
-    .getByRole("button", { name: "Use automatic shade for Food", exact: true })
-    .first()
-    .click();
-  await expect
-    .poll(async () => (await call(root + `/categories/${c}`)).data.color)
-    .toBeNull();
-  await expect(color).not.toHaveValue("#112233");
+  await expect(
+    page.getByRole("button", {
+      name: "Use automatic shade for Food",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await expect(color).toHaveValue("#112233");
   const input = page.getByRole("textbox", {
     name: "Planned Food for November 2026",
     exact: true,

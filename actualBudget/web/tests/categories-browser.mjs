@@ -179,7 +179,7 @@ try {
   expect(attempts[1]).toEqual(attempts[0]);
 
   await editCategory(page, "Meals");
-  await page.getByRole("button", { name: "Merge or delete" }).click();
+  await page.getByRole("button", { name: /^Delete category / }).click();
   await page.getByLabel("Reassign transactions to").selectOption(dining.id);
   await page
     .getByRole("button", { name: "Delete and reassign", exact: true })
@@ -295,7 +295,7 @@ try {
   ).not.toHaveProperty("notes");
   await editCategory(page, "Null order renamed");
   await page
-    .getByRole("button", { name: "Merge or delete", exact: true })
+    .getByRole("button", { name: /^Delete category /, exact: true })
     .click();
   await page
     .getByRole("button", { name: "Delete and reassign", exact: true })
@@ -334,7 +334,7 @@ try {
   ).toBe(unsent);
   expect(metadataWrites).toEqual([]);
   await expect(
-    page.getByRole("button", { name: "Merge or delete", exact: true }),
+    page.getByRole("button", { name: /^Delete category /, exact: true }),
   ).toBeDisabled();
   await page.screenshot({
     path: "test-results/categories-offline-mobile.png",

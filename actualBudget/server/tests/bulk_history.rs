@@ -941,7 +941,7 @@ fn imported_thousand_child_sparse_history_undo_and_redo_preserve_exact_aggregate
     // Large debug-build archive/history qualification, matching the existing
     // thousand-member transfer harness; this is not a product latency SLO.
     s.client = Client::builder()
-        .timeout(Duration::from_secs(30))
+        .timeout(Duration::from_secs(120))
         .build()
         .unwrap();
     let imported = s
@@ -1090,7 +1090,7 @@ fn genuine_schema14_upgrade_and_archive_keep_original_receipts_without_portable_
         .unwrap()
         .json::<Value>()
         .unwrap();
-    assert_eq!(upload["data"]["report"]["schema_version"], 36);
+    assert_eq!(upload["data"]["report"]["schema_version"], 37);
     let restored = target.post(
         &format!(
             "{root}/restores/{}/activate",

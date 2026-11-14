@@ -848,7 +848,11 @@ fn removed_parent_payee_changes_only_children_sharing_its_retained_identity() {
 }
 
 fn imported_large_splits() -> (Server, String, Value) {
-    let server = Server::start();
+    let mut server = Server::start();
+    server.client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_secs(120))
+        .build()
+        .unwrap();
     let imported: Value = server
         .client
         .post(format!("{}/api/v1/imports/actual", server.url))
@@ -884,7 +888,7 @@ fn imported_large_splits() -> (Server, String, Value) {
 fn imported_large_allocations_can_be_replaced_beyond_the_ordinary_body_limit() {
     let (mut server, root, fixture) = imported_large_splits();
     server.client = reqwest::blocking::Client::builder()
-        .timeout(Duration::from_secs(30))
+        .timeout(Duration::from_secs(120))
         .build()
         .unwrap();
     for case in fixture["accounts"].as_array().unwrap() {
@@ -1140,7 +1144,7 @@ fn sparse_large_receipts_cancellation_and_native_epochs_stay_atomic() {
         .client
         .post(format!("{}/api/v1/restores", target.url))
         .header("Idempotency-Key", "large-native-stage")
-        .timeout(Duration::from_secs(30))
+        .timeout(Duration::from_secs(120))
         .header("Content-Type", "application/zip")
         .body(bytes.to_vec())
         .send()
@@ -1159,7 +1163,7 @@ fn sparse_large_receipts_cancellation_and_native_epochs_stay_atomic() {
         ))
         .header("Idempotency-Key", "large-native-activate")
         .json(&json!({"confirm_name":"Large reconciled imports"}))
-        .timeout(Duration::from_secs(30))
+        .timeout(Duration::from_secs(120))
         .send()
         .unwrap();
     assert_eq!(activate.status(), 200, "{}", activate.text().unwrap());

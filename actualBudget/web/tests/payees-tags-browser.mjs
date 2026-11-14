@@ -61,7 +61,6 @@ try {
   });
   const page = await context.newPage();
   await page.goto(server.url);
-  await page.getByRole("button", { name: "Payees fixture Open" }).click();
   await page.getByRole("button", { name: "Payees", exact: true }).click();
   await page
     .getByRole("button", { name: "Edit MARKET 001", exact: true })
@@ -272,9 +271,7 @@ try {
   ).toBeDisabled();
   await context.setOffline(false);
   await page.reload();
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page.locator('summary[aria-label="Filters and columns"]').click();
   await page
     .getByRole("button", { name: "Add condition", exact: true })

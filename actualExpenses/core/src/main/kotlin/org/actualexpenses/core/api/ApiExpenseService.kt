@@ -54,6 +54,8 @@ private data class NativeState(
     val pending: MutableList<NativeOperation> = mutableListOf(),
     var scheduledCommand: ScheduledCommand? = null,
     var legacyFingerprint: String? = null,
+    var scopeRecovery: String? = null,
+    var recoveryArchive: String? = null,
     var notice: String? = null,
 )
 
@@ -86,6 +88,7 @@ class ApiExpenseService(
 
     private fun ready() {
         check(!legacyPresent) { LEGACY_RECOVERY }
+        check(saved.scopeRecovery == null) { saved.scopeRecovery.orEmpty() }
     }
 
     private fun client() = BudgetApi(saved.server, transport)
@@ -159,7 +162,8 @@ class ApiExpenseService(
         return AppState(
             server = saved.server,
             serverSelected = saved.server.isNotEmpty(),
-            expenseContext = if (saved.accountId != null) captureContext() else null,
+            expenseContext = if (saved.accountId != null && saved.scopeRecovery == null) captureContext() else null,
+            scopeRecovery = saved.scopeRecovery,
             budgets = saved.budgets,
             budgetId = saved.budgetId,
             accounts = accountChoices(),
@@ -209,7 +213,7 @@ class ApiExpenseService(
             pendingCount = saved.pending.map { it.transactionId }.distinct().size,
             notice = saved.notice,
             error = pendingAccountError() ?: error,
-            syncBlocked = blocked || pendingAccountError() != null,
+            syncBlocked = blocked || saved.scopeRecovery != null || pendingAccountError() != null,
             splitRecovery = saved.pending.firstOrNull()?.splitRejected == true,
             scheduledWorkPending=saved.scheduledCommand!=null,
             scheduledWorkError=saved.scheduledCommand?.reviewMessage?:scheduleError,
@@ -226,30 +230,76 @@ class ApiExpenseService(
         }
         val api = BudgetApi(normalized, transport)
         capabilities = api.requireSupported()
-        val budgets = budgets(api)
-        require(
-            normalized != saved.server ||
-                saved.budgetId == null ||
-                budgets.any { it.fileId == saved.budgetId }
-        ) {
-            "The selected budget is unavailable. Saved work is retained."
-        }
+        val current = currentBudget(api)
         change { next ->
             if (next.server != normalized) {
-                require(next.pending.isEmpty()) {
-                    "Deliver pending changes before switching servers."
-                }
+                require(next.pending.isEmpty()) { "Deliver pending changes before switching servers." }
                 clearCache(next)
                 next.budgetId = null
                 next.accountId = null
                 next.epoch = ""
+                next.ledgerInitialized = false
             }
             next.server = normalized
-            next.budgets = budgets
         }
-        online = true
-        error = null
-        blocked = false
+        openCurrent(current)
+        markOnline()
+    }
+
+    private fun currentBudget(api: BudgetApi): RemoteBudget {
+        val row = try {
+            api.request("/budget").getAsJsonObject("data")
+        } catch (failure: BudgetApiException) {
+            if (failure.status == 404) throw IllegalArgumentException("Update actualBudget to open its single budget. Saved work is retained.")
+            throw failure
+        }
+        return RemoteBudget(row["id"].asString, row["epoch"].asString, row["name"].asString)
+    }
+
+    private fun openCurrent(current: RemoteBudget) {
+        val changed = saved.budgetId != null &&
+            (saved.budgetId != current.fileId || saved.epoch != current.groupId)
+        if (changed && (saved.pending.isNotEmpty() || saved.scheduledCommand != null)) {
+            val message = "The server budget changed. Saved expenses and schedule work still belong to the previous version. Save a recovery file before opening the current budget."
+            change { it.scopeRecovery = message }
+            blocked = true
+            throw IllegalArgumentException(message)
+        }
+        change { it.budgets = listOf(current); it.scopeRecovery = null }
+        if (saved.budgetId == null || changed || saved.accountId == null)
+            bootstrap(current.fileId, saved.rememberedAccounts[scopeKey(saved.server, current.fileId)], unified = "unified_ledger" in capabilities)
+    }
+
+    /** Complete original state, including immutable requests and earlier recovery archives. */
+    @Synchronized
+    fun exportScopeRecovery(): String {
+        check(saved.scopeRecovery != null) { "Refresh to check whether saved work needs recovery." }
+        return gson.toJson(JsonObject().apply {
+            addProperty("format", "actualExpenses-recovery-v1")
+            add("saved_state", gson.toJsonTree(saved))
+        })
+    }
+
+    /** Called only after a successful user-directed export and explicit confirmation. */
+    fun openCurrentAfterExport(exported: String) = syncLock.withLock {
+        check(exportScopeRecovery() == exported) { "Saved work changed. Save a new recovery file before continuing." }
+        val api = client()
+        capabilities = api.requireSupported()
+        val current = currentBudget(api)
+        change { next ->
+            next.recoveryArchive = exported
+            next.pending.clear()
+            next.scheduledCommand = null
+            next.scopeRecovery = null
+            clearCache(next)
+            next.budgetId = null
+            next.accountId = null
+            next.epoch = ""
+            next.ledgerInitialized = false
+        }
+        // The full archive remains in encrypted app storage even if bootstrap fails.
+        openCurrent(current)
+        markOnline()
     }
 
 
@@ -271,7 +321,7 @@ class ApiExpenseService(
             val normalized = BudgetApi.normalized(server)
             val api = BudgetApi(normalized, transport)
             val supported = api.requireSupported()
-            val available = budgets(api)
+            val available = listOf(currentBudget(api))
             val originalClock = original["clock"].asString.also(LogicalClock::validate)
             val originalNode = original["node"].asString
             check(originalNode.matches(Regex("[A-Za-z0-9]{16}"))) {
@@ -284,12 +334,13 @@ class ApiExpenseService(
                 next.node = originalNode
                 next.legacyFingerprint = LegacyUpgrade.fingerprint(raw)
                 next.notice =
-                    "Previous server settings recovered. Choose a budget and account; the original encrypted file is preserved."
+                    "Previous server settings recovered. The original encrypted file is preserved."
             }
             capabilities = supported
             online = true
             error = null
             blocked = false
+            openCurrent(available.single())
             return
         }
         val legacy = LegacyUpgrade(raw)
@@ -432,24 +483,15 @@ class ApiExpenseService(
         blocked = false
     }
 
-    fun chooseBudget(id: String) = syncLock.withLock {
-        if (legacyPresent) { prepareLegacy(saved.server, id); return@withLock }
-        ready()
-        synchronized(this) {
-            require(saved.scheduledCommand==null||saved.scheduledCommand?.budget==id){"Confirm or cancel saved schedule work before switching budgets."}
-            require(saved.pending.isEmpty() || saved.budgetId == id) {
-                "Deliver pending changes before switching budgets."
-            }
-            require(saved.budgets.any { it.fileId == id }) { "Choose an available budget." }
-        }
-        bootstrap(id, saved.rememberedAccounts[scopeKey(saved.server, id)], unified = "unified_ledger" in capabilities)
-        scheduleError=null
+    fun recoverLegacyBudget(id: String) = syncLock.withLock {
+        check(legacyPresent) { "There is no original installation awaiting recovery." }
+        prepareLegacy(saved.server, id)
     }
 
     fun chooseAccount(id: String) = syncLock.withLock {
         ready()
         require(state().accounts.any { it.id == id }) { "Choose an open account." }
-        val budget = saved.budgetId ?: error("Choose a budget first.")
+        val budget = saved.budgetId ?: error("Connect to prepare expenses.")
         change { it.unifiedLedger = false }
         if (saved.accounts[id]?.let(::availableAccount) != true) {
             require(saved.pending.any { it.accountId == id }) { "Choose an open account." }
@@ -469,12 +511,6 @@ class ApiExpenseService(
         }
     }
 
-    fun refreshBudgets() {
-        ready()
-        val list = budgets(client())
-        change { it.budgets = list }
-    }
-
     @Synchronized
     fun beginExpense(): ExpenseContext {
         ready()
@@ -485,7 +521,7 @@ class ApiExpenseService(
         val currency = saved.preferences.text("currency_code").orEmpty()
         return ExpenseContext(
             saved.server,
-            saved.budgetId ?: error("Choose a budget first."),
+            saved.budgetId ?: error("Connect to prepare expenses."),
             accountId ?: error("Connect to prepare this budget."),
             saved.epoch,
             currency,
@@ -569,7 +605,7 @@ class ApiExpenseService(
         ready()
         val view = state()
         val account = edit?.context?.accountId ?: draft.context?.accountId ?: saved.accountId ?: error("Connect to prepare this budget.")
-        val budget = saved.budgetId ?: error("Choose a budget first.")
+        val budget = saved.budgetId ?: error("Connect to prepare expenses.")
         require(saved.accounts[account]?.let(::writableAccount) == true) {
             "This account is unavailable. Saved work is retained."
         }
@@ -721,13 +757,16 @@ class ApiExpenseService(
             if(foreground && saved.scheduledCommand!=null){
                 try{requireScheduleCapability();scheduleResolved=reconcileScheduledReceipt(api)}catch(failure:Exception){scheduleFailure(failure)}
             }
-            if (saved.budgetId == null) {
-                val list = budgets(api)
-                change { it.budgets = list }
-                markOnline()
-                return
+            val current = currentBudget(api)
+            if (saved.budgetId == current.fileId && "transaction_receipt_lookup" in capabilities) {
+                try { reconcileReceipts(api) }
+                catch (failure: BudgetApiException) {
+                    // A retired generation may no longer offer the old receipt. Keep
+                    // the immutable request and expose export recovery below.
+                    if (saved.epoch == current.groupId || failure.status !in 400..499) throw failure
+                }
             }
-            if ("transaction_receipt_lookup" in capabilities) reconcileReceipts(api)
+            openCurrent(current)
             // Refresh reference availability before delivering captured work so known
             // closed or deleted accounts hold their expenses for explicit recovery.
             val budget = saved.budgetId!!
@@ -1334,14 +1373,6 @@ class ApiExpenseService(
         row["closed"]?.asBoolean != true && row["deleted"]?.asBoolean != true
 
     private fun preferences(value: JsonObject) = value.getAsJsonObject("settings") ?: value
-
-    private fun budgets(api: BudgetApi) =
-        api.request("/budgets")
-            .getAsJsonArray("data")
-            .map { it.asJsonObject }
-            .map {
-                RemoteBudget(it["id"].asString, it.text("epoch").orEmpty(), it["name"].asString)
-            }
 
     private fun markOnline() {
         online = true

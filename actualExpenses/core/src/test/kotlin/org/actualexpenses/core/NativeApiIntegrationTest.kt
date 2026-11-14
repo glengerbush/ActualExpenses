@@ -20,14 +20,12 @@ import org.junit.jupiter.api.Test
 
 class NativeApiIntegrationTest {
     @Test
-    fun `budget selection prepares a password free ledger without account selection`() {
+    fun `connect automatically prepares the single ledger without budget or account selection`() {
         Server().use { server ->
-            val budget = UUID.randomUUID().toString()
-            server.post("/budgets", """{"id":"$budget","name":"New manual budget"}""")
+            val budget = server.budget
             val store = MemoryStore()
             val app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(budget)
             assertNotNull(app.state().expenseContext)
             val id = app.saveExpense(ExpenseDraft("1.23", notes = "No account setup"))
             app.refresh()
@@ -63,7 +61,6 @@ class NativeApiIntegrationTest {
             val store = MemoryStore()
             val app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             assertEquals(setOf(first, second), app.state().expenses.map { it.id }.toSet())
             val edit = app.beginEdit(second)
             assertEquals(other, edit.context!!.accountId)
@@ -79,6 +76,101 @@ class NativeApiIntegrationTest {
             assertEquals(listOf(first), restarted.state().expenses.map { it.id })
         }
     }
+    @Test
+    fun `empty server connects and prepares expenses without a named budget`() {
+        Server(seed = false).use { server ->
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            val context = assertNotNull(app.state().expenseContext)
+            assertEquals(server.get("/budget").getAsJsonObject("data")["id"].asString, context.budgetId)
+            assertEquals(1, server.get("/budgets").getAsJsonArray("data").size())
+            val reopened = ApiExpenseService(store)
+            reopened.refresh()
+            assertEquals(context, reopened.state().expenseContext)
+            assertNull(reopened.state().error)
+        }
+    }
+
+    @Test
+    fun `retired budget without queued work automatically opens the current ledger`() {
+        Server().use { server ->
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            val expense = app.saveExpense(ExpenseDraft("1.23"))
+            app.refresh()
+            val old = JsonParser.parseString(store.raw).asJsonObject
+            old.addProperty("budgetId", UUID.randomUUID().toString())
+            store.raw = old.toString()
+            val restarted = ApiExpenseService(store)
+            restarted.refresh()
+            assertNull(restarted.state().error)
+            assertNull(restarted.state().scopeRecovery)
+            assertEquals(server.budget, restarted.state().expenseContext!!.budgetId)
+            assertEquals(expense, restarted.state().expenses.single().id)
+        }
+    }
+
+    @Test
+    fun `retired budget queue stays immutable until exported and explicitly archived`() {
+        Server().use { server ->
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.markOffline()
+            app.saveExpense(ExpenseDraft("7.89", payee = "Retired purchase"))
+            val old = JsonParser.parseString(store.raw).asJsonObject
+            val retired = UUID.randomUUID().toString()
+            old.addProperty("budgetId", retired)
+            old.getAsJsonArray("pending").forEach { entry ->
+                entry.asJsonObject.addProperty("budgetId", retired)
+                entry.asJsonObject.addProperty("path", "/budgets/$retired/transactions")
+            }
+            store.raw = old.toString()
+            val pending = old["pending"].deepCopy()
+            val restarted = ApiExpenseService(store)
+            restarted.refresh()
+            assertNotNull(restarted.state().scopeRecovery)
+            assertNull(restarted.state().expenseContext)
+            assertTrue(restarted.state().syncBlocked)
+            assertEquals(pending, JsonParser.parseString(store.raw).asJsonObject["pending"])
+            val exported = restarted.exportScopeRecovery()
+            assertEquals(pending, JsonParser.parseString(exported).asJsonObject.getAsJsonObject("saved_state")["pending"])
+            assertFailsWith<IllegalStateException> { restarted.openCurrentAfterExport("changed export") }
+            assertEquals(1, restarted.state().pendingCount)
+            restarted.openCurrentAfterExport(exported)
+            assertEquals(0, restarted.state().pendingCount)
+            assertEquals(server.budget, restarted.state().budgetId)
+            assertNotNull(restarted.state().expenseContext)
+            assertEquals(exported, JsonParser.parseString(store.raw).asJsonObject["recoveryArchive"].asString)
+            assertEquals(0, server.get("/budgets/${server.budget}/transactions").getAsJsonArray("data").size())
+        }
+    }
+
+    @Test
+    fun `changed epoch preserves unsent expense and recovery across restart`() {
+        Server().use { server ->
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.markOffline()
+            app.saveExpense(ExpenseDraft("3.21"))
+            val captured = JsonParser.parseString(store.raw).asJsonObject
+            captured.addProperty("epoch", "00000000000000000000000000000000")
+            captured.getAsJsonArray("pending")[0].asJsonObject.addProperty("epoch", "00000000000000000000000000000000")
+            store.raw = captured.toString()
+            val pending = captured["pending"].deepCopy()
+            val restarted = ApiExpenseService(store)
+            restarted.refresh()
+            assertNotNull(restarted.state().scopeRecovery)
+            val reopen = ApiExpenseService(store)
+            assertNotNull(reopen.state().scopeRecovery)
+            assertEquals(pending, JsonParser.parseString(reopen.exportScopeRecovery()).asJsonObject.getAsJsonObject("saved_state")["pending"])
+            assertEquals(0, server.get("/budgets/${server.budget}/transactions").getAsJsonArray("data").size())
+        }
+    }
+
     private class MemoryStore(var raw: String? = null) : StateStore {
         var writes = 0
         var reads = 0
@@ -91,7 +183,7 @@ class NativeApiIntegrationTest {
         }
     }
 
-    private class Server(private val binaryOverride: String? = null) : AutoCloseable {
+    private class Server(private val binaryOverride: String? = null, private val seed: Boolean = true) : AutoCloseable {
         private val directory = Files.createTempDirectory("actualexpenses-v1-")
         private val client = HttpClient.newHttpClient()
         private val child: Process
@@ -126,11 +218,13 @@ class NativeApiIntegrationTest {
             val line = child.inputStream.bufferedReader().readLine()
             check(line.startsWith("LISTENING ")) { line }
             url = "http://${line.removePrefix("LISTENING ")}"
+            if (seed) {
             post("/budgets", """{"id":"$budget","name":"Native fixture"}""")
             post(
                 "/budgets/$budget/accounts",
                 """{"id":"$account","name":"Spending","opening_balance":0,"opening_date":"2026-01-01"}""",
             )
+            }
         }
 
         fun post(path: String, body: String, status: Int = 201, headers: Map<String, String> = emptyMap()): JsonObject {
@@ -139,7 +233,15 @@ class NativeApiIntegrationTest {
                     HttpRequest.newBuilder(URI("$url/api/v1$path"))
                         .header("Content-Type", "application/json")
                         .header("Idempotency-Key", UUID.randomUUID().toString())
-                        .apply { headers.forEach { (key, value) -> header(key, value) } }
+                        .apply {
+                            if (path.startsWith("/budgets/") && "X-Actual-Budget-Epoch" !in headers) {
+                                val budgetId = path.split('/')[2]
+                                get("/budgets/$budgetId/checkpoint").getAsJsonObject("data")?.get("epoch")?.asString?.let {
+                                    header("X-Actual-Budget-Epoch", it)
+                                }
+                            }
+                            headers.forEach { (key, value) -> header(key, value) }
+                        }
                         .POST(HttpRequest.BodyPublishers.ofString(body))
                         .build(),
                     HttpResponse.BodyHandlers.ofString(),
@@ -215,7 +317,7 @@ class NativeApiIntegrationTest {
     private fun importUpgrade(server: Server, case: String): String {
         val stage = server.upload(upgradeFixture(case, "zip"))
         server.post("/imports/${stage["id"].asString}/activate", "{}")
-        return stage["budget_id"].asString
+        return server.budget
     }
 
     @Test
@@ -290,7 +392,7 @@ class NativeApiIntegrationTest {
     }
 
     @Test
-    fun `upgrade missing mapping atomic failure and source ambiguity retain original work`() {
+    fun `upgrade missing mapping and atomic failure retain original work before single budget recovery`() {
         Server().use { server ->
             val legacy =
                 MemoryStore(upgradeFixture("pending", "state.json").toString(Charsets.UTF_8))
@@ -311,21 +413,7 @@ class NativeApiIntegrationTest {
             assertFailsWith<IOException> { interrupted.connect(server.url) }
             assertTrue(interrupted.state().legacyRecovery)
             assertEquals(original, legacy.raw)
-            importUpgrade(
-                server,
-                "lost-edit",
-            ) // Genuine distinct archive, same original cloud/group.
             app.connect(server.url)
-            assertTrue(app.state().legacyRecovery)
-            assertEquals(2, app.state().budgets.size)
-            assertEquals(
-                0,
-                server
-                    .get("/budgets/$budget/transactions?limit=1000")
-                    .getAsJsonArray("data")
-                    .count { it.asJsonObject["notes"]?.asString == "corrected offline" },
-            )
-            app.chooseBudget(budget)
             assertFalse(app.state().legacyRecovery)
             assertEquals(budget, app.state().budgetId)
             app.refresh()
@@ -516,8 +604,6 @@ class NativeApiIntegrationTest {
             val coexist = MemoryStore()
             val existing = ApiExpenseService(coexist)
             existing.connect(server.url)
-            existing.chooseBudget(server.budget)
-            existing.chooseAccount(server.account)
             existing.markOffline()
             existing.saveExpense(ExpenseDraft("1.23"))
             val bytes = coexist.raw
@@ -572,7 +658,7 @@ class NativeApiIntegrationTest {
             val stage =
                 server.upload(Files.readAllBytes(directory.resolve("android-order-source.zip")))
             server.post("/imports/${stage["id"].asString}/activate", "{}")
-            val budget = stage["budget_id"].asString
+            val budget = server.budget
             val account = expected["account"].asString
             val epoch =
                 server.get("/budgets/$budget/checkpoint").getAsJsonObject("data")["epoch"].asString
@@ -659,7 +745,6 @@ class NativeApiIntegrationTest {
             val store = MemoryStore()
             var app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(budget)
             app.chooseAccount(account)
             val ids =
                 expected.getAsJsonArray("snapshots")[5].asJsonObject.getAsJsonArray("ids").map {
@@ -677,7 +762,7 @@ class NativeApiIntegrationTest {
     }
 
     @Test
-    fun `upgrade setup without selected budget preserves settings and lets user choose API budget`() {
+    fun `upgrade setup without selected budget preserves settings and opens the single ledger`() {
         Server().use { server ->
             val legacy =
                 MemoryStore(upgradeFixture("setup-only", "state.json").toString(Charsets.UTF_8))
@@ -686,7 +771,7 @@ class NativeApiIntegrationTest {
             val app = ApiExpenseService(native, legacy)
             app.connect(server.url)
             assertFalse(app.state().legacyRecovery)
-            assertNull(app.state().budgetId)
+            assertEquals(server.budget, app.state().budgetId)
             assertTrue(app.state().serverSelected)
             assertEquals(0, app.state().pendingCount)
             val old = JsonParser.parseString(original).asJsonObject
@@ -696,7 +781,6 @@ class NativeApiIntegrationTest {
             val reads = legacy.reads
             assertFalse(ApiExpenseService(native, legacy).state().legacyRecovery)
             assertEquals(reads, legacy.reads)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             assertEquals(server.account, app.state().selectedAccountId)
             assertEquals(original, legacy.raw)
@@ -735,7 +819,6 @@ class NativeApiIntegrationTest {
             val store = MemoryStore()
             val app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             assertEquals(food, app.state().payeeCategoryAssociations[payee])
             app.markOffline()
@@ -829,7 +912,6 @@ class NativeApiIntegrationTest {
             val store = MemoryStore()
             val app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             assertTrue(app.state().payeeCategoryAssociations.isEmpty())
             app.markOffline()
@@ -881,7 +963,6 @@ class NativeApiIntegrationTest {
             }
             val app = ApiExpenseService(store, transport = transport)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val original = app.saveExpense(ExpenseDraft("12.34", categoryId = category, notes = "Manual entry"))
             val removed = app.saveExpense(ExpenseDraft("1.00", notes = "Removed externally"))
@@ -935,7 +1016,6 @@ class NativeApiIntegrationTest {
             val store = MemoryStore()
             val app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val expense = app.saveExpense(ExpenseDraft("4.56", notes = "Before planning"))
             val checkpoint = JsonParser.parseString(store.raw).asJsonObject["checkpoint"].asString
@@ -997,7 +1077,6 @@ class NativeApiIntegrationTest {
             }
             val app = ApiExpenseService(store, transport = transport)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val first = app.saveExpense(ExpenseDraft("4.56", notes = "Native manual"))
             app.refresh()
@@ -1127,7 +1206,6 @@ class NativeApiIntegrationTest {
             }
             val app = ApiExpenseService(store, transport = transport)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val first = app.saveExpense(ExpenseDraft("4.56", categoryId = category, notes = "Existing expense"))
             app.refresh()
@@ -1175,7 +1253,6 @@ class NativeApiIntegrationTest {
             val store = MemoryStore()
             val app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             app.markOffline()
             val expense = app.saveExpense(ExpenseDraft("4.56", payee = "Local shop"))
@@ -1212,7 +1289,6 @@ class NativeApiIntegrationTest {
             }
             val app = ApiExpenseService(store, transport = network)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             assertTrue(app.state().payees.isEmpty())
             reads.clear()
@@ -1242,7 +1318,6 @@ class NativeApiIntegrationTest {
             val store = MemoryStore()
             val app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val id = app.saveExpense(ExpenseDraft("12.34", notes = "Converted payment"))
             app.refresh()
@@ -1272,7 +1347,6 @@ class NativeApiIntegrationTest {
             val store = MemoryStore()
             val app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val id = app.saveExpense(ExpenseDraft("12.34"))
             app.refresh()
@@ -1292,7 +1366,6 @@ class NativeApiIntegrationTest {
         Server().use { server ->
             val app = ApiExpenseService(MemoryStore())
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val id = app.saveExpense(ExpenseDraft("3.00", notes = "Native split"))
             app.refresh()
@@ -1315,7 +1388,6 @@ class NativeApiIntegrationTest {
             val store = MemoryStore()
             val app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val id = app.saveExpense(ExpenseDraft("7.89", notes = "Original"))
             app.refresh()
@@ -1346,7 +1418,6 @@ class NativeApiIntegrationTest {
             val store = MemoryStore()
             val app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val id = app.saveExpense(ExpenseDraft("7.89", notes = "Original"))
             app.refresh()
@@ -1388,7 +1459,6 @@ class NativeApiIntegrationTest {
             val store = MemoryStore()
             val app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val id = app.saveExpense(ExpenseDraft("12.34"))
             assertEquals(1, app.state().pendingCount)
@@ -1420,7 +1490,6 @@ class NativeApiIntegrationTest {
             )
             val app = ApiExpenseService(MemoryStore())
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             server.post("/budgets/${server.budget}/accounts/${server.account}/close", "{}", 200)
             app.refresh()
@@ -1447,7 +1516,6 @@ class NativeApiIntegrationTest {
         Server().use { server ->
             val app = ApiExpenseService(MemoryStore())
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             app.markOffline()
             val ids = (1..101).map { app.saveExpense(ExpenseDraft("1.00", notes = "Offline $it")) }
@@ -1499,7 +1567,6 @@ class NativeApiIntegrationTest {
             }
             val app = ApiExpenseService(store, transport = network)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val point = server.post("/budgets/${server.budget}/backups", "{}")
             val id =
@@ -1599,7 +1666,6 @@ class NativeApiIntegrationTest {
             }
             val app = ApiExpenseService(store, transport = network)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val id = app.saveExpense(ExpenseDraft("1.00"))
             app.refresh()
@@ -1646,7 +1712,6 @@ class NativeApiIntegrationTest {
             }
             val app = ApiExpenseService(store, transport = network)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             app.markOffline()
             val id = app.saveExpense(ExpenseDraft("4.56", notes = "Keep this purchase"))
@@ -1693,7 +1758,6 @@ class NativeApiIntegrationTest {
             val store = MemoryStore()
             val app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val id = app.saveExpense(ExpenseDraft("7.89", notes = "Original"))
             app.refresh()
@@ -1730,7 +1794,7 @@ class NativeApiIntegrationTest {
             val restarted = ApiExpenseService(store)
             restarted.refresh()
             assertEquals(id, restarted.state().expenses.single().id)
-            restarted.chooseBudget(server.budget)
+            restarted.refresh()
             assertEquals(id, restarted.state().expenses.single().id)
             restarted.chooseAccount(second)
             assertEquals(second, restarted.state().selectedAccountId)
@@ -1760,7 +1824,6 @@ class NativeApiIntegrationTest {
             server.post("$base/payees", """{"id":"$target","name":"Current merchant"}""")
             val app = ApiExpenseService(MemoryStore())
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val id = app.saveExpense(ExpenseDraft("4.56", payee = "Old merchant"))
             app.refresh()
@@ -1837,7 +1900,6 @@ class NativeApiIntegrationTest {
             }
             val app = ApiExpenseService(store, transport = network)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             app.markOffline()
             val aliasExpense = app.saveExpense(ExpenseDraft("1.11", payee = "Offline alias"))
@@ -1903,7 +1965,7 @@ class NativeApiIntegrationTest {
                     if (ynab4) "/imports/ynab4?filename=companion.ynab4.zip"
                     else "/imports/nynab?filename=companion.json"
                 val stage = server.upload(Files.readAllBytes(directory.resolve("ynab/$file")), path)
-                val budget = stage["budget_id"].asString
+                val budget = server.budget
                 server.post("/imports/${stage["id"].asString}/activate", "{}")
                 val snapshot = source.getAsJsonObject("snapshot")
                 val baselineAccount =
@@ -1943,8 +2005,7 @@ class NativeApiIntegrationTest {
                 val store = MemoryStore()
                 val app = ApiExpenseService(store)
                 app.connect(server.url)
-                app.chooseBudget(budget)
-                app.chooseAccount(account)
+                    app.chooseAccount(account)
                 assertNull(app.state().error)
                 assertEquals(
                     expected,
@@ -1995,7 +2056,7 @@ class NativeApiIntegrationTest {
             val stage =
                 server.upload(Files.readAllBytes(fixtures.resolve("payees-tags-import.zip")))
             server.post("/imports/${stage["id"].asString}/activate", "{}")
-            val budget = stage["budget_id"].asString
+            val budget = server.budget
             val transfer = fixture["transfer"].asString
             val publicPayees =
                 server
@@ -2009,7 +2070,6 @@ class NativeApiIntegrationTest {
             )
             val app = ApiExpenseService(MemoryStore())
             app.connect(server.url)
-            app.chooseBudget(budget)
             app.chooseAccount(fixture["account"].asString)
             assertEquals(3, publicPayees.size())
             assertTrue(app.state().payees.isEmpty())
@@ -2032,7 +2092,6 @@ class NativeApiIntegrationTest {
             )
             val app = ApiExpenseService(MemoryStore())
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             assertEquals(listOf(category), app.state().categories.map { it.id })
             val expense = app.saveExpense(ExpenseDraft("1.23", categoryId = category))
@@ -2096,7 +2155,6 @@ class NativeApiIntegrationTest {
             }
             val app = ApiExpenseService(store, transport = network)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             app.markOffline()
             val id = app.saveExpense(ExpenseDraft("8.91", date = "2001-01-01", notes = "offline"))
@@ -2140,7 +2198,6 @@ class NativeApiIntegrationTest {
             )
             val app = ApiExpenseService(MemoryStore())
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             assertEquals(10, app.state().expenses.size)
             assertFalse(app.state().expenses.any { it.notes == "Income excluded" })
@@ -2179,7 +2236,6 @@ class NativeApiIntegrationTest {
         Server().use { server ->
             val app = ApiExpenseService(MemoryStore())
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val id = app.saveExpense(ExpenseDraft("1.00"))
             app.refresh()
@@ -2219,11 +2275,10 @@ class NativeApiIntegrationTest {
             val archive =
                 Files.readAllBytes(Path.of("../../actualBudget/tests/fixtures/import-26.10.0.zip"))
             val stage = server.upload(archive)
-            val imported = stage["budget_id"].asString
+            val imported = server.budget
             server.post("/imports/${stage["id"].asString}/activate", "{}")
             val app = ApiExpenseService(MemoryStore())
             app.connect(server.url)
-            app.chooseBudget(imported)
             app.chooseAccount("0165d0a7-99e2-4719-a102-c007b7a8daaa")
             assertEquals(
                 listOf(
@@ -2256,7 +2311,6 @@ class NativeApiIntegrationTest {
             }
             val app = ApiExpenseService(store, transport = transport)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             reads.clear()
             app.chooseAccount(server.account)
             assertFalse(
@@ -2282,7 +2336,6 @@ class NativeApiIntegrationTest {
             val store = MemoryStore()
             val app = ApiExpenseService(store)
             app.connect(server.url)
-            app.chooseBudget(server.budget)
             app.chooseAccount(server.account)
             val id = app.saveExpense(ExpenseDraft("1.00"))
             app.refresh()
@@ -2373,23 +2426,21 @@ class NativeApiIntegrationTest {
     }
 
     @Test
-    fun `explicit selection changes preserve remembered account and prevent queued work crossing origins`() {
+    fun `server changes preserve captured context and prevent queued work crossing origins`() {
         Server().use { first ->
             Server().use { second ->
                 val app = ApiExpenseService(MemoryStore())
                 app.connect(first.url)
-                app.chooseBudget(first.budget)
                 app.chooseAccount(first.account)
                 val context = app.beginExpense()
                 app.connect(second.url)
-                assertNull(app.state().budgetId)
-                app.chooseBudget(second.budget)
+                assertEquals(second.budget, app.state().budgetId)
                 app.chooseAccount(second.account)
                 assertFailsWith<IllegalArgumentException> {
                     app.saveExpense(ExpenseDraft("1.00", context = context))
                 }
                 app.connect(first.url)
-                app.chooseBudget(first.budget)
+                app.chooseAccount(first.account)
                 assertEquals(first.account, app.state().selectedAccountId)
                 app.markOffline()
                 app.saveExpense(ExpenseDraft("3.00"))
@@ -2410,7 +2461,7 @@ class NativeApiIntegrationTest {
                 real.request(url,method,headers,body)
             }
             val app=ApiExpenseService(store,transport=transport)
-            app.connect(server.url);app.chooseBudget(server.budget);app.chooseAccount(server.account)
+            app.connect(server.url);app.chooseAccount(server.account)
             val root="/budgets/${server.budget}"
             val schedule=UUID.randomUUID().toString()
             val today=server.get("$root/schedules").getAsJsonObject("data")["today"].asString
@@ -2458,7 +2509,7 @@ class NativeApiIntegrationTest {
                 response
             }
             var app=ApiExpenseService(store,transport=transport)
-            app.connect(server.url);app.chooseBudget(server.budget);app.chooseAccount(server.account)
+            app.connect(server.url);app.chooseAccount(server.account)
             dueSchedule(server)
             app.refresh(foreground=true)
             assertNull(app.state().error);assertTrue(app.state().scheduledWorkPending)
@@ -2468,8 +2519,6 @@ class NativeApiIntegrationTest {
             assertEquals(deliveries[0].first["X-Actual-Edit-Clock"],original.asJsonObject["clock"].asString)
             assertEquals(deliveries[0].first["X-Actual-Budget-Epoch"],original.asJsonObject["epoch"].asString)
             assertFailsWith<IllegalArgumentException>{app.connect(other.url)}
-            val otherBudget=UUID.randomUUID().toString();server.post("/budgets","""{"id":"$otherBudget","name":"Other"}""")
-            app.refreshBudgets();assertFailsWith<IllegalArgumentException>{app.chooseBudget(otherBudget)}
             app=ApiExpenseService(store,transport=transport)
             app.refresh()
             assertEquals(1,deliveries.size,"Background/expense mode must not even probe the schedule command receipt")
@@ -2491,7 +2540,7 @@ class NativeApiIntegrationTest {
     fun `saved native state without scheduled command still decodes without an idle rewrite`() {
         Server().use { server ->
             val saved=MemoryStore();val app=ApiExpenseService(saved)
-            app.connect(server.url);app.chooseBudget(server.budget);app.chooseAccount(server.account)
+            app.connect(server.url);app.chooseAccount(server.account)
             val old=JsonParser.parseString(saved.raw).asJsonObject.apply{remove("scheduledCommand")}.toString()
             val store=MemoryStore(old);val restarted=ApiExpenseService(store)
             assertFalse(restarted.state().scheduledWorkPending)
@@ -2501,7 +2550,7 @@ class NativeApiIntegrationTest {
     }
 
     @Test
-    fun `uncommitted schedule command keeps original epoch after restore until explicit durable cancellation`() {
+    fun `uncommitted schedule command keeps original epoch after restore until explicit exported recovery`() {
         Server().use { server ->
             val saved=MemoryStore();val real=BudgetHttpTransport();var intercept=true
             val attempts=mutableListOf<Triple<String,Map<String,String>,ByteArray?>>()
@@ -2513,7 +2562,7 @@ class NativeApiIntegrationTest {
                 real.request(url,method,headers,body)
             }
             val app=ApiExpenseService(saved,transport=transport)
-            app.connect(server.url);app.chooseBudget(server.budget);app.chooseAccount(server.account)
+            app.connect(server.url);app.chooseAccount(server.account)
             dueSchedule(server);val root="/budgets/${server.budget}"
             val backup=server.post("$root/backups","""{"label":"Before schedule delivery"}""")
             app.refresh(foreground=true);assertTrue(app.state().scheduledWorkPending)
@@ -2521,18 +2570,21 @@ class NativeApiIntegrationTest {
             val wire=attempts.first();intercept=false
             server.post("$root/backups/${backup["id"].asString}/restore","""{"confirm_name":"Native fixture"}""",200)
             app.refresh(foreground=true)
-            assertTrue(app.state().scheduledWorkPending);assertFalse(app.state().syncBlocked);assertNull(app.state().error)
-            assertTrue(app.state().scheduledWorkError.orEmpty().contains("restored"),app.state().scheduledWorkError)
+            assertTrue(app.state().scheduledWorkPending);assertTrue(app.state().syncBlocked)
+            assertNotNull(app.state().scopeRecovery)
             val retained=JsonParser.parseString(saved.raw).asJsonObject.getAsJsonObject("scheduledCommand")
             for(field in listOf("id","server","budget","path","body","clock","epoch"))assertEquals(original[field],retained[field])
             assertNotEquals(original["epoch"].asString,server.get("$root/checkpoint").getAsJsonObject("data")["epoch"].asString)
             val sends=attempts.count{!it.second.containsKey("X-Actual-Receipt-Only")}
             app.refresh(foreground=true)
             assertEquals(sends,attempts.count{!it.second.containsKey("X-Actual-Receipt-Only")},"A known review refusal must not spin on foreground")
-            app.cancelScheduledWork();assertFalse(app.state().scheduledWorkPending)
-            assertTrue(attempts.last().second.containsKey("X-Actual-Cancel-If-Uncommitted"))
+            val exported = app.exportScopeRecovery()
+            assertEquals(retained, JsonParser.parseString(exported).asJsonObject.getAsJsonObject("saved_state")["scheduledCommand"])
+            app.openCurrentAfterExport(exported)
+            assertFalse(app.state().scheduledWorkPending)
+            assertEquals(exported, JsonParser.parseString(saved.raw).asJsonObject["recoveryArchive"].asString)
             val late=real.request(wire.first,"POST",wire.second,wire.third)
-            assertEquals(409,late.status);assertEquals("operation_canceled",JsonParser.parseString(late.body.toString(Charsets.UTF_8)).asJsonObject.getAsJsonObject("error")["code"].asString)
+            assertEquals(409,late.status);assertEquals("budget_restored",JsonParser.parseString(late.body.toString(Charsets.UTF_8)).asJsonObject.getAsJsonObject("error")["code"].asString)
             assertEquals(0,server.get("$root/transactions").getAsJsonArray("data").size())
             app.refresh(foreground=true)
             assertFalse(app.state().scheduledWorkPending);assertEquals(1,app.state().expenses.size)
@@ -2544,17 +2596,28 @@ class NativeApiIntegrationTest {
     fun `overdue scheduled work holds for review without spinning or blocking ordinary pending expenses`() {
         Server().use { server ->
             val source=Files.readAllBytes(Path.of("../../actualBudget/tests/fixtures/schedules-overdue-26.10.zip"))
-            val stage=server.upload(source);val budget=stage["budget_id"].asString
+            val stage=server.upload(source);val budget=server.budget
             server.post("/imports/${stage["id"].asString}/activate","{}")
             val account=server.get("/budgets/$budget/accounts").getAsJsonArray("data")[0].asJsonObject["id"].asString
             val real=BudgetHttpTransport();var sends=0;var scheduleTraffic=0
+            val workloadClient = HttpClient.newHttpClient()
             val network=HttpTransport{url,method,headers,body->
                 if(url.contains("/schedules"))scheduleTraffic++
                 if(method=="POST"&&url.endsWith("/schedules/commands")&&!headers.containsKey("X-Actual-Receipt-Only"))sends++
-                real.request(url,method,headers,body)
+                if (method == "POST" && url.endsWith("/schedules/commands")) {
+                    // This fixture executes and rolls back 500 occurrences. Let the
+                    // debug server finish the cap check; mobile timeout/retry has separate coverage.
+                    val response = workloadClient.send(
+                        HttpRequest.newBuilder(URI(url)).timeout(java.time.Duration.ofMinutes(2))
+                            .apply { headers.forEach { (key, value) -> header(key, value) } }
+                            .POST(HttpRequest.BodyPublishers.ofByteArray(body ?: byteArrayOf())).build(),
+                        HttpResponse.BodyHandlers.ofByteArray(),
+                    )
+                    org.actualexpenses.core.protocol.HttpResponse(response.statusCode(), response.headers().firstValue("Content-Type").orElse(null), response.body())
+                } else real.request(url,method,headers,body)
             }
             val store=MemoryStore();val app=ApiExpenseService(store,transport=network)
-            app.connect(server.url);app.chooseBudget(budget);app.chooseAccount(account)
+            app.connect(server.url);app.chooseAccount(account)
             app.refresh(foreground=true)
             assertEquals(1,sends);assertTrue(app.state().scheduledWorkPending)
             assertTrue(app.state().scheduledWorkError.orEmpty().contains("500"),app.state().scheduledWorkError)
@@ -2583,7 +2646,7 @@ class NativeApiIntegrationTest {
             val stage = server.upload(Files.readAllBytes(Path.of("$fixture.zip")))
             if (stage["status"].asString == "ready")
                 server.post("/imports/${stage["id"].asString}/activate", "{}")
-            val root = "/budgets/${stage["budget_id"].asString}"
+            val root = "/budgets/${server.budget}"
             val case = source.getAsJsonArray("cases")[0].asJsonObject
             val account = source.getAsJsonObject("ids")["checking"].asString
             val before = server.get("$root/companion?account_id=$account")

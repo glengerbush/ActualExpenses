@@ -121,5 +121,12 @@
   [
     "python3",
     "actualBudget/tools/contract-smoke.py"
+  ],
+  [
+    "npm",
+    "--prefix",
+    "actualBudget/web",
+    "run",
+    "test:single-budget-migration"
   ]
 ]

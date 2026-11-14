@@ -117,17 +117,10 @@ fn lifecycle_cancellation_fences_delayed_mutations_and_replays_committed_outcome
     let before = s.get(&root);
     let backups = s.get(&format!("{root}/backups"));
     let operations = [
-        ("PATCH", root.clone(), json!({"name":"Delayed rename"})),
         (
             "POST",
             format!("{root}/backups"),
             json!({"label":"Delayed point"}),
-        ),
-        ("DELETE", root.clone(), json!({"confirm_name":"Household"})),
-        (
-            "POST",
-            format!("{root}/duplicate"),
-            json!({"id":uuid::Uuid::new_v4().to_string(),"name":"Delayed copy"}),
         ),
         (
             "POST",
@@ -168,19 +161,19 @@ fn lifecycle_cancellation_fences_delayed_mutations_and_replays_committed_outcome
         point
     );
     let committed = s.write(
-        "PATCH",
-        &root,
-        "committed-rename",
-        &json!({"name":"Renamed"}),
+        "POST",
+        &format!("{root}/backups"),
+        "committed-backup",
+        &json!({"label":"Committed"}),
         false,
     );
-    assert_eq!(committed.0, 200);
+    assert_eq!(committed.0, 201);
     assert_eq!(
         s.write(
-            "PATCH",
-            &root,
-            "committed-rename",
-            &json!({"name":"Renamed"}),
+            "POST",
+            &format!("{root}/backups"),
+            "committed-backup",
+            &json!({"label":"Committed"}),
             true
         ),
         committed

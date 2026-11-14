@@ -1,6 +1,6 @@
 import { captureAmountFormat, type AmountFormat } from "../money";
 import { validDate } from "../dates";
-import { uuid } from "../api";
+import { uuid, request } from "../api";
 import { validClock, resetCorrectedClock } from "../edit-clock";
 import {
   sameMutation,
@@ -412,4 +412,57 @@ export async function deleteOfflineExpense(
     }
   });
   emit();
+}
+
+/** Keep the complete original locally; retirement never retargets a request. */
+export async function archiveRetiredEntry(entry: OutboxEntry): Promise<void> {
+  const { data: current } = await request<{
+    data: { id: string; epoch: string };
+  }>("/budget");
+  if (
+    entry.budgetId === current.id &&
+    (!entry.pending.budgetEpoch || entry.pending.budgetEpoch === current.epoch)
+  )
+    throw new OfflineStateError(
+      "This request belongs to the current budget. Use safe cancellation to resolve its server outcome.",
+    );
+  await transaction(["operations", "cache"], "readwrite", async (tx) => {
+    const store = tx.objectStore("operations");
+    const saved = await result<OutboxEntry | undefined>(store.get(entry.key));
+    if (!saved || saved.revision !== entry.revision)
+      throw new OfflineStateError(
+        "Saved work changed in another tab. Refresh before archiving.",
+      );
+    validate(saved);
+    if (saved.claim && saved.claim.until > Date.now())
+      throw new OfflineStateError(
+        "This request is being checked. Wait for that check before archiving.",
+      );
+    await result(
+      tx.objectStore("cache").put(
+        {
+          entry: saved,
+          retiredAgainst: current,
+          archivedAt: new Date().toISOString(),
+        },
+        `retired-expense:${entry.key}`,
+      ),
+    );
+    await result(store.delete(entry.key));
+  });
+  emit();
+}
+export async function archivedEntries(): Promise<OutboxEntry[]> {
+  return transaction(["cache"], "readonly", async (tx) => {
+    const store = tx.objectStore("cache"),
+      keys = await result(store.getAllKeys());
+    const rows: OutboxEntry[] = [];
+    for (const key of keys)
+      if (typeof key === "string" && key.startsWith("retired-expense:")) {
+        const saved = await result<{ entry: OutboxEntry }>(store.get(key));
+        validate(saved.entry);
+        rows.push(saved.entry);
+      }
+    return rows;
+  });
 }

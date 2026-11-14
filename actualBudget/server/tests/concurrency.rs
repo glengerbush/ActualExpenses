@@ -709,7 +709,7 @@ fn cursor_coalescing_during_pagination_retains_every_latest_entity() {
             json!({"id":other,"name":"Other"})
         )
         .status(),
-        201
+        409
     );
     assert_eq!(s.get(&base)["snapshot"], cursor);
     assert_eq!(
@@ -721,7 +721,7 @@ fn cursor_coalescing_during_pagination_retains_every_latest_entity() {
             .send()
             .unwrap()
             .status(),
-        409
+        404
     );
 }
 #[test]

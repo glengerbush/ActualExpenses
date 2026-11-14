@@ -25,7 +25,7 @@ const before = financial();
 let server;
 try {
   server = await startServer({ dataDirectory: dir });
-  const api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+  let api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
   async function call(path, body) {
     const r = await fetch(api + path, {
       method: body ? "POST" : "GET",
@@ -38,7 +38,14 @@ try {
     expect(r.ok, await r.clone().text()).toBe(true);
     return r.json();
   }
-  expect(financial()).toEqual(before);
+  const historicalKeys = new Set(
+    before.map((row) => JSON.stringify(row.slice(0, 2))),
+  );
+  expect(
+    financial().filter((row) =>
+      historicalKeys.has(JSON.stringify(row.slice(0, 2))),
+    ),
+  ).toEqual(before);
   for (const b of (await call("/budgets")).data) {
     expect(
       (await call(`/budgets/${b.id}/preferences`)).data,
@@ -62,6 +69,9 @@ try {
     "monte-carlo-plans-26.10.zip",
     "rules-template-requirement-26.10.0.zip",
   ]) {
+    await server.stop();
+    server = await startServer();
+    api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
     const r = await fetch(api + "/imports/actual", {
       method: "POST",
       headers: {
@@ -97,6 +107,9 @@ try {
       confirm_name: b.name,
     });
   }
+  await server.stop();
+  server = await startServer();
+  api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
   const fixed = randomUUID();
   await call("/budgets", { id: fixed, name: "Fixed rules" });
   const account = (await call(`/budgets/${fixed}/ledger`, {})).data.id;

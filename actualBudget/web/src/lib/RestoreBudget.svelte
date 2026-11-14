@@ -35,7 +35,7 @@
     deleted?: boolean;
   } | null>(null);
   let files = $state<FileList>(),
-    confirmation = $state("");
+    confirmation = $state(false);
   let busy = $state(true),
     initialized = $state(false),
     error = $state(""),
@@ -46,23 +46,18 @@
   async function loadTarget() {
     const stage = session?.stage;
     if (!stage) return;
-    pending = await readLifecycle(stage.budget_id);
+    target = (await request<{ data: ManagedBudget }>("/budget")).data;
+    // Never retarget an unconfirmed legacy restore to another identity.
+    const legacy =
+      stage.budget_id !== target.id
+        ? await readLifecycle(stage.budget_id)
+        : null;
+    pending = legacy ?? (await readLifecycle(target.id));
     otherPending =
       !!pending &&
-      (pending.kind !== "restored" ||
-        pending.path !==
-          `/budgets/${stage.budget_id}/restores/${stage.id}/activate`);
-    try {
-      target = (
-        await request<{ data: ManagedBudget }>(
-          `/budgets/${stage.budget_id}?include_deleted=true`,
-        )
-      ).data;
-    } catch (e) {
-      if (e instanceof RequestError && e.code === "not_found")
-        target = { id: stage.budget_id, name: stage.name };
-      else throw e;
-    }
+      (pending.budgetId !== target.id ||
+        pending.kind !== "restored" ||
+        pending.path !== `/budgets/${target.id}/restores/${stage.id}/activate`);
   }
   async function initialize() {
     busy = true;
@@ -127,7 +122,7 @@
       session = null;
       target = null;
       files = undefined;
-      confirmation = "";
+      confirmation = false;
       error = "";
       notice = "";
     } catch (e) {
@@ -141,14 +136,16 @@
     error = "";
     try {
       if (!pending) {
-        if (!target || confirmation !== target.name)
-          throw new Error("Enter the budget name to confirm restoration.");
+        if (!target || !confirmation)
+          throw new Error(
+            "Confirm that this backup will replace current data.",
+          );
         const value = lifecycleOperation(
           target,
           "restored",
           `/budgets/${target.id}/restores/${session.stage.id}/activate`,
           "POST",
-          { confirm_name: confirmation },
+          { confirm_name: target.name },
         );
         await saveLifecycle(value);
         pending = value;
@@ -209,6 +206,7 @@
       </p>
     </div>
   </div>
+  <button onclick={onclose} disabled={busy}>Back to backups</button>
   {#if offline}<p role="status">
       {t(
         "Connect to review or restore a backup. The selected archive is kept on this device.",
@@ -265,7 +263,7 @@
     >
     {#if otherPending}<p class="error" role="alert">
         {t(
-          "Another operation for this budget is unconfirmed. Open Manage budget to resolve it before restoring this archive.",
+          "Another operation for this budget is unconfirmed. Open Settings → Backups to resolve it before restoring this archive.",
         )}
       </p>
     {:else if pending}
@@ -294,26 +292,18 @@
       <form onsubmit={restore}>
         <h2>{t("Confirm restore")}</h2>
         <p>
-          {target.epoch && !target.deleted
-            ? t(
-                "This replaces the existing budget. A recovery backup is saved first. Saved device changes will be checked against the restored budget.",
-              )
-            : t("This restores the budget with its original identity.")}
+          This replaces current data. A recovery backup is saved first. Saved
+          device changes will be checked against the restored budget.
         </p>
-        <p>
-          {t("Type the budget name to confirm")}: <strong>{target.name}</strong>
-        </p>
-        <label for="restore-confirm">{t("Confirm budget name")}</label><input
-          id="restore-confirm"
-          bind:value={confirmation}
-          required
-          autocomplete="off"
-          disabled={busy || offline}
-        />
+        <label class="restore-consent"
+          ><input
+            type="checkbox"
+            bind:checked={confirmation}
+            disabled={busy || offline}
+          /> Replace current data with this backup</label
+        >
         <div class="actions">
-          <button
-            class="primary"
-            disabled={busy || offline || confirmation !== target.name}
+          <button class="primary" disabled={busy || offline || !confirmation}
             >{t("Restore reviewed backup")}</button
           ><button type="button" disabled={busy} onclick={another}
             >{t("Choose another backup")}</button
@@ -327,6 +317,14 @@
 </section>
 
 <style>
+  .restore-consent {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .restore-consent input {
+    width: auto;
+  }
   .restore-budget {
     max-width: 60rem;
     overflow-wrap: anywhere;

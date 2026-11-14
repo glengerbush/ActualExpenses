@@ -1,12 +1,12 @@
 # actualBudget
 
-The replacement web/server application uses a static Svelte 5 frontend, Rust/Axum and authoritative SQLite, with no application login. It includes tracking/envelope budgets, transactions, rules, schedules, manual imports, reports, preferences and limited offline expense capture. The49 retained rewrite tickets passed [final acceptance](../docs/final-parity-audit.md). Nothing has been deployed by that acceptance; use the [manual Coolify runbook](../docs/coolify-replacement.md) for a separately authorized replacement. See the [architecture](../docs/adr/0005-server-authoritative-web-architecture.md) and [107-story evidence ledger](../docs/parity-ledger.md).
+The replacement web/server application uses a static Svelte 5 frontend, Rust/Axum and authoritative SQLite, with no application login. It includes one tracking budget, transactions, rules, schedules, manual imports, reports, preferences and limited offline expense capture. The 49 retained rewrite tickets passed [final acceptance](../docs/final-parity-audit.md). Nothing has been deployed by that acceptance; use the [manual Coolify runbook](../docs/coolify-replacement.md) for a separately authorized replacement. See the [architecture](../docs/adr/0005-server-authoritative-web-architecture.md) and [107-story evidence ledger](../docs/parity-ledger.md).
 
 See [unified transaction history](../docs/adr/0006-unified-transaction-history.md) for the 2026-11-11 scope change and compatibility approach.
 
 ## Run locally
 
-Each budget has one transaction history, with filters for useful views. New entries need no account setup. Transactions are fully manual. File imports, rules/schedules, Android and the public
+The app opens Transactions automatically in one budget, with no naming or budget chooser. Its transaction history has filters for useful views. New entries need no account setup. Transactions are fully manual. File imports, rules/schedules, Android and the public
 API remain; external bank connections and automatic bank sync are removed.
 
 Requires Node 24 and Rust 1.99.1 (or the Docker build). From the repository root:
@@ -19,29 +19,29 @@ cargo build --locked --manifest-path actualBudget/server/Cargo.toml
 ACTUALBUDGET_DATA_DIR=/tmp/actualbudget-development ACTUALBUDGET_WEB_DIR="$PWD/actualBudget/web/dist" actualBudget/server/target/debug/actualbudget-server
 ```
 
-Open http://127.0.0.1:5006. The chosen data directory persists across process restarts. Use a disposable directory for tests. `ACTUALBUDGET_HOST` defaults to loopback; the container binds all interfaces. `ACTUALBUDGET_PORT` defaults to 5006. No login or SharedArrayBuffer is required. Budget selection and transaction/creation drafts are remembered in browser storage. Reading existing server data remains available when storage is disabled, but creation requires working browser storage so its request identity can survive reloads.
+Open http://127.0.0.1:5006. The chosen data directory persists across process restarts. Use a disposable directory for tests. `ACTUALBUDGET_HOST` defaults to loopback; the container binds all interfaces. `ACTUALBUDGET_PORT` defaults to 5006. No login or SharedArrayBuffer is required. The current view and transaction drafts are remembered in browser storage. Reading existing server data remains available when storage is disabled; financial entry requires writable storage so saved requests survive reloads.
 
 `GET /api/v1/info` publishes capabilities; `GET /api/v1/openapi.json` publishes the machine-readable v1 contract. Monetary amounts are signed integer minor units bounded by JavaScript's exact integer range; display and entry use the budget’s currency precision and formatting preferences.
 
-## Recover creation drafts
+## One budget, imports and recovery
 
-Budget creation uses an origin-scoped versioned localStorage record. Historical pending account-creation records remain recoverable, but accounts are no longer a setup or navigation workflow. Field changes are saved as entered, including incomplete values. Reloading restores the matching form. Submitted bodies, entity IDs and idempotency keys are persisted before POST and remain immutable until the outcome is acknowledged. A recovered pending creation requires an explicit **Retry creation**; it is never sent automatically or in the background.
+Existing active budgets merge automatically during upgrade. Transactions, categories, plans, recurrence, links and colors remain distinct; equal names or amounts do not merge records. The oldest active budget supplies the retained settings. Before migration, the server saves a complete SQLite copy and a recovery snapshot of each active source. See [single-budget behavior](../docs/single-budget.md) for the exact boundaries and recovery files.
 
-Acknowledgement or an intentional cancellation of an unsubmitted draft removes its record. A confirmed validation rejection preserves editable fields. Unknown, malformed, mismatched-origin or mismatched-budget records are retained and reported instead of being delivered or overwritten. A storage error is visible and blocks a new POST; it does not erase the current fields. Clearing browser data manually removes local drafts, so avoid doing that while a creation is unconfirmed.
+Settings contains **General**, **Import**, **Backups** and **Recovery**. Archive imports initialize an empty budget or merge into the current one; transaction files always enter the current history. A native backup restore explicitly replaces current data, even when the archive came from a former budget. Normal naming, switching, duplication and budget deletion are removed.
 
-A draft's UUID also identifies its operation and resulting entity. Two tabs submitting the same saved draft therefore cannot create two entities. Different payloads using that identity receive a conflict rather than silently replacing the first creation; this does not provide collaborative form editing.
+Old device requests retain their original identity. Migration retires source budgets and changes the retained budget’s generation so stale requests cannot silently apply to merged data. Review **Settings → Recovery → Saved changes on this device** and any recovered operation shown in its original screen. Download saved details before removing an obsolete request or canceling work you still need; never change its budget ID to force replay. Keep browser storage until the outcome is confirmed. New financial values still wait for server confirmation.
 
 ## Offline web capture
 
-Previously opened budgets and bounded register views are cached with visible saved dates. A loaded page can record ordinary expenses while disconnected and edit/delete its own pending expenses. Confirmed balances exclude pending work. Durable queued requests resume on reconnect or foreground; interrupted edits retain their original identity and budget generation. Calculator expressions, new reference data, and beginning edits to confirmed transactions require a connection. Plain HTTP does not guarantee cold offline navigation or OS background execution. See [offline behavior and verification](../docs/offline-web-validation.md).
+The opened budget and bounded register views are cached with visible saved dates. A loaded page can record ordinary expenses while disconnected and edit/delete its own pending expenses. Confirmed balances exclude pending work. Durable queued requests resume on reconnect or foreground; interrupted edits retain their original identity and budget generation. Calculator expressions, new reference data, and beginning edits to confirmed transactions require a connection. Plain HTTP does not guarantee cold offline navigation or OS background execution. See [offline behavior and verification](../docs/offline-web-validation.md).
 
 ## iPhone Home Screen companion
 
 In Safari, open this server, choose **Share → Add to Home Screen**, and enable **Open as Web App** if offered. Launch the saved icon. Only an installed iPhone web app uses the compact expense view; ordinary browser tabs, iPad and desktop retain the full app.
 
-Choose a budget, add expenses, and edit/delete its ten most recent ordinary expenses. A newly added backdated expense stays available below the list. Payee search supports creating a payee inline. Accounts, budget editing, reports and recurrence controls are absent from this view.
+The companion opens the same budget automatically. Add expenses and edit/delete its ten most recent ordinary expenses. A newly added backdated expense stays available below the list. Payee search supports creating a payee inline. Accounts, budget editing, reports and recurrence controls are absent from this view.
 
-Open a budget online once to cache it. Offline additions (including new payees) remain editable until delivery; existing expenses need a connection to begin editing. An edit interrupted by disconnection is saved and retried, with the server resolving newer edits. Delivery resumes when the app reconnects or returns to the foreground; it does not poll while idle or depend on iOS background execution.
+Open the app online once to discover and cache the current budget. Offline additions (including new payees) remain editable until delivery; existing expenses need a connection to begin editing. An edit interrupted by disconnection is saved and retried, with the server resolving newer edits. Delivery resumes when the app reconnects or returns to the foreground; it does not poll while idle or depend on iOS background execution.
 
 HTTP supports online use and offline capture while the page remains loaded. Reopening from scratch without a connection requires HTTPS trusted by the iPhone, because the offline shell uses a service worker. Do not clear website storage while unsent expenses remain.
 
@@ -56,7 +56,7 @@ uv run actualBudget/tools/contract-smoke.py
 python3 actualBudget/tools/container-smoke.py
 ```
 
-Build the Rust binary and web assets first. Browser tests automatically launch that binary on a free port with a fresh temporary data directory, then stop it and remove the directory. Chromium (`CHROMIUM_PATH` overrides `/usr/bin/chromium`) maps `actualbudget.test` to loopback while retaining an insecure origin, exercising real LAN-HTTP restrictions. `ACTUALBUDGET_TEST_URL` may explicitly target an already running **isolated test server**; never use a live budget server. Tests create budgets, verify real server responses, inject a lost committed response then reload/retry, verify draft/storage-failure and two-tab behavior, and capture desktop/mobile/200%-text screenshots in ignored `web/test-results/`.
+Build the Rust binary and web assets first. Browser tests automatically launch that binary on a free port with a fresh temporary data directory, then stop it and remove the directory. Chromium (`CHROMIUM_PATH` overrides `/usr/bin/chromium`) maps `actualbudget.test` to loopback while retaining an insecure origin, exercising real LAN-HTTP restrictions. `ACTUALBUDGET_TEST_URL` may explicitly target an already running **isolated test server**; never use a live budget server. Tests use isolated budget data, verify real server responses, exercise saved-request recovery and capture desktop/mobile/200%-text screenshots in ignored `web/test-results/`. The single-budget suites cover fresh startup and upgrade consolidation: `npm run test:single-budget --prefix actualBudget/web` and `(cd actualBudget/web && node tests/single-budget-migration.mjs)`.
 
 The contract smoke uses a disposable server and a pinned JSON Schema validator managed by `uv` to check real API responses against the served contract. The container smoke builds the Dockerfile, uses a unique temporary volume, creates data through HTTP, recreates the container and checks persistence. It removes its test resources. It never uses the production volume. Build manually with `docker build -f actualBudget/Dockerfile -t actualbudget:local actualBudget`.
 
@@ -80,8 +80,6 @@ The [Android compatibility harness](../docs/compatibility.md) installs the **pub
 
 Each replacement slice must record baseline source/fixture evidence and observable results in the [parity ledger](../docs/parity-ledger.md). Passing the existing Android fixture does not establish feature parity for the new application.
 
-Display preferences are available from Settings within a budget. Formatting and experimental opt-ins persist in the budget's SQLite data; theme/language stay in this browser. Light, dark, midnight and system appearance are supported, with all 15 language catalogs shipped by Actual 26.10.0 loaded on demand. New explanatory/recovery copy uses English fallback where the released catalog lacks a translation. See [preferences contract and provenance](web/docs/preferences-contract.md).
+Display preferences are available from Settings. Formatting persists in the budget's SQLite data; theme/language stay in this browser. Choose Light, Dark, or System appearance. Midnight is the only dark palette. All 15 language catalogs shipped by Actual 26.10.0 load on demand; new explanatory/recovery copy uses English fallback where the released catalog lacks a translation. See [preferences contract and provenance](web/docs/preferences-contract.md).
 
 Preference changes and transaction entry require writable browser storage for recoverable drafts. A failed refresh can use validated cached formatting; without it, financial entry waits for preferences rather than guessing currency precision. Unconfirmed saved requests remain retryable after reload. `POST /api/v1/preferences/convert-actual` converts raw preference records with explicit warnings/unmapped values; it is not a full budget archive importer.
-
-Custom themes are available in Settings. Install one of the 33 pinned catalog choices, paste supported CSS variables/embedded fonts, or import exported theme data/Actual global theme preferences. Appearance is saved in this browser’s IndexedDB before applying; it never changes another device. Unsupported overrides produce explicit warnings and retain their source for export. Installed themes load locally without downloading again. A readable **Use built-in theme** control remains available even with poor-contrast custom colors. See the [theme contract and validation](web/docs/custom-theme-contract.md).

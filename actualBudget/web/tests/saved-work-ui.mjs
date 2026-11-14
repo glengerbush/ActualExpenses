@@ -38,7 +38,5 @@ export async function openSavedWork(page) {
     .click();
 }
 export async function history(page) {
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
 }

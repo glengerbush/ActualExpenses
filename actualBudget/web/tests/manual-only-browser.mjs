@@ -47,17 +47,8 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   async function open() {
     await page.goto(server.url);
-    const button = page.getByRole("button", {
-      name: new RegExp(name + ".*Open"),
-    });
-    const manual = page.getByRole("heading", {
-      name: "Transaction history",
-      exact: true,
-    });
-    await expect(button.or(manual)).toBeVisible();
-    if (await button.isVisible()) await button.click();
     await expect(
-      page.getByRole("heading", { name: "Transaction history", exact: true }),
+      page.getByRole("heading", { name: "Transactions", exact: true }),
     ).toBeVisible();
   }
   await open();
@@ -101,7 +92,7 @@ try {
   );
   await open();
   await expect(
-    page.getByRole("button", { name: "Transaction history", exact: true }),
+    page.getByRole("button", { name: "Transactions", exact: true }),
   ).toBeVisible();
   await expect(page.locator("td.amount").first()).toHaveText("+123.45");
   await page.keyboard.press("Control+k");
@@ -192,9 +183,7 @@ try {
   await expect(
     page.getByRole("checkbox", { name: "Sankey report", exact: true }),
   ).toHaveCount(0);
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   const directory = new URL("../test-results/manual-only/", import.meta.url);
   await mkdir(directory, { recursive: true });
   await page.screenshot({
@@ -213,12 +202,6 @@ try {
     .click();
   await page
     .getByRole("button", { name: "Transaction file", exact: true })
-    .click();
-  await page
-    .getByRole("button", {
-      name: "Continue to transaction import",
-      exact: true,
-    })
     .click();
   await expect(
     page.getByRole("heading", {

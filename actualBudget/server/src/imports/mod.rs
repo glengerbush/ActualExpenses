@@ -22,6 +22,7 @@ use uuid::Uuid;
 mod capabilities;
 mod merge;
 pub(crate) use capabilities::refresh_rules as refresh_rule_capabilities;
+pub(crate) use merge::identity as merge_identity;
 pub(crate) mod conversion;
 mod ynab;
 const MAX_ARCHIVE: usize = 16 * 1024 * 1024;
@@ -160,7 +161,7 @@ async fn upload(
             let (mut report,converted)=conversion::inspect(&bytes)?;
             report["archive_sha256"]=json!(hash);
             let id=Uuid::new_v4().to_string();
-            let budget=Uuid::new_v4().to_string();
+            let budget=db.query_row("SELECT id FROM budgets WHERE deleted=0",[],|r|r.get::<_,String>(0)).optional()?.unwrap_or_else(||Uuid::new_v4().to_string());
             let status=if report["requirements"].as_array().unwrap().iter().any(|r|r["blocking"]==true){"blocked"}else{"ready"};
             db.execute("INSERT INTO staged_imports(id,archive_sha256,original,budget_id,status,report,conversion) VALUES(?1,?2,?3,?4,?5,?6,?7)",params![id,hash,bytes.as_ref(),budget,status,report.to_string(),converted.to_string()])?;
             read_import(db,&id)
@@ -182,7 +183,13 @@ async fn activate(
     let key = idempotency_key(&headers)?;
     let result=store.run(move|db|store::write(db,&format!("POST /imports/{id}/activate"),&key,"{}",|db|{
         let stage=read_import(db,&id)?;
-        let budget=stage["budget_id"].as_str().unwrap();
+        let initializing = !db.query_row("SELECT EXISTS(SELECT 1 FROM budgets WHERE deleted=0)",[],|r|r.get::<_,bool>(0))?;
+        if initializing {
+            let name:String=db.query_row("SELECT json_extract(conversion,'$.name') FROM staged_imports WHERE id=?1",[&id],|r|r.get(0))?;
+            store::create_budget(db,crate::models::NewBudget{id:stage["budget_id"].as_str().unwrap().into(),name,budget_type:"tracking".into()})?;
+        }
+        let active=crate::single_budget::current(db)?;
+        let budget=active["id"].as_str().unwrap();
         if stage["status"]=="blocked" {return Err(Error::new(StatusCode::CONFLICT,"import_requires_conversion","Import contains unsupported data; review its conversion requirements"));}
         let converted:String=db.query_row("SELECT conversion FROM staged_imports WHERE id=?1",[&id],|r|r.get(0))?;
         let mut converted:Value=serde_json::from_str(&converted).map_err(Error::internal)?;
@@ -213,19 +220,24 @@ async fn activate(
             }
         }
         if stage["status"]!="activated" {
-            if db.query_row("SELECT EXISTS(SELECT 1 FROM budgets WHERE id=?1)",[budget],|row|row.get::<_,bool>(0))? {
-                return Err(Error::new(StatusCode::CONFLICT,"import_budget_conflict","Assigned budget identity already exists; this import cannot replace it"));
+            if !crate::single_budget::is_empty(db,budget)? {
+                return Err(Error::new(StatusCode::CONFLICT,"import_budget_conflict","This budget already contains data. Merge the archive instead."));
             }
+            crate::lifecycle::make_point(db,budget,"before_restore","Before initializing from an import")?;
             conversion::install(db,budget,&converted)?;
+            if !initializing {
+                db.execute("UPDATE budget_sync SET epoch=lower(hex(randomblob(16))) WHERE budget_id=?1",[budget])?;
+                db.execute("UPDATE budget_lifecycle SET generation=generation+1 WHERE budget_id=?1",[budget])?;
+            }
             if matches!(stage["report"]["source_format"].as_str(),Some("ynab4"|"nynab")){let clock=crate::concurrency::clock(db,budget,None)?;crate::rules::learning::imported(db,budget,&clock)?;}
 
             if !matches!(stage["report"]["source_format"].as_str(),Some("ynab4"|"nynab")){for (id,order) in original_orders(&db.query_row("SELECT original FROM staged_imports WHERE id=?1",[&id],|r|r.get::<_,Vec<u8>>(0))?)? {db.execute("UPDATE android_upgrade_order SET source_order=?3 WHERE budget_id=?1 AND id=?2",params![budget,id,order])?;}}
             crate::transfers::validate(db,budget)?;
             let source=&stage["report"]["source"];
             db.execute("INSERT INTO imported_sources(budget_id,import_id,source_local_id,source_cloud_id,source_group_id,source_metadata) VALUES(?1,?2,?3,?4,?5,?6)",params![budget,id,source["id"].as_str(),source["cloudFileId"].as_str(),source["groupId"].as_str(),source.to_string()])?;
-            db.execute("UPDATE staged_imports SET status='activated' WHERE id=?1",[&id])?;
+            db.execute("UPDATE staged_imports SET status='activated',budget_id=?2 WHERE id=?1",params![id,budget])?;
         }
-        Ok(json!({"id":budget,"name":converted["name"],"budget_type":"tracking"}))
+        crate::lifecycle::metadata(db,budget,false)
     })).await?;
     Ok((StatusCode::CREATED, data(result)))
 }
@@ -393,7 +405,7 @@ async fn upload_ynab(
     let payload = json!({"filename":query.filename,"sha256":hash}).to_string();
     let result=store.run(move|db|store::write(db,&format!("POST /imports/{kind}"),&key,&payload,|db|{
   if let Some(id)=db.query_row("SELECT id FROM staged_imports WHERE archive_sha256=?1",[&hash],|r|r.get::<_,String>(0)).optional()?{let existing=read_import(db,&id)?;if existing["report"]["source_format"]!=kind{return Err(Error::conflict("These original bytes were already staged using another source format. Review the existing import."));}return Ok(existing);}
-  let (mut report,converted)=ynab::inspect(kind,&query.filename,&bytes)?;report["archive_sha256"]=json!(hash);let status=if report["requirements"].as_array().unwrap().iter().any(|r|r["blocking"]==true){"blocked"}else{"ready"};let id=Uuid::new_v4().to_string();let budget=Uuid::new_v4().to_string();db.execute("INSERT INTO staged_imports(id,archive_sha256,original,budget_id,status,report,conversion) VALUES(?1,?2,?3,?4,?5,?6,?7)",params![id,hash,bytes.as_ref(),budget,status,report.to_string(),converted.to_string()])?;read_import(db,&id)
+  let (mut report,converted)=ynab::inspect(kind,&query.filename,&bytes)?;report["archive_sha256"]=json!(hash);let status=if report["requirements"].as_array().unwrap().iter().any(|r|r["blocking"]==true){"blocked"}else{"ready"};let id=Uuid::new_v4().to_string();let budget=db.query_row("SELECT id FROM budgets WHERE deleted=0",[],|r|r.get::<_,String>(0)).optional()?.unwrap_or_else(||Uuid::new_v4().to_string());db.execute("INSERT INTO staged_imports(id,archive_sha256,original,budget_id,status,report,conversion) VALUES(?1,?2,?3,?4,?5,?6,?7)",params![id,hash,bytes.as_ref(),budget,status,report.to_string(),converted.to_string()])?;read_import(db,&id)
  })).await?;
     Ok((StatusCode::CREATED, data(result)))
 }

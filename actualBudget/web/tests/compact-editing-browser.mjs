@@ -71,7 +71,6 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
-  await page.getByText("Compact editing", { exact: true }).click();
   await page.locator(`[data-transaction-id="${tx}"]`).click();
   await expect(page.getByLabel("Notes", { exact: true })).toHaveCount(0);
   await expect(
@@ -108,6 +107,11 @@ try {
   await expect(month).toHaveValue(originalMonth);
   await month.fill("Nov-26");
   await month.press("Enter");
+  await page
+    .locator(`.budget-category[data-id="${c}"]`)
+    .first()
+    .getByRole("button", { name: "Choose color for Food", exact: true })
+    .click();
   const color = page
     .locator(`.budget-category[data-id="${c}"]`)
     .first()
@@ -238,9 +242,8 @@ try {
       b = box(".months-count");
     return {
       delta: Math.abs(a.y + a.height / 2 - b.y - b.height / 2),
-      margin: getComputedStyle(
-        document.querySelector("#planning-title").closest(".page-heading"),
-      ).marginBottom,
+      margin: getComputedStyle(document.querySelector("#planning-title"))
+        .marginBottom,
     };
   });
   expect(alignment.delta).toBeLessThan(1);

@@ -2,7 +2,6 @@
   import { onMount } from "svelte";
   import {
     request,
-    list,
     uuid,
     errorMessage,
     RequestError,
@@ -37,6 +36,7 @@
   import type { Transaction, PendingMutation } from "./register-api";
   import { readTransactionDraft } from "./register-storage";
   import TransactionForm from "./TransactionForm.svelte";
+  import PendingRecovery from "./offline/PendingRecovery.svelte";
   interface View {
     epoch: string;
     snapshot: string;
@@ -44,11 +44,11 @@
     retained: Transaction[];
     unavailable: string[];
   }
-  const selectionKey = "actualExpenses.iphone.budget",
-    viewKey = (id: string) => `expense-view:${id}`,
+  const viewKey = (id: string) => `expense-view:${id}`,
     retainedKey = (id: string) => `expense-retained:${id}`;
-  let budgets = $state.raw<Budget[]>([]),
-    budget = $state.raw<Budget | null>(null);
+  let budget = $state.raw<Budget | null>(null);
+  let savedChanges = $state(false);
+  let earlierChanges = $state(0);
   let references = $state.raw<BudgetCache | null>(null),
     view = $state.raw<View | null>(null),
     queue = $state.raw<OutboxEntry[]>([]);
@@ -130,10 +130,9 @@
       run = ++queueGeneration;
     if (!id) return;
     try {
-      const [pending, completed] = await Promise.all([
-        entries(id),
-        receipts(id),
-      ]);
+      const [all, completed] = await Promise.all([entries(), receipts(id)]);
+      const pending = all.filter((entry) => entry.budgetId === id);
+      earlierChanges = all.filter((entry) => entry.budgetId !== id).length;
       if (!alive || run !== queueGeneration || budget?.id !== id) return;
       queue = pending;
       disconnected = !offlineStatus.reachable;
@@ -158,7 +157,6 @@
     deleting = null;
     recovery = false;
     try {
-      await writeValue(selectionKey, next.id);
       const [cache, savedView, savedRetention, pending, completed] =
         await Promise.all([
           readBudget(next.id),
@@ -206,12 +204,14 @@
       setReachable(true);
       if (error === connectionError) error = "";
       connectionError = "";
-      if (!id) {
-        const next = await list<Budget>("/budgets");
-        if (!alive || run !== generation) return;
-        budgets = next;
-        await saveCatalog(next);
-      } else {
+      const { data: current } = await request<{ data: Budget }>("/budget");
+      if (!alive || run !== generation) return;
+      await saveCatalog([current], current.id);
+      if (current.id !== id) {
+        await choose(current);
+        return;
+      }
+      if (id) {
         await deliverPending();
         const cache = await refreshBudget(id),
           pending = await entries(id);
@@ -231,6 +231,9 @@
         install(cache);
         view = data;
         queue = pending;
+        earlierChanges = (await entries()).filter(
+          (entry) => entry.budgetId !== id,
+        ).length;
         for (const row of [...data.recent, ...data.retained])
           observeVersions(row.field_versions);
         await writeValue(viewKey(id), data);
@@ -260,35 +263,16 @@
   }
   async function initialize() {
     try {
-      const [catalog, selected] = await Promise.all([
-        readCatalog(),
-        readValue<string>(selectionKey),
-      ]);
+      const catalog = await readCatalog();
       if (!alive) return;
-      budgets = catalog?.budgets ?? [];
-      const existing = budgets.find((b) => b.id === selected);
+      const existing = catalog?.singletonId
+        ? catalog.budgets.find((b) => b.id === catalog.singletonId)
+        : null;
       if (existing) await choose(existing);
       else await sync();
     } catch (e) {
       error = errorMessage(e);
       busy = false;
-    }
-  }
-  async function switchBudget() {
-    ++generation;
-    ++queueGeneration;
-    budget = null;
-    references = null;
-    view = null;
-    queue = [];
-    editor = false;
-    deleting = null;
-    error = "";
-    try {
-      await writeValue(selectionKey, null);
-      await sync();
-    } catch (e) {
-      error = errorMessage(e);
     }
   }
   function editable(row: Transaction) {
@@ -407,13 +391,10 @@
 <main class="expense-app" id="main">
   <header>
     <div>
-      <h1>{budget ? budget.name : "actualExpenses"}</h1>
+      <h1>actualExpenses</h1>
       {#if budget}<p>Recent expenses</p>{/if}
     </div>
     <div class="header-actions">
-      {#if budget}<button disabled={editor || busy} onclick={switchBudget}
-          >Budgets</button
-        >{/if}
       <button
         aria-label="Refresh expenses"
         title="Refresh expenses"
@@ -439,29 +420,29 @@
       >
     </div>{/if}
   {#if notice}<div class="toast" role="status">{notice}</div>{/if}
-  {#if !budget}
-    <h2>Choose a budget</h2>
-    {#if busy && !budgets.length}<p role="status">
-        Loading budgets…
-      </p>{:else if !budgets.length}<p>
-        No budgets yet. Create one in the full web app.
-      </p>{/if}
-    <div class="budget-list">
-      {#each budgets as item (item.id)}<button
-          disabled={busy || !compatible}
-          onclick={() => choose(item)}
-          >{item.name}<svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg
-          ></button
-        >{/each}
-    </div>
+  {#if savedChanges}
+    <PendingRecovery
+      onclose={() => {
+        savedChanges = false;
+        void localChanges();
+      }}
+    />
+    <button onclick={() => (savedChanges = false)}>Back to expenses</button>
+  {:else if !budget}
+    <p role="status">
+      {busy
+        ? "Opening expenses…"
+        : "Connect once to open your expenses. Saved changes remain on this device."}
+    </p>
+    {#if !busy}<button onclick={() => sync()}>Retry connection</button>{/if}
+    <button onclick={() => (savedChanges = true)}>Review saved changes</button>
   {:else if references}
+    {#if earlierChanges}<div class="saved-issues">
+        <p>Saved changes from before your budgets were combined need review.</p>
+        <button onclick={() => (savedChanges = true)}
+          >Review saved changes</button
+        >
+      </div>{/if}
     {#if problems.length}<section
         class="saved-issues"
         aria-label="Saved expense issues"
@@ -609,18 +590,6 @@
   h2 {
     font-size: 1.15rem;
     margin: 1rem 0;
-  }
-  .budget-list {
-    display: grid;
-  }
-  .budget-list button {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: left;
-    padding: 1rem;
-    border-radius: 0;
-    border-width: 0 0 1px;
   }
   .add-expense {
     width: 100%;

@@ -2,6 +2,8 @@ package org.actualexpenses.android
 
 import android.app.DatePickerDialog
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -46,8 +48,8 @@ import com.google.gson.Gson
 /*
  THESIS: Record a purchase, then return to a compact expense register. No dashboard.
  OWN-WORLD: Native Material 3, quiet surfaces, system type, restrained green action.
- STORY: Budget context, delivery state, recent purchases, one Add expense action.
- FIRST VIEWPORT: Top budget switch, compact sync state, full-width register, bottom FAB.
+ STORY: Delivery state, recent purchases, one Add expense action.
+ FIRST VIEWPORT: Expenses title, compact sync state, full-width register, bottom FAB.
  FORM: Brief-pinned minimal native Android Operate; seed 5ae1515c is subordinate to it.
  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
 */
@@ -71,28 +73,23 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
         ExpenseEditor(state, editorId?.takeUnless { it == "new" }, original, editorContext, editorSession, actions, snackbar) { editorId = null }
         return
     }
-    BackHandler(state.screen == Screen.BUDGETS) { actions.showServer() }
     BackHandler(state.screen == Screen.SERVER && state.canCancelConnection) { actions.cancelConnection() }
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    if (state.screen == Screen.EXPENSES) {
-                        TextButton(onClick = actions::showBudgets, enabled = !state.busy && state.pendingCount == 0 && !state.scheduledWorkPending) {
-                            Text(state.selectedBudget?.name ?: "Expenses", style = MaterialTheme.typography.titleLarge,
-                                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                            Icon(Icons.Outlined.ArrowDropDown, contentDescription = "Choose budget")
-                        }
-                    } else Text("ActualExpenses")
+                    Text(if (state.screen == Screen.EXPENSES) "Expenses" else "ActualExpenses")
                 },
                 navigationIcon = {
                     if (state.screen == Screen.SERVER && state.canCancelConnection) IconButton(onClick = actions::cancelConnection, enabled = !state.busy) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to expenses")
                     }
-                    else if (state.screen == Screen.BUDGETS) IconButton(onClick = actions::showServer) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to server selection") }
                 },
                 actions = {
-                    if (state.screen != Screen.SERVER && state.screen != Screen.RECOVERY) {
+                    if (state.screen == Screen.EXPENSES) {
+                        TextButton(onClick = actions::showServer, enabled = !state.busy && state.pendingCount == 0 && !state.scheduledWorkPending) { Text("Server") }
+                    }
+                    if (state.screen == Screen.EXPENSES || state.screen == Screen.SAVED_WORK) {
                         IconButton(onClick = actions::refresh, enabled = !state.busy) {
                             Icon(Icons.Outlined.Refresh, if (state.screen == Screen.EXPENSES) "Refresh expenses" else "Refresh list")
                         }
@@ -113,15 +110,15 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
             Column(Modifier.widthIn(max = 640.dp).fillMaxWidth()) {
                 if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-                if (state.splitRecovery) Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (state.splitRecovery && state.screen != Screen.SAVED_WORK) Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("This expense became a split or transfer. The rejected change remains saved on this phone. Review the transaction in actualBudget, then discard the rejected change to resume syncing.")
                     OutlinedButton(onClick = actions::discardRejectedSplitEdit, enabled = !state.busy, modifier = Modifier.heightIn(min = 48.dp)) { Text("Discard rejected expense edit") }
                 }
-                if(state.screen!=Screen.EXPENSES&&state.scheduledWorkError!=null)ScheduledWorkRecovery(state,actions)
+                if(state.screen!=Screen.EXPENSES&&state.screen!=Screen.SAVED_WORK&&state.scheduledWorkError!=null)ScheduledWorkRecovery(state,actions)
                 when (state.screen) {
                     Screen.SERVER -> ServerSelection(state, actions)
                     Screen.RECOVERY -> LegacyRecovery(state, actions)
-                    Screen.BUDGETS -> Choices("Choose a budget", "Use one budget on this phone.", "No budgets yet. Create or import one in actualBudget, then refresh this list.", state.budgets, state.busy, actions::chooseBudget, "Change server", actions::showServer, state.pendingCount==0&&!state.scheduledWorkPending)
+                    Screen.SAVED_WORK -> SavedWorkRecovery(state, actions)
                     Screen.EXPENSES -> ExpenseList(state,actions) { row -> actions.beginEdit(row.id) { session -> editorContext=Gson().toJson(session.context);editorSession=Gson().toJson(session);editorId = row.id } }
                 }
             }
@@ -172,7 +169,7 @@ private fun LegacyRecovery(state: ExpenseUiState, actions: ExpenseUiActions) {
             )
             state.budgets.forEach { budget ->
                 OutlinedButton(
-                    onClick = { actions.chooseBudget(budget.id) },
+                    onClick = { actions.recoverLegacyBudget(budget.id) },
                     enabled = !state.busy,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 ) {
@@ -203,23 +200,30 @@ private fun ServerSelection(state: ExpenseUiState, actions: ExpenseUiActions) {
 }
 
 @Composable
-private fun Choices(title: String, description: String, emptyMessage: String, choices: List<Choice>, busy: Boolean, onChoose: (String) -> Unit, changeLabel: String = "", onChange: (() -> Unit)? = null, canChange: Boolean = true) {
-    LazyColumn(contentPadding = PaddingValues(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item {
-            Text(title, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
-            Text(description, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp, bottom = 16.dp))
-            if(onChange!=null) {
-                TextButton(onClick=onChange,enabled=canChange && !busy) {Text(changeLabel)}
-                if(!canChange)Text("Reconnect before switching budgets so saved expenses can sync.",style=MaterialTheme.typography.bodySmall)
-            }
+private fun SavedWorkRecovery(state: ExpenseUiState, actions: ExpenseUiActions) {
+    var exported by remember { mutableStateOf(false) }
+    var confirming by remember { mutableStateOf(false) }
+    val saveFile = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) actions.exportRecovery(uri.toString()) { exported = true }
+    }
+    Column(Modifier.verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("Recover saved work", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
+        Text(state.recoveryMessage.orEmpty())
+        Text("The file includes your saved expenses, original requests and any unconfirmed schedule work. Keep it to review against the server history; some requests may already have completed.")
+        Button(onClick = { saveFile.launch("actualExpenses-recovery.json") }, enabled = !state.busy, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+            Text("Save recovery file")
         }
-        if (choices.isEmpty() && !busy) item { Text(emptyMessage) }
-        items(choices, key = { it.id }) { item ->
-            OutlinedButton(onClick = { onChoose(item.id) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(item.name, modifier = Modifier.fillMaxWidth(), style = MaterialTheme.typography.titleMedium)
-            }
+        if (exported) OutlinedButton(onClick = { confirming = true }, enabled = !state.busy, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+            Text("Open current budget")
         }
     }
+    if (confirming) AlertDialog(
+        onDismissRequest = { confirming = false },
+        title = { Text("Open current budget?") },
+        text = { Text("Your exported requests will stop retrying. They remain in the recovery file and a local archive. Review them against the server history before entering any missing expenses again.") },
+        confirmButton = { TextButton(onClick = { confirming = false; actions.openCurrentAfterExport() }) { Text("Open current budget") } },
+        dismissButton = { TextButton(onClick = { confirming = false }) { Text("Cancel") } },
+    )
 }
 
 @Composable
@@ -279,7 +283,6 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
     val original = editSession?.original
     val currency = rememberSaveable(key) { capturedContext?.currency ?: state.currency }
     val decimalPlaces = rememberSaveable(key) { capturedContext?.decimalPlaces ?: state.decimalPlaces }
-    val budgetName = rememberSaveable(key) {state.selectedBudget?.name.orEmpty()}
 
     val operationId = rememberSaveable(key) { UUID.randomUUID().toString() }
     var amount by rememberSaveable(key) { mutableStateOf(original?.amount ?: existing?.let { BigDecimal.valueOf(it.amountMinor).abs().movePointLeft(decimalPlaces).toPlainString() } ?: "") }
@@ -314,7 +317,6 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
             Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().verticalScroll(rememberScrollState()).imePadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(budgetName, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(amount, { amount = it }, label = { Text(if (currency.isBlank()) "Amount" else "Amount ($currency)") },
                     textStyle = MaterialTheme.typography.headlineMedium, singleLine = true, enabled = !saving, isError = submitted && !valid,
                     supportingText = { if (submitted && !valid) Text(validation.exceptionOrNull()?.message ?: "Enter a valid expense amount.") },

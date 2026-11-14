@@ -3,19 +3,28 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
 import { startServer } from "../web/tests/server.mjs";
+assert.ok(
+  !process.env.ACTUALBUDGET_TEST_URL,
+  "This multi-fixture regression requires isolated local servers",
+);
 const fixture = JSON.parse(
-    await readFile(
-      new URL(
-        "../tests/fixtures/" +
-          (process.argv.includes("--types")
-            ? "query-types-source.json"
-            : "query-resources-source.json"),
-        import.meta.url,
-      ),
+  await readFile(
+    new URL(
+      "../tests/fixtures/" +
+        (process.argv.includes("--types")
+          ? "query-types-source.json"
+          : "query-resources-source.json"),
+      import.meta.url,
     ),
   ),
-  server = await startServer(),
+);
+let server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+async function freshServer() {
+  await server.stop();
+  server = await startServer();
+  api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+}
 async function request(path, body, status = 200) {
   const r = await fetch(api + path, {
     method: body === undefined ? "GET" : "POST",
@@ -93,6 +102,7 @@ try {
   let tested = 0;
   const failures = [];
   for (const set of fixture.sets) {
+    await freshServer();
     const bytes = await readFile(
       new URL("../tests/fixtures/" + set.archive.filename, import.meta.url),
     );

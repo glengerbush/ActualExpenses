@@ -48,34 +48,14 @@ try {
     ["ready", "activated"].includes(stage.data.status),
     JSON.stringify(stage),
   );
-  if (stage.data.status === "ready")
-    assert.equal(
-      (
-        await api(
-          `/imports/${stage.data.id}/activate`,
-          {},
-          { "Idempotency-Key": randomUUID() },
-        )
-      ).status,
-      201,
-    );
-  const original = "/budgets/" + stage.data.budget_id,
-    importedState = await api(original + "/reporting"),
-    budget = randomUUID(),
-    root = "/budgets/" + budget;
-  assert.equal(
-    (
-      await api(
-        original + "/duplicate",
-        { id: budget, name: "Crossover proof " + budget },
-        {
-          "Idempotency-Key": randomUUID(),
-          "X-Actual-Budget-Epoch": importedState.data.epoch,
-        },
-      )
-    ).status,
-    201,
+  const activated = await api(
+    `/imports/${stage.data.id}/activate`,
+    {},
+    { "Idempotency-Key": randomUUID() },
   );
+  assert.equal(activated.status, 201);
+  const budget = activated.data.id,
+    root = "/budgets/" + budget;
   const before = await api(root + "/reporting"),
     widget = before.data.documents.find((d) => d.id === source.widgets[0].id);
   assert.deepEqual(widget.config.meta, source.widgets[0].meta);

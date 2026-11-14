@@ -38,10 +38,20 @@ async function drain() {
       return;
     }
     offlineStatus.compatible = true;
+    const { data: current } = await request<{ data: { id: string } }>(
+      "/budget",
+    );
     for (;;) {
       const entry = await claimNext();
       if (!entry) break;
       try {
+        if (entry.budgetId !== current.id && !entry.cancelRequested) {
+          await release(
+            entry,
+            "This saved change belongs to a budget that was combined. It is retained for recovery and has not been sent to the current budget.",
+          );
+          continue;
+        }
         if (
           entry.pending.expenseOnly &&
           !info.capabilities?.includes("expense_kind_precondition")

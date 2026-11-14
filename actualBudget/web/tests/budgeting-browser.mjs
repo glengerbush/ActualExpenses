@@ -80,12 +80,31 @@ try {
     .getByLabel("Budget month", { exact: true })
     .dispatchEvent("change");
   await expect(page.getByTestId("2026-01-real_saved")).toHaveText("400.00");
+  // An overspent total must not look like a positive balance.
+  await expect(page.locator(".summary .balance-badge")).toHaveClass(/negative/);
+  await expect(
+    page.getByRole("button", {
+      name: "Budget",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.getByLabel("Months displayed").selectOption("2");
+  const nextMonth = page.locator(".budget-month").nth(1);
+  await nextMonth.locator(".month-metrics summary").click();
+  await expect(nextMonth.getByTestId("2026-02-real_saved")).toBeVisible();
+  await expect(
+    nextMonth.getByTestId("2026-02-total_budget_income"),
+  ).toBeVisible();
+  await page.getByLabel("Months displayed").selectOption("1");
   const amountInput = () =>
     page.getByLabel("Planned Food for January 2026", { exact: true });
   // Current entry autosaves inline; released durable drafts remain recoverable.
   await amountInput().fill("100.00");
   await amountInput().press("Enter");
   await expect(page.getByTestId("2026-01-total_budgeted")).toHaveText("100.00");
+  await expect(page.locator(".summary .balance-badge")).not.toHaveClass(
+    /negative/,
+  );
   async function savedDraft(amount) {
     const plan = await call(`/budgets/${budget}/budget?month=2026-01`);
     await page.evaluate(
@@ -120,7 +139,9 @@ try {
   await page
     .getByRole("button", { name: "Edit Food for January 2026", exact: true })
     .click();
-  await page.getByRole("button", { name: "Transactions", exact: true }).click();
+  await page
+    .getByRole("button", { name: "View transactions", exact: true })
+    .click();
   await expect(
     page.locator(".register-table tr[data-transaction-id]"),
   ).toHaveCount(2);

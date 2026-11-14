@@ -97,7 +97,6 @@ try {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(server.url);
-  await page.getByRole("button", { name: /Row editing.*Open/ }).click();
   const table = page.locator(".register-table");
   const expense = table.locator(`[data-transaction-id="${rows[0]}"]`);
   const income = table.locator(`[data-transaction-id="${rows[1]}"]`);

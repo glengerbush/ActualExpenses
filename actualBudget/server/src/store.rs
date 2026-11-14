@@ -81,6 +81,15 @@ pub fn accounts(db: &Connection, budget: &str) -> Result<Value, Error> {
     ))
 }
 pub fn create_budget(db: &Connection, input: NewBudget) -> Result<Value, Error> {
+    if db.query_row(
+        "SELECT EXISTS(SELECT 1 FROM budgets WHERE deleted=0)",
+        [],
+        |r| r.get::<_, bool>(0),
+    )? {
+        return Err(Error::conflict(
+            "This installation already has its budget. Open the current budget instead.",
+        ));
+    }
     let tx = db;
     if tx.query_row(
         "SELECT EXISTS(SELECT 1 FROM budgets WHERE id=?1)",

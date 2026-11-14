@@ -28,6 +28,7 @@ mod register_settings;
 mod reports;
 mod rules;
 mod schedules;
+mod single_budget;
 mod splits;
 mod store;
 mod transaction_batch;

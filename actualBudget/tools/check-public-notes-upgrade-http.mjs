@@ -53,13 +53,21 @@ function financial(value, historical = false) {
   const result = structuredClone(value);
   delete result.snapshot;
   for (const row of result.data) {
-    for (const key of ["category_color", "category_group_color", "color_override", "group_sort_order"]) delete row[key];
-    if (historical) Object.assign(row, {notes: "", cleared: true, reconciled: false});
+    for (const key of [
+      "category_color",
+      "category_group_color",
+      "color_override",
+      "group_sort_order",
+    ])
+      delete row[key];
+    if (historical)
+      Object.assign(row, { notes: "", cleared: true, reconciled: false });
   }
-  if (historical) for (const key of ["balances", "filtered_balances"]) {
-    result[key].cleared = result[key].total;
-    result[key].uncleared = 0;
-  }
+  if (historical)
+    for (const key of ["balances", "filtered_balances"]) {
+      result[key].cleared = result[key].total;
+      result[key].uncleared = 0;
+    }
   return result;
 }
 try {
@@ -69,9 +77,17 @@ try {
   assert.equal(checkpoint.data.epoch, fixture.checkpoint.data.epoch);
   assert.equal(checkpoint.data.generation, fixture.checkpoint.data.generation);
   assert.equal(checkpoint.data.snapshot, register.snapshot);
-  const history = await call(root + "/history", undefined, 200, fixture.owner_headers);
-  assert.deepEqual({...history.data, epoch: fixture.history.data.epoch}, fixture.history.data,
-    "Database migration retains owned actions while rotating the view epoch");
+  const history = await call(
+    root + "/history",
+    undefined,
+    200,
+    fixture.owner_headers,
+  );
+  assert.deepEqual(
+    { ...history.data, epoch: fixture.history.data.epoch },
+    fixture.history.data,
+    "Database migration retains owned actions while rotating the view epoch",
+  );
   for (const c of fixture.commands)
     assert.deepEqual(
       await call(
@@ -117,9 +133,45 @@ try {
     retained.result,
     "Original blocked upload receipt remains immutable",
   );
-  const activated = (await call("/imports/" + stageId + "/activate", {}, 201))
-    .data;
-  assert.deepEqual((await call("/budgets/" + activated.id + "/notes/read", { id: source.id })).data, source.first);
+  // Full archive note conversion is tested independently on an empty singleton.
+  // The upgraded installation retains the original staged bytes and receipt above.
+  const fresh = await startServer();
+  try {
+    const freshApi =
+      fresh.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+    const uploaded = await fetch(freshApi + "/imports/actual", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/zip",
+        "Idempotency-Key": randomUUID(),
+      },
+      body: original,
+    });
+    assert.equal(uploaded.status, 201);
+    const freshStage = (await uploaded.json()).data;
+    const activation = await fetch(
+      freshApi + `/imports/${freshStage.id}/activate`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": randomUUID(),
+        },
+        body: "{}",
+      },
+    );
+    assert.equal(activation.status, 201);
+    const active = (await activation.json()).data;
+    const note = await fetch(freshApi + `/budgets/${active.id}/notes/read`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: source.id }),
+    });
+    assert.equal(note.status, 200);
+    assert.deepEqual((await note.json()).data, source.first);
+  } finally {
+    await fresh.stop();
+  }
   const archive = await readFile(
     new URL("../tests/fixtures/public-notes-schema23.zip", import.meta.url),
   );

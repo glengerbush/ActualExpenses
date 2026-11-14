@@ -50,9 +50,6 @@ try {
   });
   page.on("pageerror", (error) => console.log("PAGE ERROR", error.message));
   await page.goto(server.url);
-  await page
-    .getByRole("button", { name: "Transfer browser Tracking Open" })
-    .click();
   await page.getByRole("button", { name: "Move money", exact: true }).click();
 
   await page.getByLabel("From account", { exact: true }).selectOption(cash);

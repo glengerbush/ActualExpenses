@@ -12,10 +12,10 @@ import {
 const root = new URL("../tests/fixtures/complete-migration/", import.meta.url);
 const manifest = JSON.parse(await readFile(new URL("manifest.json", root)));
 const directory = await mkdtemp(tmpdir() + "/complete-migration-http-");
-let server, api;
+let server, api, currentDirectory = directory;
 const epochs = new Map();
 async function start() {
-  server = await startServer({ dataDirectory: directory });
+  server = await startServer({ dataDirectory: currentDirectory });
   api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
 }
 async function call(path, body, status = 200, key = randomUUID()) {
@@ -336,56 +336,22 @@ function reconcile(source, archive) {
     source.metadata,
   );
 }
-const cases = [];
 try {
-  await start();
   for (const fixture of manifest.cases) {
+    currentDirectory = directory + '/' + fixture.name;
+    await start();
     const bytes = await readFile(new URL(fixture.name + ".zip", root));
-    assert.equal(
-      createHash("sha256").update(bytes).digest("hex"),
-      fixture.archive_sha256,
-    );
+    assert.equal(createHash("sha256").update(bytes).digest("hex"),fixture.archive_sha256);
     const stage = (await call("/imports/actual", bytes, 201)).data;
-    assert.equal(
-      stage.status,
-      "ready",
-      JSON.stringify(stage.report.requirements),
-    );
-    assert.deepEqual(stage.report.counts, fixture.source_counts);
-    assert.deepEqual(await call(`/imports/${stage.id}/original.zip`), bytes);
-    cases.push({
-      fixture,
-      bytes,
-      stage,
-      source: sourceArchive(bytes),
-      activationKey: randomUUID(),
-    });
-  }
-  // Shutdown between staging and activation: all sources/audits remain recoverable.
-  await server.stop();
-  await start();
-  for (const item of cases) {
-    const { stage, activationKey } = item;
-    assert.deepEqual((await call(`/imports/${stage.id}`)).data, stage);
-    item.activation = await call(
-      `/imports/${stage.id}/activate`,
-      {},
-      201,
-      activationKey,
-    );
-  }
-  // Replay committed activation after restart, as if its acknowledgement was lost.
-  await server.stop();
-  await start();
-  assert.equal((await call("/budgets")).data.length, cases.length);
-  for (const {
-    fixture,
-    bytes,
-    stage,
-    source,
-    activation,
-    activationKey,
-  } of cases) {
+    assert.equal(stage.status,"ready",JSON.stringify(stage.report.requirements));
+    assert.deepEqual(stage.report.counts,fixture.source_counts);
+    assert.deepEqual(await call(`/imports/${stage.id}/original.zip`),bytes);
+    const source=sourceArchive(bytes), activationKey=randomUUID();
+    await server.stop(); await start();
+    assert.deepEqual((await call(`/imports/${stage.id}`)).data,stage);
+    const activation=await call(`/imports/${stage.id}/activate`,{},201,activationKey);
+    await server.stop(); await start();
+    assert.equal((await call("/budgets")).data.length,1);
     const path = `/budgets/${stage.budget_id}`;
     assert.deepEqual(
       await call(`/imports/${stage.id}/activate`, {}, 201, activationKey),
@@ -439,7 +405,9 @@ try {
     console.log(
       `PASS ${fixture.name}: ${source.tables.transactions.length} source rows, all feature records, balances, activation replay, backup/restore and original audit`,
     );
+    await server.stop();
   }
+  await start();
   const before = (await call("/budgets")).data;
   await call("/imports/actual", Buffer.from("corrupt archive"), 422);
   assert.deepEqual((await call("/budgets")).data, before);

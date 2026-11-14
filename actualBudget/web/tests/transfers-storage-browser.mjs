@@ -51,10 +51,6 @@ try {
         opening_date: "2026-01-01",
       });
     await page.goto(server.url);
-    await page
-      .locator(".budget-list button")
-      .filter({ hasText: `Storage ${scenario}` })
-      .click();
     await page.getByRole("button", { name: "Move money", exact: true }).click();
     await page.getByLabel("From account", { exact: true }).selectOption(from);
     await page.getByLabel("To account", { exact: true }).selectOption(to);

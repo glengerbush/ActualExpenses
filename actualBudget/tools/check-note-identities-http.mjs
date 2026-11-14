@@ -3,19 +3,22 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
 import { startServer } from "../web/tests/server.mjs";
-import { cloneImportedTemplate } from "../web/tests/import-template.mjs";
+assert.ok(
+  !process.env.ACTUALBUDGET_TEST_URL,
+  "This multi-fixture regression requires isolated local servers",
+);
 const source = JSON.parse(
-    await readFile(
-      new URL(
-        "../tests/fixtures/note-identities" +
-          (process.argv.includes("--prefix") ? "-prefix" : "") +
-          "-source.json",
-        import.meta.url,
-      ),
+  await readFile(
+    new URL(
+      "../tests/fixtures/note-identities" +
+        (process.argv.includes("--prefix") ? "-prefix" : "") +
+        "-source.json",
+      import.meta.url,
     ),
   ),
-  server = await startServer(),
-  api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+);
+const server = await startServer();
+let api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
 async function call(path, body, status = 200, headers = {}) {
   const r = await fetch(api + path, {
     method: body === undefined ? "GET" : "POST",
@@ -55,7 +58,7 @@ async function imported(archive) {
   );
   const stage = await upload("/imports/actual", bytes),
     active = (await call("/imports/" + stage.id + "/activate", {}, 201)).data;
-  return "/budgets/" + (await cloneImportedTemplate(api, active.id));
+  return "/budgets/" + active.id;
 }
 const retired = new Set(
   source.identities
@@ -175,8 +178,17 @@ try {
     }
   }
   const final = source.cases.at(-1).state;
-  const sourceCopy = await imported(source.archive);
-  await state(sourceCopy, final, "genuine cleared source import");
+  const previousApi = api,
+    sourceServer = await startServer();
+  try {
+    api =
+      sourceServer.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+    const sourceCopy = await imported(source.archive);
+    await state(sourceCopy, final, "genuine cleared source import");
+  } finally {
+    api = previousApi;
+    await sourceServer.stop();
+  }
   const point = (
       await call(root + "/backups", { label: "Cleared note identities" }, 201)
     ).data,

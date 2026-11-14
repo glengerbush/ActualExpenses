@@ -25,11 +25,11 @@
     oncreated,
     oncancel,
     initialSource = "actual",
-    budgets = [],
+    budget,
     embedded = false,
   }: {
     initialSource?: ImportSource;
-    budgets?: Budget[];
+    budget: Budget;
     embedded?: boolean;
     oncreated: (budget: Budget) => void | Promise<void>;
     oncancel: () => void;
@@ -49,8 +49,6 @@
   const title = $derived(
     activeSource === "actual" ? "Import Actual budget" : "Import YNAB budget",
   );
-  let destination = $state("new");
-  let destinationId = $state("");
   let imports = $state.raw<ImportStage[]>([]);
   let files = $state<FileList>();
   let busy = $state(true);
@@ -69,8 +67,6 @@
     try {
       session = await readImportSession();
       sourceKind = initialSource;
-      destination = session?.destination ? "existing" : "new";
-      destinationId = session?.destination?.budgetId ?? budgets[0]?.id ?? "";
       imports = await list<ImportStage>("/imports");
       if (session?.stage && !session.pendingActivation) {
         const response = await request<{ data: ImportStage }>(
@@ -171,13 +167,19 @@
     try {
       let pending = session;
       if (!pending.pendingActivation) {
-        let target: ImportSession["destination"];
-        if (destination === "existing") {
-          if (!destinationId) throw new Error("Choose a destination budget.");
-          const checkpoint = await request<{ data: { epoch: string } }>(
-            `/budgets/${destinationId}/checkpoint`,
+        const { data: current } = await request<{
+          data: Budget & { empty: boolean };
+        }>("/budget");
+        if (current.id !== budget.id)
+          throw new Error(
+            "Your budget changed. Reopen Import before continuing.",
           );
-          target = { budgetId: destinationId, epoch: checkpoint.data.epoch };
+        let target: ImportSession["destination"];
+        if (!current.empty) {
+          const checkpoint = await request<{ data: { epoch: string } }>(
+            `/budgets/${current.id}/checkpoint`,
+          );
+          target = { budgetId: current.id, epoch: checkpoint.data.epoch };
         }
         pending = { ...pending, destination: target, pendingActivation: true };
       }
@@ -257,7 +259,7 @@
     {t(
       activeSource === "actual"
         ? "Review an unencrypted Actual 26.10.0 ZIP export before opening it. Your original file is kept for recovery."
-        : "Review your YNAB export before opening a separate budget. Your original file is kept for recovery.",
+        : "Review your YNAB export before importing it. Your original file is kept for recovery.",
     )}
     {#if activeSource !== "actual"}{t(
         "YNAB4 uses a ZIP of its budget folder; nYNAB uses a JSON export. Source edit logs do not become undo history.",
@@ -346,51 +348,19 @@
         >{t("Download original archive")}</a
       >
     </p>
-    <fieldset
-      class="import-destination"
-      disabled={busy || !!session?.pendingActivation}
-    >
-      <legend>Import into</legend>
-      <label
-        ><input type="radio" bind:group={destination} value="new" /> A new budget</label
-      >
-      <label
-        ><input
-          type="radio"
-          bind:group={destination}
-          value="existing"
-          disabled={!budgets.length}
-        /> An existing budget</label
-      >
-      {#if destination === "existing"}<label for="archive-destination"
-          >Budget</label
-        >
-        <select id="archive-destination" bind:value={destinationId}>
-          {#each budgets as budget (budget.id)}<option value={budget.id}
-              >{budget.name}</option
-            >{/each}
-        </select>
-        <p>
-          Merge transactions, payees and categories. Existing transactions,
-          plans and settings stay intact. Previously imported transaction IDs
-          are skipped.
-        </p>
-      {/if}
-    </fieldset>
+    <p>
+      Import into your budget. Existing transactions, plans and settings stay
+      intact. Previously imported transaction IDs are skipped. An empty budget
+      receives the complete archive.
+    </p>
     <div class="form-actions">
       <button
         class="primary"
         onclick={activate}
-        disabled={busy ||
-          stage.status === "blocked" ||
-          (destination === "existing" && !destinationId)}
+        disabled={busy || stage.status === "blocked"}
         >{session?.pendingActivation
           ? t("Retry saved import")
-          : destination === "existing"
-            ? "Merge into selected budget"
-            : stage.status === "activated"
-              ? t("Open imported budget")
-              : t("Activate imported budget")}</button
+          : "Import reviewed archive"}</button
       >
       <button onclick={another} disabled={busy || session?.pendingActivation}
         >{t("Review another file")}</button
@@ -463,23 +433,6 @@
 </section>
 
 <style>
-  .import-destination {
-    display: grid;
-    gap: 0.6rem;
-    border: 0;
-    padding: 0;
-    margin: 1.5rem 0;
-  }
-  .import-destination label:has(input) {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 44px;
-  }
-  .import-destination input {
-    width: auto;
-  }
-
   .import-budget {
     max-width: 48rem;
   }

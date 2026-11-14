@@ -54,7 +54,7 @@ function financial(rows, source = false) {
       payee: t[source ? "payee" : "payee_id"] ?? null,
       amount: t.amount,
       date: t.date,
-      notes: source ? "" : t.notes ?? "",
+      notes: source ? "" : (t.notes ?? ""),
       cleared: source ? true : !!t.cleared,
       reconciled: source ? false : !!t.reconciled,
       starting: !!t[source ? "starting_balance_flag" : "starting_balance"],
@@ -133,7 +133,7 @@ try {
       { input: archive, encoding: "utf8" },
     ),
   );
-  assert.equal(portable.manifest.schema_version, 36);
+  assert.equal(portable.manifest.schema_version, 37);
   assert.ok(
     !Object.keys(portable.state.tables).some((name) =>
       name.startsWith("bank_"),

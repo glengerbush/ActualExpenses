@@ -16,7 +16,7 @@ spacing:
 
 ## Overview
 
-Native Material 3 for a focused point-of-purchase task. The approved minimal flow governs the surface: account, recent expenses, add/edit. No balance hero, charts, decorative illustrations or bottom navigation destinations.
+Native Material 3 for a focused point-of-purchase task. The approved minimal flow governs the surface: server connection, recent expenses, add/edit. No balance hero, charts, decorative illustrations or bottom navigation destinations.
 
 ## Colors
 
@@ -40,7 +40,7 @@ Material 3 component shapes. Do not separately style controls to resemble anothe
 
 ## Components
 
-- Account is a top-app-bar button; one tap opens account selection.
+- The app bar says Expenses. Server is a secondary text action; no budget name or chooser.
 - Add expense is the sole extended FAB. Refresh is a secondary app-bar icon.
 - List items show payee, date/category, exact formatted money, and explicit pending/deletion state.
 - Outlined form fields, native Android date picker, searchable category dialog, inline payee suggestions.
@@ -56,6 +56,10 @@ Preserve Android familiarity. Keep actual data primary. Do not present synthetic
 
 ## API transition refinement (ticket 06)
 
-Preserve the existing native Material 3 Operate surface. Setup asks only for a server address, then budget/account. Account selection exposes Change budget, budget selection exposes Change server; pending work prevents crossing its original scope. Legacy state gets a plain recovery explanation with no destructive reset or competing setup action.
+Preserve the existing native Material 3 Operate surface. Setup asks only for a server address and automatically opens its single expense ledger. Server is available from the register; pending work prevents crossing its original scope. Legacy state gets a plain recovery explanation with no destructive reset or competing setup action.
 
 Expense editors preserve their original financial context across screen restoration. Restored budget or incompatible server errors retain entered values. No extra navigation, auth fields or sync dashboard were introduced. Final native render evidence and qualification limits live in [Android API validation](../docs/android-api-validation.md).
+
+## Single-budget recovery
+
+Retired budget identities and changed generations keep their original queued requests. A native document picker saves the full recovery file. Only after a successful export does Open current budget appear; a confirmation explains that old requests stop retrying and remain archived. Ordinary startup has no budget chooser or name.

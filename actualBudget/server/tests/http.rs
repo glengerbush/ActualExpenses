@@ -390,28 +390,40 @@ fn budget_scoping_preserves_safe_integer_extremes_and_failed_writes_are_retryabl
         server.post(&second_path, "account", input.clone()).status(),
         404
     );
-    let response = server.post(
-        "/api/v1/budgets",
-        "second-budget",
-        json!({"id":second,"name":"Other","budget_type":"tracking"}),
-    );
-    assert_eq!(response.status(), 201);
     assert_eq!(
-        server.post(&second_path, "account", input.clone()).status(),
+        server.post(&first_path, "positive", input.clone()).status(),
         201
     );
+    assert_eq!(
+        server
+            .post(
+                "/api/v1/budgets",
+                "second-budget",
+                json!({"id":second,"name":"Other"})
+            )
+            .status(),
+        409
+    );
     let mut negative = input;
+    negative["id"] = json!("00000000-0000-4000-8000-000000000099");
     negative["opening_balance"] = json!(-9007199254740991_i64);
     assert_eq!(server.post(&first_path, "account", negative).status(), 201);
     let server = server.restart();
-    assert_eq!(
-        server.get(&first_path).json::<Value>().unwrap()["data"][0]["balance"],
-        -9007199254740991_i64
+    let accounts = server.get(&first_path).json::<Value>().unwrap()["data"]
+        .as_array()
+        .unwrap()
+        .clone();
+    assert!(
+        accounts
+            .iter()
+            .any(|a| a["balance"] == json!(-9007199254740991_i64))
     );
-    assert_eq!(
-        server.get(&second_path).json::<Value>().unwrap()["data"][0]["balance"],
-        9007199254740991_i64
+    assert!(
+        accounts
+            .iter()
+            .any(|a| a["balance"] == json!(9007199254740991_i64))
     );
+    assert_eq!(server.get(&second_path).status(), 404);
     let invalid = server.get("/api/v1/budgets/%FF/accounts");
     assert_eq!(invalid.status(), 400);
     assert_eq!(

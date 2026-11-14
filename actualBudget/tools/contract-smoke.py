@@ -82,9 +82,20 @@ def main():
                 Draft202012Validator(document, format_checker=FormatChecker()).validate(result)
                 return result
 
+            def fresh_installation():
+                nonlocal process, base
+                process.terminate()
+                process.wait(timeout=10)
+                env["ACTUALBUDGET_DATA_DIR"] = str(Path(data) / str(uuid.uuid4()))
+                process = subprocess.Popen([str(project / "server/target/debug/actualbudget-server")], env=env, stdout=subprocess.PIPE, text=True)
+                line = process.stdout.readline().strip()
+                assert line.startswith("LISTENING "), line
+                base = "http://" + line.removeprefix("LISTENING ")
+
             check("/api/v1/info", "/api/v1/info")
             # Retained YNAB files use the same typed stage/activation contract.
             for source_kind, filename in [("ynab4", "ynab4-demo.zip"), ("nynab", "nynab-demo.json")]:
+                fresh_installation()
                 original = (project / "tests/fixtures/ynab" / filename).read_bytes()
                 path = "/api/v1/imports/" + source_kind
                 upload_path = path + "?filename=" + urllib.parse.quote(filename)
@@ -104,6 +115,7 @@ def main():
             budgets = "/api/v1/budgets"
             budget_id, account_id = str(uuid.uuid4()), str(uuid.uuid4())
             budget = {"id": budget_id, "name": "Contract fixture", "budget_type": "tracking"}
+            fresh_installation()
             check(budgets, budgets, "POST", budget, {"Idempotency-Key": "budget"}, 201)
             check(budgets, budgets)
             check(budgets, budgets, "POST", {**budget, "name": "Changed"}, {"Idempotency-Key": "budget"}, 409)
@@ -276,7 +288,7 @@ def main():
             stage_path = imports + "/" + stage["id"]
             check(stage_path, imports + "/{id}")
             check(stage_path + "/activate", imports + "/{id}/activate", "POST", {},
-                  {"Idempotency-Key": "activate"}, 201)
+                  {"Idempotency-Key": "activate"}, 409)
             check(imports + "/actual", imports + "/actual", "POST", b"invalid zip",
                   {"Content-Type": "application/zip", "Idempotency-Key": "invalid-stage"}, 422)
             templated = check(imports + "/actual", imports + "/actual", "POST",
@@ -284,7 +296,7 @@ def main():
                             {"Content-Type": "application/zip", "Idempotency-Key": "template-stage"}, 201)["data"]
             assert templated["status"] == "ready"
             check(imports + "/" + templated["id"] + "/activate", imports + "/{id}/activate", "POST", {},
-                  {"Idempotency-Key": "template-activate"}, 201)
+                  {"Idempotency-Key": "template-activate"}, 409)
 
             for path in ["/api/v1/themes/catalog", "/api/v1/themes/compile", "/api/v1/themes/convert-actual"]:
                 assert path not in contract["paths"]
@@ -306,26 +318,17 @@ def main():
             with urllib.request.urlopen(base + download_path) as response:
                 assert response.headers.get_content_type() == "application/zip"
                 archive = response.read()
-            check(root, root_template, "PATCH", {"name": "Changed contract"},
-                  {"Idempotency-Key": "rename", "X-Actual-Budget-Epoch": epoch})
-            check(root + "/duplicate", root_template + "/duplicate", "POST", {"id": str(uuid.uuid4()), "name": "Contract copy"},
-                  {"Idempotency-Key": "copy", "X-Actual-Budget-Epoch": epoch}, 201)
-            canceled = check(root, root_template, "PATCH", {"name": "Never saved"},
-                             {"Idempotency-Key": "cancel-rename", "X-Actual-Budget-Epoch": epoch,
-                              "X-Actual-Cancel-If-Uncommitted": "true"}, 409)
+            canceled = check(root + "/backups", root_template + "/backups", "POST", {"label":"Never saved"},
+                             {"Idempotency-Key":"cancel-backup","X-Actual-Budget-Epoch":epoch,"X-Actual-Cancel-If-Uncommitted":"true"},409)
             assert canceled["error"]["code"] == "operation_canceled"
             restore_path = root + "/backups/" + point["id"] + "/restore"
-            restored = check(restore_path, root_template + "/backups/{id}/restore", "POST", {"confirm_name": "Changed contract"},
+            restored = check(restore_path, root_template + "/backups/{id}/restore", "POST", {"confirm_name": "Contract fixture"},
                              {"Idempotency-Key": "restore", "X-Actual-Budget-Epoch": epoch})["data"]["budget"]
-            check(root, root_template, "PATCH", {"name": "Stale rename"},
-                  {"Idempotency-Key": "stale-rename", "X-Actual-Budget-Epoch": epoch}, 409)
-            check(root, root_template, "DELETE", {"confirm_name": "Contract fixture"},
-                  {"Idempotency-Key": "delete-budget", "X-Actual-Budget-Epoch": restored["epoch"]})
-            check(root, root_template, expected=410)
-            check(root + "?include_deleted=true", root_template)
-            check(budgets + "?include_deleted=true", budgets)
+            check(restore_path, root_template + "/backups/{id}/restore", "POST", {"confirm_name":"Contract fixture"},
+                  {"Idempotency-Key":"stale-restore","X-Actual-Budget-Epoch":epoch},409)
+            check("/api/v1/budget", "/api/v1/budget")
             recovered = check(restore_path, root_template + "/backups/{id}/restore", "POST", {"confirm_name": "Contract fixture"},
-                              {"Idempotency-Key": "recover-deleted", "X-Actual-Budget-Epoch": restored["epoch"]})["data"]["budget"]
+                              {"Idempotency-Key": "restore-again", "X-Actual-Budget-Epoch": restored["epoch"]})["data"]["budget"]
             stage = check("/api/v1/restores", "/api/v1/restores", "POST", archive,
                           {"Content-Type": "application/zip", "Idempotency-Key": "native-stage"}, 201)["data"]
             check("/api/v1/restores/" + stage["id"], "/api/v1/restores/{id}")
@@ -334,6 +337,7 @@ def main():
             check("/api/v1/restores", "/api/v1/restores", "POST", b"invalid ZIP",
                   {"Content-Type": "application/zip", "Idempotency-Key": "invalid-native-stage"}, 422)
             transfer_budget, cash, card = (str(uuid.uuid4()) for _ in range(3))
+            fresh_installation()
             check(budgets, budgets, "POST", {"id": transfer_budget, "name": "Transfer contracts"}, {"Idempotency-Key": "transfer-budget"}, 201)
             transfer_root = f"{budgets}/{transfer_budget}"
             for identity, name in [(cash,"Cash"),(card,"Card")]:
@@ -379,6 +383,7 @@ def main():
             rb, ra, rp, rc, rid, re = (str(uuid.uuid4()) for _ in range(6))
             rr=f"{budgets}/{rb}"
             rt=budgets+"/{budget}/rules"
+            fresh_installation()
             check(budgets,budgets,"POST",{"id":rb,"name":"Rule contract"},{"Idempotency-Key":"rule-budget"},201)
             check(rr+"/accounts",account_template,"POST",{"id":ra,"name":"Rule cash","opening_balance":0,"opening_date":"2026-01-01"},{"Idempotency-Key":"rule-account"},201)
             check(rr+"/payees",budgets+"/{budget}/payees","POST",{"id":rp,"name":"Rule shop"},{"Idempotency-Key":"rule-payee"},201)
@@ -639,6 +644,7 @@ def main():
 
             # Genuine released Android work validates the public handoff contract,
             # including dense order keys returned by the ordinary companion view.
+            fresh_installation()
             legacy_dir = project / "tests/fixtures/android-upgrade"
             legacy = json.loads((legacy_dir / "pending.state.json").read_text())
             staged = check(imports + "/actual", imports + "/actual", "POST",
@@ -678,6 +684,7 @@ def main():
             # Isolated import fixture: every expectation crosses the served public contract.
             import_id, import_account = str(uuid.uuid4()), str(uuid.uuid4())
             import_root = budgets + '/' + import_id
+            fresh_installation()
             check(budgets, budgets, 'POST', {'id': import_id, 'name': 'Import contract', 'budget_type': 'tracking'}, {'Idempotency-Key': 'import-budget'}, 201)
             check(import_root + '/accounts', account_template, 'POST', {'id': import_account, 'name': 'Bank', 'opening_balance': 0, 'opening_date': '2026-11-01'}, {'Idempotency-Key': 'import-account'}, 201)
             checkpoint_template = budgets + '/{budget}/checkpoint'
@@ -785,6 +792,7 @@ def main():
             assert 'budget_cells' in query_caps['tables'] and query_caps['max_page'] == 1000
             qid, qaccount = str(uuid.uuid4()), str(uuid.uuid4())
             qroot = budgets + '/' + qid
+            fresh_installation()
             check(budgets, budgets, 'POST', {'id':qid,'name':'Remote automation contract'}, {'Idempotency-Key':'query-budget'}, 201)
             check(qroot+'/accounts',account_template,'POST',{'id':qaccount,'name':'Remote account','opening_balance':0,'opening_date':'2026-11-09'}, {'Idempotency-Key':'query-account'},201)
             epoch=request(base,qroot)[1]['data']['epoch']

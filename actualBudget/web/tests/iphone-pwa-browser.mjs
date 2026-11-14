@@ -30,13 +30,11 @@ async function call(
 }
 try {
   const budget = randomUUID(),
-    second = randomUUID(),
     account = randomUUID(),
     category = randomUUID(),
     payee = randomUUID();
   const root = `/budgets/${budget}`;
   await call("/budgets", { id: budget, name: "Everyday" });
-  await call("/budgets", { id: second, name: "Travel" });
   await call(root + "/accounts", {
     id: account,
     name: "Imported history",
@@ -97,7 +95,7 @@ try {
     const regular = await context.newPage();
     await regular.goto(url);
     await expect(
-      regular.getByRole("heading", { name: "Your budgets", exact: true }),
+      regular.getByRole("button", { name: "Transactions", exact: true }),
     ).toBeVisible();
     await expect(
       regular.getByRole("button", { name: "Settings", exact: true }),
@@ -123,11 +121,10 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(url);
-  await page.getByRole("button", { name: "Everyday", exact: true }).click();
   const rows = page.locator("[data-expense-id]");
   await expect(rows).toHaveCount(10);
   await expect(
-    page.getByRole("button", { name: "Budgets", exact: true }),
+    page.getByRole("button", { name: "Refresh expenses", exact: true }),
   ).toBeEnabled();
   await expect(
     page.getByRole("button", { name: "Settings", exact: true }),
@@ -191,7 +188,7 @@ try {
     .click();
   await expect(rows).toHaveCount(11);
   await expect(
-    page.getByRole("button", { name: "Budgets", exact: true }),
+    page.getByRole("button", { name: "Refresh expenses", exact: true }),
   ).toBeEnabled();
   const added = (await call(root + "/companion?retain=")).recent;
   expect(added).toHaveLength(10);
@@ -217,13 +214,13 @@ try {
   expect(sent.postDataJSON()).toEqual({ amount: -575 });
   await expect(rows.last()).toContainText("-5.75");
   await expect(
-    page.getByRole("button", { name: "Budgets", exact: true }),
+    page.getByRole("button", { name: "Refresh expenses", exact: true }),
   ).toBeEnabled();
   await page.reload();
   await expect(rows).toHaveCount(11);
   await expect(rows.last()).toContainText("-5.75");
   await expect(
-    page.getByRole("button", { name: "Budgets", exact: true }),
+    page.getByRole("button", { name: "Refresh expenses", exact: true }),
   ).toBeEnabled();
   // Cache the actual loaded shell; nothing under /api is cached by the worker.
   await page.evaluate(async () => {
@@ -292,13 +289,13 @@ try {
     )
     .toBe(-325);
   await expect(
-    page.getByRole("button", { name: "Budgets", exact: true }),
+    page.getByRole("button", { name: "Refresh expenses", exact: true }),
   ).toBeEnabled();
   await page
     .getByRole("button", { name: "Refresh expenses", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Budgets", exact: true }),
+    page.getByRole("button", { name: "Refresh expenses", exact: true }),
   ).toBeEnabled();
   expect(
     (await call(root + "/transactions/" + pending.row.id)).payee_name,
@@ -326,7 +323,7 @@ try {
   await context.setOffline(false);
   await expectSavedWork(page, 0);
   await expect(
-    page.getByRole("button", { name: "Budgets", exact: true }),
+    page.getByRole("button", { name: "Refresh expenses", exact: true }),
   ).toBeEnabled();
   expect((await call(root + "/transactions/" + conflictId)).amount).toBe(-999);
   expect(
@@ -347,13 +344,6 @@ try {
   expect(
     (await fetch(api + root + "/transactions/" + pending.row.id)).status,
   ).toBe(404);
-  await page.getByRole("button", { name: "Budgets", exact: true }).click();
-  await page.getByRole("button", { name: "Travel", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "No expenses yet", exact: true }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Budgets", exact: true }).click();
-  await page.getByRole("button", { name: "Everyday", exact: true }).click();
   await expect(rows).toHaveCount(10);
   await expect(
     page.getByRole("button", { name: "Refresh expenses", exact: true }),
@@ -374,6 +364,111 @@ try {
   await expect(
     page.getByRole("button", { name: "Refresh expenses", exact: true }),
   ).toBeEnabled();
+  // A saved entry from a merged identity remains recoverable, never silently retargeted.
+  const oldBudget = randomUUID(),
+    oldRow = randomUUID(),
+    oldKey = randomUUID();
+  const oldRequests = [];
+  page.on("request", (r) => {
+    if (r.url().includes(oldBudget) && r.method() !== "GET")
+      oldRequests.push(r.url());
+  });
+  await page.evaluate(
+    async ({ entry, oldBudget, oldRow, oldKey }) => {
+      const db = await new Promise((resolve, reject) => {
+        const r = indexedDB.open("actualBudget.offline.v1", 1);
+        r.onsuccess = () => resolve(r.result);
+        r.onerror = () => reject(r.error);
+      });
+      const live = structuredClone(entry);
+      live.key = crypto.randomUUID();
+      live.revision = crypto.randomUUID();
+      live.row.id = crypto.randomUUID();
+      live.row.payee_name = "Live uncertain";
+      live.pending.key = live.key;
+      live.pending.body.id = live.row.id;
+      live.draft = null;
+      live.attempted = true;
+      live.blocked = "Unconfirmed current request";
+      delete live.claim;
+      entry.budgetId = oldBudget;
+      entry.key = oldKey;
+      entry.revision = crypto.randomUUID();
+      entry.row.id = oldRow;
+      entry.row.payee_name = "Before merge";
+      entry.draft = null;
+      entry.pending.path = entry.pending.path.replace(
+        /\/budgets\/[^/]+/,
+        `/budgets/${oldBudget}`,
+      );
+      entry.pending.key = oldKey;
+      entry.pending.body.id = oldRow;
+      entry.attempted = false;
+      delete entry.claim;
+      delete entry.blocked;
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction("operations", "readwrite");
+        tx.objectStore("operations").put(entry, oldKey);
+        tx.objectStore("operations").put(live, live.key);
+        tx.oncomplete = resolve;
+        tx.onabort = () => reject(tx.error);
+      });
+      db.close();
+    },
+    { entry: pending, oldBudget, oldRow, oldKey },
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Review saved changes", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Review saved changes", exact: true })
+    .click();
+  await expect(page.getByTestId("pending-expenses")).toContainText(
+    "Before merge",
+  );
+  await expect(page.getByTestId("pending-expenses")).toContainText(
+    "retained for recovery",
+  );
+  await expect(
+    page.getByRole("link", { name: "Download saved expense", exact: true }),
+  ).toHaveCount(2);
+  expect(oldRequests).toEqual([]);
+  expect(
+    (await savedWork(page)).some((entry) => entry.budgetId === oldBudget),
+  ).toBe(true);
+  await expect(
+    page.getByRole("button", { name: "Archive retired request", exact: true }),
+  ).toHaveCount(1);
+  await page
+    .getByRole("button", { name: "Archive retired request", exact: true })
+    .click();
+  await expectSavedWork(page, 2);
+  await page
+    .getByRole("button", { name: "Confirm local archive", exact: true })
+    .click();
+  await expectSavedWork(page, 1);
+  await expect(
+    page.getByRole("button", { name: "Archive retired request", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Cancel saved change safely", exact: true })
+    .click();
+  await expectSavedWork(page, 0);
+  await page.getByText("Archived saved changes (1)", { exact: true }).click();
+  await expect(
+    page.getByRole("link", { name: "Download archived expense", exact: true }),
+  ).toBeVisible();
+  const archived = await page
+    .getByRole("link", { name: "Download archived expense", exact: true })
+    .getAttribute("href");
+  expect(JSON.parse(decodeURIComponent(archived.split(",")[1])).budgetId).toBe(
+    oldBudget,
+  );
+  expect(oldRequests).toEqual([]);
+  await page
+    .getByRole("button", { name: "Back to expenses", exact: true })
+    .click();
   const idleRequests = [];
   page.on("request", (r) => {
     if (r.url().includes("/api/v1/")) idleRequests.push(r.url());
@@ -394,7 +489,7 @@ try {
   });
   expect(errors).toEqual([]);
   console.log(
-    "PASS iPhone installed-only routing, ten recent expenses, retained backdated entry, guarded edit/delete, offline cold launch/capture/edit/silent delivery, budget selection and mobile layout",
+    "PASS iPhone installed-only routing, ten recent expenses, retained backdated entry, guarded edit/delete, offline cold launch/capture/edit/silent delivery, singleton opening and mobile layout",
   );
 } catch (e) {
   if (page) {

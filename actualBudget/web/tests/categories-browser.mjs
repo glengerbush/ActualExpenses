@@ -121,10 +121,6 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
-  await page
-    .locator(".budget-list button")
-    .filter({ hasText: "Category household" })
-    .click();
   await page.getByRole("button", { name: "Budget", exact: true }).click();
   await page.getByLabel(/Months displayed/).selectOption("1");
   await expect(page.locator(".budget-month")).toHaveCount(1);
@@ -192,7 +188,9 @@ try {
   await page
     .getByRole("button", { name: "Edit Dining for January 2026", exact: true })
     .click();
-  await page.getByRole("button", { name: "Transactions", exact: true }).click();
+  await page
+    .getByRole("button", { name: "View transactions", exact: true })
+    .click();
   await expect(
     page.locator(".register-table tbody tr[data-transaction-id]"),
   ).toHaveCount(3);
@@ -351,15 +349,6 @@ try {
     second = await shared.newPage();
   async function openCategories(tab) {
     await tab.goto(server.url);
-    const budgetButton = tab
-      .locator(".budget-list button")
-      .filter({ hasText: "Category household" });
-    const categoriesButton = tab.getByRole("button", {
-      name: "Budget",
-      exact: true,
-    });
-    await expect(budgetButton.or(categoriesButton)).toBeVisible();
-    if (await budgetButton.isVisible()) await budgetButton.click();
     await tab.getByRole("button", { name: "Budget", exact: true }).click();
     await tab.getByLabel(/Months displayed/).selectOption("1");
     await expect(tab.locator(".budget-month")).toHaveCount(1);

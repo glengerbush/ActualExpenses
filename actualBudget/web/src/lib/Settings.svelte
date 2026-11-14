@@ -109,23 +109,7 @@
           }
           ><option value="system">{t("System default")}</option><option
             value="light">{t("Light")}</option
-          ><option value="dark">{t("Dark")}</option><option value="midnight"
-            >{t("Midnight")}</option
-          ></select
-        >
-      </div>
-      <div>
-        <label for="preferred-dark-theme">{t("Preferred dark theme")}</label
-        ><select
-          id="preferred-dark-theme"
-          bind:value={
-            () => preferences.device.preferred_dark_theme,
-            (preferred_dark_theme) =>
-              void preferences.updateDevice({ preferred_dark_theme })
-          }
-          ><option value="dark">{t("Dark")}</option><option value="midnight"
-            >{t("Midnight")}</option
-          ></select
+          ><option value="dark">{t("Dark")}</option></select
         >
       </div>
       <div>

@@ -63,7 +63,6 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
-  await page.getByRole("button", { name: /Recovery browser.*Open/ }).click();
   await expect(page.getByTestId("register-total")).toHaveText("99.99");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("button", { name: "Recovery", exact: true }).click();
@@ -99,7 +98,7 @@ try {
     fullPage: true,
   });
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.getByLabel("Confirm budget name").fill("Recovery browser");
+  await page.getByLabel("I reviewed and approve this repair").check();
   // Cancellation intent must survive an abort BEFORE either request reaches
   // the server. Reload/retry may only send the original cancellation fence.
   const canceledAttempts = [];
@@ -162,7 +161,7 @@ try {
     .getByRole("button", { name: "Inspect budget", exact: true })
     .click();
   await expect(page.getByTestId("recovery-account")).toContainText("99.99");
-  await page.getByLabel("Confirm budget name").fill("Recovery browser");
+  await page.getByLabel("I reviewed and approve this repair").check();
   const writes = [];
   let lose = true;
   await page.route(`**/api/v1/budgets/${budget}/recovery`, async (route) => {
@@ -217,9 +216,7 @@ try {
   await expect(
     page.getByRole("link", { name: "Download pre-repair backup", exact: true }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await expect(page.getByTestId("register-total")).toHaveText("10.00");
   // Explicit HTTP fault injection: a stale cursor is rejected, then bootstrap
   // must recover real current references without changing pending-work identity.
@@ -250,7 +247,7 @@ try {
     .getByRole("button", { name: "Reconnect and refresh", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Transaction history", exact: true }),
+    page.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   await expect.poll(() => cursorRejected).toBe(true);
   await expect(
@@ -314,15 +311,12 @@ try {
   expect(data.data.filter((r) => r.amount === -123)).toHaveLength(1);
   // A legacy lifecycle request shares the cache store but is NOT downloaded data.
   // Its original body/key must remain recoverable after this new reset tool.
-  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
-  await page.getByRole("button", { name: /Recovery browser.*Open/ }).click();
-  await page
-    .getByRole("button", { name: "Manage budget", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Backups", exact: true }).click();
   const renamed = [];
   let loseRename = true;
-  await page.route(`**/api/v1/budgets/${budget}`, async (route) => {
-    if (route.request().method() !== "PATCH") return route.continue();
+  await page.route(`**/api/v1/budgets/${budget}/backups`, async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
     renamed.push({
       body: route.request().postData(),
       key: route.request().headers()["idempotency-key"],
@@ -340,10 +334,10 @@ try {
     } else await route.continue();
   });
   await page
-    .getByLabel("Budget name", { exact: true })
+    .getByLabel("Backup label", { exact: true })
     .fill("Recovered household");
   await page
-    .getByRole("button", { name: "Save budget name", exact: true })
+    .getByRole("button", { name: "Create backup", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: "Retry saved operation", exact: true }),
@@ -366,18 +360,17 @@ try {
   await page
     .getByRole("button", { name: "Confirm cache reset", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Manage budget", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Backups", exact: true }).click();
   await page
     .getByRole("button", { name: "Retry saved operation", exact: true })
     .click();
-  await expect(page.getByLabel("Budget name", { exact: true })).toHaveValue(
-    "Recovered household",
-  );
+  await expect(
+    page.getByRole("listitem").filter({ hasText: "Recovered household" }),
+  ).toBeVisible();
   await expect.poll(() => renamed.length).toBe(2);
   await expect(
-    page.getByRole("button", { name: "Save budget name", exact: true }),
+    page.getByRole("button", { name: "Create backup", exact: true }),
   ).toBeEnabled();
   expect(renamed[1]).toEqual(renamed[0]);
   expect(errors).toEqual([]);

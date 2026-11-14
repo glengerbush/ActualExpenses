@@ -71,10 +71,6 @@ try {
     errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
-  await page
-    .locator(".budget-list button")
-    .filter({ hasText: "Transfer register" })
-    .click();
   await page.getByRole("button", { name: "Checking", exact: true }).click();
   await page.locator('summary[aria-label="Filters and columns"]').click();
   await page

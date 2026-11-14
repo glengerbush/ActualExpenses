@@ -925,7 +925,7 @@
   aria-busy={loading || busy}
 >
   <div class="register-heading">
-    <h1 id="register-title">{t("Transaction history")}</h1>
+    <h1 id="register-title">{t("Transactions")}</h1>
     {#if register && preferences.hasUsableShared && viewMatchesEpoch}
       <dl class="register-balances">
         <div>

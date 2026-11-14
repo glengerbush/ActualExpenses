@@ -20,15 +20,15 @@ Save an expense with minimal input, including when disconnected. Review and corr
 
 ## Operating Context
 
-An Android phone, at shops and on the move, reaching an existing HTTP Actual server through LAN or tailnet. One unencrypted budget per installation; accounts may be switched. Tracking budgeting, automatically cleared expenses.
+An Android phone, at shops and on the move, reaching an existing HTTP Actual server through LAN or tailnet. One server-owned budget, opened automatically. Tracking budgeting, automatically cleared expenses.
 
 ## Capabilities and Constraints
 
-Setup is server address, budget, account, without login. Remember the account. Legacy encrypted data remains untouched behind an explicit recovery screen until its migration is available. Positive amount is required; payee, category and date are optional; notes are not supported. Cached payees and categories work offline. Preserve pending changes and show their state. Restrict offline editing to unsynced offline-created expenses, retaining an edit begun online if connectivity fails. Exclude transfers, income, splits and reconciled entries. Retain a backdated addition below the recent list. No idle background refresh.
+Setup asks only for the server address, without login or budget naming/selection. The server creates its single budget on first access. Legacy encrypted data remains untouched behind an explicit recovery screen until its migration is available. Positive amount is required; payee, category and date are optional; notes are not supported. Cached payees and categories work offline. Preserve pending changes and show their state. Restrict offline editing to unsynced offline-created expenses, retaining an edit begun online if connectivity fails. Exclude transfers, income, splits and reconciled entries. Retain a backdated addition below the recent list. No idle background refresh.
 
 ## Brand Commitments
 
-Name: ActualExpenses. The user requires a very limited interface: return to account selection, add an expense, review/edit/delete recent expenses. No marketing, reports, balance dashboards or invented product claims.
+Name: ActualExpenses. The user requires a very limited interface: change server, add an expense, review/edit/delete recent expenses. No marketing, reports, balance dashboards or invented product claims.
 
 ## Evidence on Hand
 
@@ -41,3 +41,5 @@ Approved Obsidian spec, CONTEXT glossary and direct-integration ADR. No incumben
 - Keep the expense task obvious and short.
 - Preserve Actual's semantics and explain pending state.
 - Use familiar Android controls and system accessibility behavior.
+
+- If the server budget identity or generation changes, retain queued requests unchanged. Export full saved work and require explicit confirmation before archiving the old queue and opening the current budget.

@@ -205,7 +205,7 @@ try {
   await page.addStyleTag({ content: "html { font-size: 100%; }" });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  await page.getByRole("button", { name: "All budgets", exact: true }).click();
+  await page.getByRole("button", { name: /All budgets$/ }).click();
   await page.getByRole("button", { name: new RegExp(`${name}.*Open`) }).click();
   await expect(
     page.getByRole("heading", { name: "Accounts", exact: true }),
@@ -237,7 +237,7 @@ try {
   await expect(
     page.getByRole("heading", { name: "Accounts", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "All budgets", exact: true }).click();
+  await page.getByRole("button", { name: /All budgets$/ }).click();
   let checkpointFailures = 0;
   await page.route("**/api/v1/budgets/*/checkpoint", (route) => {
     checkpointFailures++;
@@ -252,7 +252,7 @@ try {
   ).toContainText("Cannot reach the server");
   expect(checkpointFailures).toBeGreaterThan(0);
   await page.unroute("**/api/v1/budgets/*/checkpoint");
-  await page.getByRole("button", { name: "All budgets", exact: true }).click();
+  await page.getByRole("button", { name: /All budgets$/ }).click();
   await expect(
     page.getByRole("heading", { name: "Your budgets", exact: true }),
   ).toBeVisible();
@@ -260,7 +260,7 @@ try {
   await expect(
     page.getByRole("heading", { name: "Accounts", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "All budgets", exact: true }).click();
+  await page.getByRole("button", { name: /All budgets$/ }).click();
   await page.getByRole("button", { name: "New budget", exact: true }).click();
   const sharedName = `Shared draft ${Date.now()}`;
   await page.getByLabel("Budget name").fill(sharedName);

@@ -2,7 +2,7 @@ import { savedWork, expectSavedWork } from "./saved-work-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { startServer } from "./server.mjs";
-const server = await startServer(),
+let server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1");
 async function create(path, body) {
   const response = await fetch(api + "/api/v1" + path, {
@@ -27,6 +27,9 @@ try {
     ],
   });
   for (const mode of ["synced", "claimed", "handoff"]) {
+    await server.stop();
+    server = await startServer();
+    api = server.url.replace("actualbudget.test", "127.0.0.1");
     const context = await browser.newContext(),
       page = await context.newPage(),
       budget = randomUUID(),

@@ -42,7 +42,6 @@ try {
         });
   const page = await browser.newPage();
   await page.goto(url);
-  await page.getByText("Color drag", { exact: true }).click();
   await page.getByRole("button", { name: "Budget", exact: true }).click();
   await page.getByLabel("Months displayed").selectOption("1");
   for (const [kind, id, name] of [
@@ -62,6 +61,9 @@ try {
       }
       await route.continue();
     });
+    await page
+      .getByRole("button", { name: `Choose color for ${name}`, exact: true })
+      .click();
     const input = page.getByLabel(`Color for ${name}`, { exact: true });
     await input.fill("#112233");
     await requestStarted;
@@ -80,7 +82,25 @@ try {
     await expect(input).toBeEnabled();
     await expect(input).toHaveValue("#778899");
     await page.unroute(path);
+    await page.keyboard.press("Escape");
   }
+  await page
+    .getByRole("button", { name: "Choose color for Groceries", exact: true })
+    .click();
+  const palette = page.getByRole("dialog", {
+    name: "Color palette for Groceries",
+    exact: true,
+  });
+  await palette.getByRole("button", { name: "Teal", exact: true }).click();
+  await expect
+    .poll(async () => (await call(`${root}/categories/${category}`)).color)
+    .toBe("#169d98");
+  await expect(palette).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(palette).not.toBeVisible();
+  await page
+    .getByRole("button", { name: "Choose color for Groceries", exact: true })
+    .click();
   const input = page.getByLabel("Color for Groceries", { exact: true });
   const colorPath = `${root}/categories/${category}`;
   for (const outcome of ["conflict", "cancel"]) {
@@ -112,6 +132,7 @@ try {
       await expect(
         page.getByRole("button", { name: "Retry color", exact: true }),
       ).toBeEnabled();
+      await expect(palette).not.toBeVisible();
       await page
         .getByRole("button", { name: "Cancel color change", exact: true })
         .click();

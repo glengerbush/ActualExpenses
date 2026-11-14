@@ -63,9 +63,6 @@ try {
   }
   await page.reload();
   await page.waitForLoadState("networkidle");
-  await page
-    .getByRole("button", { name: "Preference oracle Open", exact: true })
-    .click();
   await expect(page.getByTestId("register-total")).toBeVisible();
   for (const sample of fixture.cases.filter(
     (c) => c.amount === 0 && c.decimal_places === 2,
@@ -81,7 +78,7 @@ try {
     await page.reload();
     await page.waitForLoadState("networkidle");
     await expect(
-      page.getByRole("heading", { name: "Transaction history", exact: true }),
+      page.getByRole("heading", { name: "Transactions", exact: true }),
     ).toBeVisible();
     for (const expected of fixture.cases.filter(
       (c) =>
@@ -108,15 +105,58 @@ try {
   await expect(
     page.getByLabel("Currency display", { exact: true }),
   ).toHaveCount(0);
-  for (const theme of ["dark", "midnight", "light"]) {
+  for (const theme of ["dark", "light"]) {
     await page.locator("#theme").selectOption(theme);
-    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-theme",
+      theme === "dark" ? "midnight" : "light",
+    );
     await page.screenshot({
       path: `test-results/preferences-${theme}.png`,
       fullPage: true,
     });
   }
-  await page.locator("#preferred-dark-theme").selectOption("midnight");
+  await expect(page.locator("#preferred-dark-theme")).toHaveCount(0);
+  await expect(page.locator("#theme option")).toHaveCount(3);
+  // Both former palettes migrate to the only dark palette without resetting other device settings.
+  await page.emulateMedia({ colorScheme: "dark" });
+  for (const oldTheme of ["dark", "midnight", "system"]) {
+    await page.evaluate(
+      (theme) =>
+        localStorage.setItem(
+          "actualBudget.devicePreferences.v1",
+          JSON.stringify({
+            version: 1,
+            values: {
+              theme,
+              preferred_dark_theme: "dark",
+              language: "",
+              show_release_notices: false,
+              seen_release: "0.5.0",
+            },
+          }),
+        ),
+      oldTheme,
+    );
+    await page.reload();
+    const mode = oldTheme === "system" ? "system" : "dark";
+    await expect(page.locator("#theme")).toHaveValue(mode);
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-theme",
+      "midnight",
+    );
+    const saved = await page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem("actualBudget.devicePreferences.v1"))
+          .values,
+    );
+    expect(saved).toEqual({
+      theme: mode,
+      language: "",
+      show_release_notices: false,
+      seen_release: "0.5.0",
+    });
+  }
   await page.locator("#theme").selectOption("system");
   await page.emulateMedia({ colorScheme: "dark" });
   await expect(page.locator("html")).toHaveAttribute("data-theme", "midnight");
@@ -144,9 +184,7 @@ try {
   await expect(
     page.getByRole("status").filter({ hasText: "Shared preferences saved." }),
   ).toHaveText("Shared preferences saved.");
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
@@ -220,9 +258,7 @@ try {
   expect(writes[1]).toEqual(writes[0]);
   await page.unroute(`**/api/v1/budgets/${budget}/preferences`);
   await page.locator("#date-format").selectOption("dd.MM.yyyy");
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page.reload();
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
@@ -234,21 +270,16 @@ try {
   const other = await browser.newContext();
   const second = await other.newPage();
   await second.goto(server.url);
-  await second
-    .getByRole("button", { name: "Preference oracle Open", exact: true })
-    .click();
   await second.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(second.locator("#number-format")).toHaveValue("space-comma");
-  await expect(second.locator("#preferred-dark-theme")).toHaveValue("dark");
+  await expect(second.locator("#preferred-dark-theme")).toHaveCount(0);
+  await expect(second.locator("#theme")).toHaveValue("system");
   await other.close();
   // A new browser with failed preferences must not guess number formatting.
   const unavailable = await browser.newContext();
   const blocked = await unavailable.newPage();
   await blocked.route("**/preferences**", (route) => route.abort());
   await blocked.goto(server.url);
-  await blocked
-    .getByRole("button", { name: "Preference oracle Open", exact: true })
-    .click();
   await expect(
     blocked.getByRole("heading", {
       name: "Display preferences are unavailable",
@@ -289,8 +320,19 @@ try {
   await page.setViewportSize({ width: 320, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addStyleTag({ content: "html{font-size:200%}" });
-  for (const theme of ["light", "dark", "midnight"]) {
+  for (const theme of ["light", "dark"]) {
     await page.locator("#theme").selectOption(theme);
+    const tools = page.getByRole("button", {
+      name: "Search commands",
+      exact: true,
+    });
+    expect(
+      await tools.evaluate(
+        (el) =>
+          el.getBoundingClientRect().height /
+          parseFloat(getComputedStyle(el).lineHeight),
+      ),
+    ).toBeLessThanOrEqual(3);
     await page.screenshot({
       path: `test-results/preferences-${theme}-320-large-text.png`,
       fullPage: true,

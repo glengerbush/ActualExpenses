@@ -114,7 +114,6 @@ export const translationAliases: Record<string, string> = {
   "Save shared preferences": "Save changes",
   Dates: "Date format",
   Dark: "Dark theme",
-  "Preferred dark theme": "Dark theme",
 };
 export function t(
   key: string,

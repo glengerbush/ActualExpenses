@@ -3,17 +3,25 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
 import { startServer } from "../web/tests/server.mjs";
-import { cloneImportedTemplate } from "../web/tests/import-template.mjs";
+assert.ok(
+  !process.env.ACTUALBUDGET_TEST_URL,
+  "This multi-fixture regression requires isolated local servers",
+);
 const fixture = JSON.parse(
-    await readFile(
-      new URL(
-        "../tests/fixtures/retired-query-saved-source.json",
-        import.meta.url,
-      ),
+  await readFile(
+    new URL(
+      "../tests/fixtures/retired-query-saved-source.json",
+      import.meta.url,
     ),
   ),
-  server = await startServer(),
+);
+let server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+async function freshServer() {
+  await server.stop();
+  server = await startServer();
+  api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+}
 async function call(path, body, status = 200, headers = {}) {
   const response = await fetch(api + path, {
     method: body === undefined ? "GET" : "POST",
@@ -47,6 +55,7 @@ const ids = (rows) => rows.map((r) => r.id).sort();
 const conditionOp = { is: "eq", oneOf: "in" };
 try {
   for (const mode of fixture.cases) {
+    await freshServer();
     const bytes = await readFile(
       new URL("../tests/fixtures/" + mode.archive.filename, import.meta.url),
     );
@@ -57,7 +66,7 @@ try {
     const staged = await upload("/imports/actual", bytes),
       activated = (await call("/imports/" + staged.id + "/activate", {}, 201))
         .data,
-      id = await cloneImportedTemplate(api, activated.id),
+      id = activated.id,
       root = "/budgets/" + id;
     const settings = (await call(root + "/register-settings")).data.settings;
     async function verify(label) {

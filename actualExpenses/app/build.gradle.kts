@@ -11,8 +11,8 @@ android {
         applicationId = "org.actualexpenses.android"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.3.2"
+        versionCode = 8
+        versionName = "0.4.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     sourceSets.getByName("androidTest").assets.srcDir("../../actualBudget/tests/fixtures/android-upgrade")

@@ -114,8 +114,9 @@ fn preferences_are_budget_scoped_and_changes_do_not_replace_unrelated_fields() {
     assert_eq!(values["data"]["number_format"], "dot-comma");
     assert_eq!(values["data"]["hide_fraction"], true);
     let other = "00000000-0000-4000-8000-000000000044";
-    server.budget(other);
-    let isolated: Value = server
+    let another = Server::start();
+    another.budget(other);
+    let isolated: Value = another
         .get(&format!("/api/v1/budgets/{other}/preferences"))
         .json()
         .unwrap();

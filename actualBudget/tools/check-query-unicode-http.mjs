@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
 import { startServer } from "../web/tests/server.mjs";
-import { cloneImportedTemplate } from "../web/tests/import-template.mjs";
 const source = JSON.parse(
     await readFile(
       new URL("../tests/fixtures/query-unicode-source.json", import.meta.url),
@@ -46,7 +45,7 @@ try {
   const stage = (await upload.json()).data,
     active = (await call("/imports/" + stage.id + "/activate", {}, "POST", 201))
       .data,
-    b = await cloneImportedTemplate(api, active.id),
+    b = active.id,
     root = "/budgets/" + b;
   for (const c of source.cases) {
     await call(

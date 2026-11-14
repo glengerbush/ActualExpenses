@@ -7,12 +7,14 @@ export interface NavigationCommand {
   run: () => void | Promise<void>;
 }
 export const rememberedViews = [
+  "references",
   "planning",
   "transaction-files",
   "rules",
   "schedules",
   "reports",
   "settings",
+  "backups",
 ] as const;
 export type RememberedView = (typeof rememberedViews)[number];
 const key = (budget: string) => `actualBudget.navigation.v1.${budget}`;
@@ -39,7 +41,6 @@ export function rememberView(budget: string, view: string | null): void {
 const screens = [
   "references",
   "organize",
-  "budget",
   "account",
   "planning",
   "transaction-files",
@@ -48,7 +49,7 @@ const screens = [
   "reports",
   "settings",
   "import",
-  "manage",
+  "backups",
   "restore",
   "recovery",
   "pending",
@@ -93,10 +94,7 @@ export function readBrowserRoute(): BrowserRoute | null {
 export function writeBrowserRoute(route: BrowserRoute, replace = false) {
   const url = new URL(location.href);
   url.hash = "";
-  url.searchParams.set(
-    "view",
-    route.screen ?? (route.budgetId ? "transactions" : "budgets"),
-  );
+  url.searchParams.set("view", route.screen ?? "transactions");
   if (route.budgetId) url.searchParams.set("budget", route.budgetId);
   else url.searchParams.delete("budget");
   if (route.screen === "reports" && route.report)

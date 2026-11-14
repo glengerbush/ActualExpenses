@@ -3,17 +3,18 @@
     active,
     onchange,
   }: {
-    active: "general" | "import" | "recovery";
-    onchange: (value: "settings" | "import" | "recovery") => void;
+    active: "general" | "import" | "backups" | "recovery";
+    onchange: (value: "settings" | "import" | "backups" | "recovery") => void;
   } = $props();
 </script>
 
 <nav class="settings-navigation" aria-label="Settings sections">
-  {#each [{ id: "general", view: "settings", label: "General" }, { id: "import", view: "import", label: "Import" }, { id: "recovery", view: "recovery", label: "Recovery" }] as item (item.id)}
+  {#each [{ id: "general", view: "settings", label: "General" }, { id: "import", view: "import", label: "Import" }, { id: "backups", view: "backups", label: "Backups" }, { id: "recovery", view: "recovery", label: "Recovery" }] as item (item.id)}
     <button
       class:current={active === item.id}
       aria-current={active === item.id ? "page" : undefined}
-      onclick={() => onchange(item.view as "settings" | "import" | "recovery")}
+      onclick={() =>
+        onchange(item.view as "settings" | "import" | "backups" | "recovery")}
       >{item.label}</button
     >
   {/each}

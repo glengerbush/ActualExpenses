@@ -46,7 +46,7 @@ pub(super) async fn merge(
         Ok(budget)
     })).await?))
 }
-fn identity(source: &str, table: &str, id: &str) -> String {
+pub(crate) fn identity(source: &str, table: &str, id: &str) -> String {
     let mut hash = Sha256::new();
     for part in ["archive-merge-v1", source, table, id] {
         hash.update((part.len() as u64).to_be_bytes());

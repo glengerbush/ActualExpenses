@@ -8,8 +8,8 @@ const fixture = JSON.parse(
     "utf8",
   ),
 );
-const server = await startServer();
-const api = server.url.replace("actualbudget.test", "127.0.0.1");
+let server = await startServer();
+let api = server.url.replace("actualbudget.test", "127.0.0.1");
 async function write(path, body, method = "POST") {
   const response = await fetch(api + "/api/v1" + path, {
     method,
@@ -34,6 +34,9 @@ try {
   });
   const errors = [];
   for (const format of [...new Set(fixture.cases.map((c) => c.format))]) {
+    await server.stop();
+    server = await startServer();
+    api = server.url.replace("actualbudget.test", "127.0.0.1");
     const context = await browser.newContext({ timezoneId: "UTC" });
     const page = await context.newPage();
     page.on("pageerror", (e) => errors.push(e.message));

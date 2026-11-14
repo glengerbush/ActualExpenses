@@ -136,9 +136,7 @@ try {
   expect(rows.filter((r) => r.date === "2026-01-02")).toHaveLength(1);
   expect(rows.filter((r) => r.category_id === food)).toHaveLength(1);
   // Readonly preview transport failure cannot prevent the original Save handoff.
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   const previewPattern = "**/api/v1" + root + "/rules/preview",
     entryPattern = "**/api/v1" + root + "/rules/transactions";
   let allowEntry = false;
@@ -350,9 +348,7 @@ try {
   );
   await expect(page.getByRole("alert")).toHaveCount(0);
   // Automatic new entry protects manual fields; existing edits do not rerun rules.
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();

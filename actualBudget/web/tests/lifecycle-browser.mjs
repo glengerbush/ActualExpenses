@@ -44,104 +44,52 @@ try {
   page.on("pageerror", (error) => errors.push(error.message));
   page.setDefaultTimeout(10000);
   await page.goto(server.url);
-  await page
-    .locator(".budget-list button")
-    .filter({ hasText: "Lifecycle household" })
-    .click();
-  await page
-    .getByRole("button", { name: "Manage budget", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Backups", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Manage budget", exact: true }),
+    page.getByRole("heading", { name: "Backups", exact: true }).first(),
   ).toBeVisible();
-  const renameAttempts = [];
-  await page.route(`**/api/v1/budgets/${budget.id}`, async (route) => {
-    if (route.request().method() !== "PATCH") return route.continue();
-    renameAttempts.push({
+  for (const name of [
+    "New budget",
+    "Manage budget",
+    "Delete budget",
+    "Duplicate budget",
+    "Save budget name",
+  ])
+    await expect(page.getByRole("button", { name, exact: true })).toHaveCount(
+      0,
+    );
+  const backupAttempts = [];
+  await page.route(`**/api/v1/budgets/${budget.id}/backups`, async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    backupAttempts.push({
       body: route.request().postData(),
       key: route.request().headers()["idempotency-key"],
-      epoch: route.request().headers()["x-actual-budget-epoch"],
     });
     const url = new URL(route.request().url()),
       headers = { ...route.request().headers(), host: url.host };
     url.hostname = "127.0.0.1";
     const response = await route.fetch({ url: url.href, headers });
-    if (renameAttempts.length === 1) await route.abort("connectionreset");
+    if (backupAttempts.length === 1) await route.abort("connectionreset");
     else await route.fulfill({ response });
   });
+  await page.getByLabel("Backup label", { exact: true }).fill("Before changes");
   await page
-    .getByLabel("Budget name", { exact: true })
-    .fill("Renamed household");
-  await page
-    .getByRole("button", { name: "Save budget name", exact: true })
+    .getByRole("button", { name: "Create backup", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: "Retry saved operation", exact: true }),
   ).toBeEnabled();
   await page.reload();
   await page
-    .getByRole("button", { name: "Manage budget", exact: true })
-    .click();
-  await expect(page.getByLabel("Budget name", { exact: true })).toBeDisabled();
-  await page
     .getByRole("button", { name: "Retry saved operation", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Save budget name", exact: true }),
+    page.getByRole("button", { name: "Create backup", exact: true }),
   ).toBeEnabled();
-  expect(renameAttempts).toHaveLength(2);
-  expect(renameAttempts[1]).toEqual(renameAttempts[0]);
-  await page.unroute(`**/api/v1/budgets/${budget.id}`);
-  await expect
-    .poll(async () => (await call(`/budgets/${budget.id}`)).name)
-    .toBe("Renamed household");
-  let delayed;
-  await page.route(`**/api/v1/budgets/${budget.id}`, async (route) => {
-    if (
-      route.request().method() !== "PATCH" ||
-      route.request().headers()["x-actual-cancel-if-uncommitted"]
-    )
-      return route.continue();
-    delayed = {
-      method: "PATCH",
-      headers: route.request().headers(),
-      body: route.request().postData(),
-    };
-    await route.abort("connectionreset");
-  });
-  await page
-    .getByLabel("Budget name", { exact: true })
-    .fill("Must never be applied");
-  await page
-    .getByRole("button", { name: "Save budget name", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Cancel saved operation", exact: true }),
-  ).toBeEnabled();
-  await page
-    .getByRole("button", { name: "Cancel saved operation", exact: true })
-    .click();
-  await expect(
-    page.getByText("Operation canceled. No delayed retry can apply it.", {
-      exact: true,
-    }),
-  ).toBeVisible();
-  await page.unroute(`**/api/v1/budgets/${budget.id}`);
-  const late = await fetch(api + `/api/v1/budgets/${budget.id}`, {
-    ...delayed,
-    headers: {
-      "Content-Type": "application/json",
-      "Idempotency-Key": delayed.headers["idempotency-key"],
-      "X-Actual-Budget-Epoch": delayed.headers["x-actual-budget-epoch"],
-    },
-  });
-  expect(late.status).toBe(409);
-  expect((await late.json()).error.code).toBe("operation_canceled");
-  expect((await call(`/budgets/${budget.id}`)).name).toBe("Renamed household");
-  await page.getByLabel("Backup label", { exact: true }).fill("Before changes");
-  await page
-    .getByRole("button", { name: "Create backup", exact: true })
-    .click();
+  expect(backupAttempts).toHaveLength(2);
+  expect(backupAttempts[1]).toEqual(backupAttempts[0]);
+  await page.unroute(`**/api/v1/budgets/${budget.id}/backups`);
   const point = page
     .getByRole("listitem")
     .filter({ hasText: "Before changes" });
@@ -165,63 +113,12 @@ try {
     path: "test-results/budget-management-mobile.png",
     fullPage: true,
   });
-  await page
-    .getByRole("button", { name: "Delete budget", exact: true })
-    .click();
-  const confirmationHeading = page.getByRole("heading", {
-    name: "Delete this budget?",
-    exact: true,
-  });
-  await expect(confirmationHeading).toBeFocused();
-  expect(
-    await confirmationHeading.evaluate((element) => {
-      const box = element.getBoundingClientRect();
-      return box.top >= 0 && box.bottom <= innerHeight;
-    }),
-  ).toBe(true);
-  await page.screenshot({
-    path: "test-results/budget-confirmation-mobile.png",
-  });
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Delete budget", exact: true }),
-  ).toBeFocused();
   await page.addStyleTag({ content: "html{font-size:100%}" });
   await page.setViewportSize({ width: 1280, height: 960 });
-  await page.getByLabel("Copy name", { exact: true }).fill("Independent copy");
-  await page
-    .getByRole("button", { name: "Duplicate budget", exact: true })
-    .click();
-  await expect
-    .poll(
-      async () =>
-        (await call("/budgets")).filter((b) => b.name === "Independent copy")
-          .length,
-    )
-    .toBe(1);
-  const copy = (await call("/budgets")).find(
-    (b) => b.name === "Independent copy",
-  );
-  expect((await call(`/budgets/${copy.id}/accounts`))[0].balance).toBe(12345);
-  await expect(
-    page.getByRole("heading", { name: "Manage budget", exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Delete budget", exact: true })
-    .click();
-  await page
-    .getByLabel("Confirm budget name", { exact: true })
-    .fill("Renamed household");
-  await page
-    .getByRole("button", { name: "Confirm deletion", exact: true })
-    .click();
-  await expect(
-    page.getByText("This budget is deleted.", { exact: true }),
-  ).toBeVisible();
   await point.getByRole("button", { name: "Restore", exact: true }).click();
   await page
-    .getByLabel("Confirm budget name", { exact: true })
-    .fill("Renamed household");
+    .getByLabel("Replace current data with this backup", { exact: true })
+    .check();
   await page
     .getByRole("button", { name: "Confirm restore", exact: true })
     .click();
@@ -242,9 +139,8 @@ try {
       )
     ).arrayBuffer(),
   );
-  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
   await page
-    .getByRole("button", { name: "Restore backup", exact: true })
+    .getByRole("button", { name: "Restore backup file", exact: true })
     .click();
   const uploads = [];
   await page.route("**/api/v1/restores", async (route) => {
@@ -342,8 +238,8 @@ try {
     else await route.fulfill({ response });
   });
   await page
-    .getByLabel("Confirm budget name", { exact: true })
-    .fill("Renamed household");
+    .getByLabel("Replace current data with this backup", { exact: true })
+    .check();
   await page
     .getByRole("button", { name: "Restore reviewed backup", exact: true })
     .click();
@@ -355,7 +251,7 @@ try {
     .getByRole("button", { name: "Retry saved restore", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Transaction history", exact: true }),
+    page.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   expect((await call(`/budgets/${budget.id}`)).generation).toBe(2);
   expect(activations).toHaveLength(2);
@@ -363,7 +259,7 @@ try {
   expect((await call(`/budgets/${budget.id}/accounts`))[0].balance).toBe(12345);
   expect(errors).toEqual([]);
   console.log(
-    "PASS budget lost-ack rename, cancellation/delayed original, backup/download, duplication, deletion/recovery, native archive UI, plain-HTTP responsive management",
+    "PASS singleton backup lost acknowledgement/replay, download, restore and native archive retry, responsive Settings",
   );
 } finally {
   await browser?.close();

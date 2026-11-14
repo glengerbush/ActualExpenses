@@ -86,7 +86,6 @@ try {
   });
   await page.goto(url);
 
-  await page.getByRole("button", { name: /Location fixture.*Open/ }).click();
   // The inline composer does not expose location capture. Retained metadata and
   // released-client work must survive ordinary editing without implicit writes.
   const savedLocations = await read(root + "/payee-locations");

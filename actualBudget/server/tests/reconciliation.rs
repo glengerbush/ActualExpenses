@@ -1,3 +1,5 @@
+#[path = "support/single_budget_fixture.rs"]
+mod single_budget_fixture;
 use reqwest::blocking::{Client, Response};
 use serde_json::{Value, json};
 use std::{
@@ -299,6 +301,21 @@ fn genuine_schema11_upgrade_preserves_split_receipts_settings_and_retained_sourc
         include_bytes!("../../tests/fixtures/reconciliation-schema11.sqlite3"),
     )
     .unwrap();
+    single_budget_fixture::keep_budget(
+        &directory.path().join("actualbudget.sqlite3"),
+        fixture["budget"].as_str().unwrap(),
+    );
+    let active_directory = tempfile::tempdir().unwrap();
+    std::fs::write(
+        active_directory.path().join("actualbudget.sqlite3"),
+        include_bytes!("../../tests/fixtures/reconciliation-schema11.sqlite3"),
+    )
+    .unwrap();
+    single_budget_fixture::keep_budget(
+        &active_directory.path().join("actualbudget.sqlite3"),
+        fixture["active_budget"].as_str().unwrap(),
+    );
+    let active_server = Server::open(active_directory);
     let s = Server::open(directory);
     let root = format!("/api/v1/budgets/{}", fixture["budget"].as_str().unwrap());
     let account = fixture["account"].as_str().unwrap();
@@ -330,7 +347,7 @@ fn genuine_schema11_upgrade_preserves_split_receipts_settings_and_retained_sourc
         "/api/v1/budgets/{}",
         fixture["active_budget"].as_str().unwrap()
     );
-    let mut current = s.get(&format!("{active}/transactions"));
+    let mut current = active_server.get(&format!("{active}/transactions"));
     let mut original = fixture["active_register"].clone();
     let old = original["snapshot"].as_str().unwrap();
     let fresh = current["snapshot"].as_str().unwrap();
@@ -343,7 +360,7 @@ fn genuine_schema11_upgrade_preserves_split_receipts_settings_and_retained_sourc
         u64::from_str_radix(&fresh[34..], 16).unwrap()
             > u64::from_str_radix(&old[34..], 16).unwrap()
     );
-    let changes = s.get(&format!("{active}/changes?cursor={old}&limit=1000"));
+    let changes = active_server.get(&format!("{active}/changes?cursor={old}&limit=1000"));
     assert_eq!(changes["has_more"], false);
     assert_eq!(changes["next_cursor"], fresh);
     manual_rows(&mut original);
@@ -367,7 +384,7 @@ fn genuine_schema11_upgrade_preserves_split_receipts_settings_and_retained_sourc
     assert_eq!(upload("blocked-source"), fixture["blocked_receipt"]);
     let reviewed = upload("review-retained-date");
     assert_eq!(reviewed["data"]["status"], "ready");
-    ok(s.write(
+    let refused = s.write(
         "POST",
         &format!(
             "/api/v1/imports/{}/activate",
@@ -376,18 +393,11 @@ fn genuine_schema11_upgrade_preserves_split_receipts_settings_and_retained_sourc
         "activate-retained-date",
         None,
         json!({}),
-    ));
-    let source: Value = serde_json::from_str(include_str!(
-        "../../tests/fixtures/reconciliation-import.json"
-    ))
-    .unwrap();
+    );
+    assert_eq!(refused.status(), 409);
     assert_eq!(
-        s.get(&format!(
-            "/api/v1/budgets/{}/accounts/{}",
-            reviewed["data"]["budget_id"].as_str().unwrap(),
-            source["debt"].as_str().unwrap()
-        ))["data"]["last_reconciled"],
-        Value::Null
+        refused.json::<Value>().unwrap()["error"]["code"],
+        "import_budget_conflict"
     );
     let target = Server::start();
     let staged = ok(target
@@ -398,7 +408,7 @@ fn genuine_schema11_upgrade_preserves_split_receipts_settings_and_retained_sourc
         .body(include_bytes!("../../tests/fixtures/reconciliation-schema11.zip").to_vec())
         .send()
         .unwrap());
-    assert_eq!(staged["data"]["report"]["schema_version"], 36);
+    assert_eq!(staged["data"]["report"]["schema_version"], 37);
     ok(target.write(
         "POST",
         &format!(
@@ -432,7 +442,12 @@ fn genuine_schema11_upgrade_preserves_split_receipts_settings_and_retained_sourc
 
 #[test]
 fn imported_large_splits_keep_bounded_structural_recovery_and_exact_totals() {
-    let s = Server::start();
+    let mut s = Server::start();
+    // Thousand-child financial qualification on an unoptimized server, not a latency SLO.
+    s.client = Client::builder()
+        .timeout(Duration::from_secs(120))
+        .build()
+        .unwrap();
     let uploaded = ok(s
         .client
         .post(format!("{}/api/v1/imports/actual", s.url))

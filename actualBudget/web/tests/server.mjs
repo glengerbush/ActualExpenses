@@ -4,7 +4,14 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
 export async function startServer(options = {}) {
-  if (process.env.ACTUALBUDGET_TEST_URL && !options.dataDirectory) {
+  // Container qualification supplies its exact extracted executable and assets.
+  // Each source scenario needs an independent singleton, including repeated starts
+  // within one script. URL-only callers may still provide an isolated server.
+  if (
+    process.env.ACTUALBUDGET_TEST_URL &&
+    !process.env.ACTUALBUDGET_TEST_BINARY &&
+    !options.dataDirectory
+  ) {
     console.log(
       "Using explicitly supplied isolated test server:",
       process.env.ACTUALBUDGET_TEST_URL,

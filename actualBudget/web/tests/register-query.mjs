@@ -3,9 +3,23 @@ import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { startServer } from "./server.mjs";
 const server = await startServer();
-const base = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+let base = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+const extraServers = [],
+  budgetRoots = new Map();
+let bootstrapped = false;
 async function call(path, body, method = "POST", headers = {}) {
-  const r = await fetch(base + path, {
+  if (path === "/budgets" && body) {
+    if (bootstrapped) {
+      const next = await startServer();
+      extraServers.push(next);
+      base = next.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+    }
+    bootstrapped = true;
+    budgetRoots.set(body.id, base);
+  }
+  const id = /^\/budgets\/([^/?]+)/.exec(path)?.[1];
+  const target = budgetRoots.get(id) ?? base;
+  const r = await fetch(target + path, {
     method: body === undefined ? "GET" : method,
     headers: {
       "Content-Type": "application/json",
@@ -250,6 +264,9 @@ try {
       import.meta.url,
     ),
   );
+  const importServer = await startServer();
+  extraServers.push(importServer);
+  base = importServer.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
   const upload = await fetch(base + "/imports/actual", {
     method: "POST",
     headers: {
@@ -271,6 +288,7 @@ try {
   const activated = await call(`/imports/${staged.id}/activate`, {});
   expect(activated.status).toBe(201);
   const imported = activated.data.id;
+  budgetRoots.set(imported, base);
   const importedSettings = (
     await call(`/budgets/${imported}/register-settings`)
   ).data;
@@ -412,5 +430,6 @@ try {
     "PASS register filters, pinned parity, stable pages, exact totals, settings CAS/replay/epoch and bounded retrieval",
   );
 } finally {
+  await Promise.all(extraServers.map((value) => value.stop()));
   await server.stop();
 }

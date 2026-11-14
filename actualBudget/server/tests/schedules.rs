@@ -441,7 +441,7 @@ fn genuine_schema18_upgrade_keeps_ledger_history_receipts_and_refreshes_blocked_
                 json!({})
             )
             .status(),
-        201
+        409
     );
     let target = Server::start();
     let upload = target
@@ -454,7 +454,7 @@ fn genuine_schema18_upgrade_keeps_ledger_history_receipts_and_refreshes_blocked_
         .unwrap();
     assert_eq!(upload.status(), 201, "{}", upload.text().unwrap());
     let stage: Value = upload.json().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 36);
+    assert_eq!(stage["data"]["report"]["schema_version"], 37);
     let response = target.post(
         &format!(
             "{root}/restores/{}/activate",

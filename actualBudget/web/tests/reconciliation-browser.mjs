@@ -52,9 +52,6 @@ try {
     viewport: { width: 1280, height: 1000 },
   });
   await page.goto(server.url);
-  await page
-    .getByRole("button", { name: "Reconciliation acceptance Tracking Open" })
-    .click();
   await page.getByRole("button", { name: "Credit card", exact: true }).click();
   await page
     .getByRole("button", { name: "Reconcile account", exact: true })
@@ -351,11 +348,7 @@ try {
     ],
   });
   await page.goto(server.url);
-  await page.getByRole("button", { name: "All budgets", exact: true }).click();
-  await page
-    .locator(".budget-list button")
-    .filter({ hasText: "Settled split acceptance" })
-    .click();
+  await page.getByRole("button", { name: /All budgets$/ }).click();
   await page.getByRole("button", { name: "Checking", exact: true }).click();
   await page.locator('summary[aria-label="Filters and columns"]').click();
   await page.getByLabel("Hide cleared transactions", { exact: true }).check();
@@ -521,11 +514,7 @@ try {
   ).data;
   expect(copied.account_id).toBe(fixture.accounts[0].account);
   expect(copied.children).toHaveLength(101);
-  await page.getByRole("button", { name: "All budgets", exact: true }).click();
-  await page
-    .locator(".budget-list button")
-    .filter({ hasText: copyName })
-    .click();
+  await page.getByRole("button", { name: /All budgets$/ }).click();
   await page
     .getByRole("button", { name: "101 allocations", exact: true })
     .click();

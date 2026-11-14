@@ -4,7 +4,7 @@ import { chromium } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { startServer } from "./server.mjs";
-const server = await startServer();
+let server = await startServer();
 let browser;
 try {
   browser = await chromium.launch({
@@ -59,33 +59,13 @@ try {
   );
   assert.equal(staged.status, 201);
   assert.ok(["ready", "activated"].includes(staged.data.status));
-  if (staged.data.status === "ready")
-    assert.equal(
-      (
-        await api(
-          `/imports/${staged.data.id}/activate`,
-          {},
-          { "Idempotency-Key": randomUUID() },
-        )
-      ).status,
-      201,
-    );
-  const original = staged.data.budget_id,
-    metadata = await api(`/budgets/${original}/reporting`),
-    b = randomUUID();
-  assert.equal(
-    (
-      await api(
-        `/budgets/${original}/duplicate`,
-        { id: b, name: "Custom API " + b },
-        {
-          "Idempotency-Key": randomUUID(),
-          "X-Actual-Budget-Epoch": metadata.data.epoch,
-        },
-      )
-    ).status,
-    201,
+  const activated = await api(
+    `/imports/${staged.data.id}/activate`,
+    {},
+    { "Idempotency-Key": randomUUID() },
   );
+  assert.equal(activated.status, 201);
+  const b = activated.data.id;
   const dateShapes = JSON.parse(
     await readFile(
       new URL(
@@ -328,25 +308,13 @@ try {
     { kept: ["unknown", "future"] },
   );
   // Supported inline categories can be ungrouped; their planned money must survive reports.
-  const legacyBudget = randomUUID(),
+  await server.stop();
+  server = await startServer();
+  await page.goto(server.url);
+  const legacyBudget = (await api("/budget")).data.id,
     legacyAccount = randomUUID(),
     legacyCategory = randomUUID(),
     legacyRoot = `/budgets/${legacyBudget}`;
-  const legacyHeaders = { "Idempotency-Key": randomUUID() };
-  assert.equal(
-    (
-      await api(
-        "/budgets",
-        {
-          id: legacyBudget,
-          name: "Ungrouped report allocations",
-          budget_type: "tracking",
-        },
-        legacyHeaders,
-      )
-    ).status,
-    201,
-  );
   const legacyEpoch = (await api(legacyRoot + "/reporting")).data.epoch;
   const legacyWrite = () => ({
     "Idempotency-Key": randomUUID(),

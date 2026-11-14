@@ -59,6 +59,7 @@ async function lose(page, pattern) {
   return attempts;
 }
 try {
+  const currentBudget = await read("/budget");
   const originalBudgets = byId(await read("/budgets"));
   await mkdir(artifacts, { recursive: true });
   browser = await chromium.launch({
@@ -81,7 +82,8 @@ try {
   staleChooser.on("pageerror", (error) => errors.push(error.message));
   let stalePosts = 0;
   staleChooser.on("request", (request) => {
-    if (request.method() === "POST") stalePosts++;
+    if (request.method() === "POST" && request.url().includes("/imports"))
+      stalePosts++;
   });
   await staleChooser.goto(server.url);
   await open(staleChooser);
@@ -120,9 +122,6 @@ try {
   expect(sourceStages).toHaveLength(1);
   const staged = sourceStages[0];
   expect(staged.status).toBe("ready");
-  expect(originalBudgets.some((budget) => budget.id === staged.budget_id)).toBe(
-    false,
-  );
   await staleChooser
     .getByLabel("Actual ZIP export")
     .setInputFiles(`${fixtures}/rules-template-requirement-26.10.0.zip`);
@@ -136,7 +135,7 @@ try {
   await open(page);
   await page.getByRole("button", { name: "Retry saved upload" }).click();
   await expect(
-    page.getByRole("button", { name: "Activate imported budget" }),
+    page.getByRole("button", { name: "Import reviewed archive" }),
   ).toBeVisible();
   expect(uploads).toHaveLength(2);
   expect(uploads[1]).toEqual(uploads[0]);
@@ -172,7 +171,7 @@ try {
     second.getByRole("button", { name: "Review another file" }),
   ).toBeVisible();
   const activations = await lose(page, "**/api/v1/imports/*/activate");
-  await page.getByRole("button", { name: "Activate imported budget" }).click();
+  await page.getByRole("button", { name: "Import reviewed archive" }).click();
   await expect(
     page.getByRole("button", { name: "Retry saved import" }),
   ).toBeEnabled();
@@ -183,7 +182,7 @@ try {
   await open(page);
   await page.getByRole("button", { name: "Retry saved import" }).click();
   await expect(
-    page.getByRole("heading", { name: "Transaction history", exact: true }),
+    page.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   expect(activations).toHaveLength(2);
   expect(activations[1]).toEqual(activations[0]);
@@ -191,12 +190,8 @@ try {
     createHash("sha256").update("{}").digest("hex"),
   );
   const activatedBudgets = byId(await read("/budgets"));
-  expect(
-    activatedBudgets.filter((budget) => budget.id !== staged.budget_id),
-  ).toEqual(originalBudgets);
-  expect(
-    activatedBudgets.filter((budget) => budget.id === staged.budget_id),
-  ).toHaveLength(1);
+  expect(activatedBudgets).toHaveLength(1);
+  expect(activatedBudgets[0].id).toBe(currentBudget.id);
   // Source fixture: Spending 314.34 plus the other historical balance -50.00.
   await expect(page.getByTestId("register-total")).toHaveText("264.34");
   await expect(
@@ -213,7 +208,6 @@ try {
     "PASS saved upload/activation survive lost acknowledgements, reload and stale tabs; quota failure prevents sending; financial register matches oracle",
   );
   await page.unroute("**/api/v1/imports/actual");
-  await page.getByRole("button", { name: "All budgets", exact: true }).click();
   await open(page);
   // Template rules now convert. Unknown extra data must still block activation
   // and remain available in the exact original download.
@@ -247,7 +241,7 @@ sys.stdout.buffer.write(data.getvalue())
     page.getByRole("heading", { name: "Conversion required" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Activate imported budget" }),
+    page.getByRole("button", { name: "Import reviewed archive" }),
   ).toBeDisabled();
   const original = await page
     .getByRole("link", { name: "Download original archive" })

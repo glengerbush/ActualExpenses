@@ -7,7 +7,6 @@ import { execFile } from "node:child_process";
 import { randomUUID, createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { startServer } from "./server.mjs";
-import { cloneImportedTemplate } from "./import-template.mjs";
 const server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1",
   source = JSON.parse(
@@ -75,7 +74,7 @@ try {
   assert.equal(upload.status, 201);
   const stage = (await upload.json()).data,
     template = (await call("/imports/" + stage.id + "/activate", {}, 201)).data,
-    budget = await cloneImportedTemplate(api, template.id),
+    budget = template.id,
     root = "/budgets/" + budget,
     account = source.operations[0].transaction.account_id;
   assert.equal(

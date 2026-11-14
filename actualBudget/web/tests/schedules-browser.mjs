@@ -218,9 +218,7 @@ try {
       ],
     });
   }
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   const upcoming = page.locator(
     'section[aria-labelledby="scheduled-preview-title"]',
   );

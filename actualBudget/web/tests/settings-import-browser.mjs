@@ -46,7 +46,6 @@ try {
     amount: -1234,
   });
   const prefs = await call(`/budgets/${target}/preferences`);
-  const epoch = (await call(`/budgets/${target}/checkpoint`)).epoch;
   for (const file of [
     "import-26.10.0.zip",
     "import-splits-26.10.0.zip",
@@ -54,29 +53,27 @@ try {
     "split-transfers-26.10.0.zip",
   ]) {
     const source = await stage(file);
-    const activated = await call(`/imports/${source.id}/activate`, {});
+    const epoch = (await call(`/budgets/${target}/checkpoint`)).epoch;
     const before = await call(`/budgets/${target}/transactions?limit=1000`);
-    const sourceRows = await call(
-      `/budgets/${activated.id}/transactions?limit=1000`,
-    );
     const key = randomUUID(),
       body = { budget_id: target, epoch };
     const first = await call(`/imports/${source.id}/merge`, body, "POST", key);
     const replay = await call(`/imports/${source.id}/merge`, body, "POST", key);
     expect(replay).toEqual(first);
-    const again = await call(`/imports/${source.id}/merge`, body);
+    const again = await call(`/imports/${source.id}/merge`, {
+      budget_id: target,
+      epoch: (await call(`/budgets/${target}/checkpoint`)).epoch,
+    });
     expect(again.import_result.added).toBe(0);
     const after = await call(`/budgets/${target}/transactions?limit=1000`);
     // Different fixtures can share source IDs; only genuinely new rows are additive.
     expect(after.find((t) => t.id === existing).amount).toBe(-1234);
     expect(after.length).toBeGreaterThanOrEqual(before.length);
-    if (file === "import-26.10.0.zip") {
-      expect(after.length).toBe(before.length + sourceRows.length);
-      expect(after.reduce((n, t) => n + t.amount, 0)).toBe(
-        before.reduce((n, t) => n + t.amount, 0) +
-          sourceRows.reduce((n, t) => n + t.amount, 0),
-      );
-    }
+    expect(after.length).toBeLessThanOrEqual(
+      before.length + first.import_result.added,
+    );
+    if (file === "import-26.10.0.zip")
+      expect(after.length).toBe(before.length + first.import_result.added);
     const mergedTx = new Map(after.map((t) => [t.id, t]));
     for (const t of after.filter((t) => t.transfer_id && !t.parent_id)) {
       const peer = mergedTx.get(t.transfer_id);
@@ -85,16 +82,6 @@ try {
         expect(peer.amount).toBe(-t.amount);
       }
     }
-    // Importing into the full import of the same source also preserves its existing rows.
-    const ownEpoch = (await call(`/budgets/${activated.id}/checkpoint`)).epoch;
-    expect(
-      (
-        await call(`/imports/${source.id}/merge`, {
-          budget_id: activated.id,
-          epoch: ownEpoch,
-        })
-      ).import_result.added,
-    ).toBe(0);
   }
   expect(await call(`/budgets/${target}/preferences`)).toEqual(prefs);
   // Reference matches and merge receipts survive renaming and native backup/restore.
@@ -136,7 +123,7 @@ try {
   });
   expect(bad.status).toBe(409);
   browser = await chromium.launch({
-    executablePath: process.env.CHROMIUM_PATH,
+    executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
     args: [
       "--no-sandbox",
       "--no-proxy-server",
@@ -150,21 +137,19 @@ try {
   await p.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(
     p.getByRole("button", { name: "Budgets", exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await expect(
     p.getByText("Experimental features", { exact: true }),
   ).toHaveCount(0);
-  await expect(p.getByLabel("Schedule for all budgets")).toBeEnabled();
-  await p.getByLabel("Schedule for all budgets").selectOption("0");
+  await expect(p.getByLabel("Automatic backup schedule")).toBeEnabled();
+  await p.getByLabel("Automatic backup schedule").selectOption("0");
   await expect
     .poll(async () => (await call("/backup-policy")).interval_seconds)
     .toBe(0);
-  await p.getByLabel("Schedule for all budgets").selectOption("604800");
+  await p.getByLabel("Automatic backup schedule").selectOption("604800");
   await expect
     .poll(async () => (await call("/backup-policy")).interval_seconds)
     .toBe(604800);
-  await p.getByRole("button", { name: "Budgets", exact: true }).click();
-  await p.getByText("Household import", { exact: true }).click();
   const sidebar = p.getByRole("complementary", { name: "Budget navigation" });
   await expect(
     sidebar.getByRole("button", { name: "Transaction files", exact: true }),
@@ -181,14 +166,6 @@ try {
   await settings.getByRole("button", { name: "Import", exact: true }).click();
   await p
     .getByRole("button", { name: "Transaction file", exact: true })
-    .click();
-  await p.getByLabel("An existing budget", { exact: true }).check();
-  await p.getByLabel("Budget", { exact: true }).selectOption(target);
-  await p
-    .getByRole("button", {
-      name: "Continue to transaction import",
-      exact: true,
-    })
     .click();
   async function importCsv(name, payee) {
     await p.getByLabel("Transaction file", { exact: true }).setInputFiles({
@@ -215,25 +192,9 @@ try {
       (t) => t.payee_name?.toLowerCase() === "csv existing",
     ),
   ).toBe(true);
+  await settings.getByRole("button", { name: "General", exact: true }).click();
   await settings.getByRole("button", { name: "Import", exact: true }).click();
-  await p
-    .getByRole("button", { name: "Transaction file", exact: true })
-    .click();
-  await p.getByLabel("A new budget", { exact: true }).check();
-  await p.getByRole("button", { name: "Name new budget", exact: true }).click();
-  await p.getByLabel("Budget name", { exact: true }).fill("CSV Separate");
-  await p.getByRole("button", { name: "Create budget", exact: true }).click();
-  await importCsv("separate.csv", "CSV New");
-  const created = (await call("/budgets")).find(
-    (b) => b.name === "CSV Separate",
-  );
-  expect(created).toBeTruthy();
-  expect(
-    (await call(`/budgets/${created.id}/transactions`)).some(
-      (t) => t.payee_name?.toLowerCase() === "csv new",
-    ),
-  ).toBe(true);
-  await settings.getByRole("button", { name: "Import", exact: true }).click();
+  await expect(p.getByLabel("A new budget", { exact: true })).toHaveCount(0);
   await p
     .getByLabel("Actual ZIP export", { exact: true })
     .setInputFiles(
@@ -241,8 +202,6 @@ try {
         .pathname,
     );
   await p.getByRole("button", { name: "Review archive", exact: true }).click();
-  await p.getByLabel("An existing budget", { exact: true }).check();
-  await p.getByLabel("Budget", { exact: true }).selectOption(created.id);
   await p.screenshot({
     path: "../../.scratch/settings-import-archive.png",
     fullPage: true,
@@ -262,12 +221,12 @@ try {
     await route.abort("failed");
   });
   await p
-    .getByRole("button", { name: "Merge into selected budget", exact: true })
+    .getByRole("button", { name: "Import reviewed archive", exact: true })
     .click();
   await expect(
     p.getByRole("button", { name: "Retry saved import", exact: true }),
   ).toBeEnabled();
-  const count = (await call(`/budgets/${created.id}/transactions?limit=1000`))
+  const count = (await call(`/budgets/${target}/transactions?limit=1000`))
     .length;
   await p.unroute("**/api/v1/imports/*/merge");
   await p.reload();
@@ -279,11 +238,11 @@ try {
     .getByRole("button", { name: "Retry saved import", exact: true })
     .click();
   await expect(
-    sidebar.getByRole("button", { name: "Transaction history", exact: true }),
+    sidebar.getByRole("button", { name: "Transactions", exact: true }),
   ).toHaveAttribute("aria-current", "page");
   expect(retried).toBe(key);
   expect(
-    (await call(`/budgets/${created.id}/transactions?limit=1000`)).length,
+    (await call(`/budgets/${target}/transactions?limit=1000`)).length,
   ).toBe(count);
   await sidebar.getByRole("button", { name: "Settings", exact: true }).click();
   await settings.getByRole("button", { name: "Import", exact: true }).click();
@@ -297,7 +256,7 @@ try {
   ).toBe(true);
   expect(errors).toEqual([]);
   console.log(
-    "PASS archive graph merges, repeat/replay/epoch protection, settings navigation, CSV new/existing destinations, archive retry and mobile",
+    "PASS archive graph merges, repeat/replay/epoch protection, settings navigation, CSV singleton destination, archive retry and mobile",
   );
 } finally {
   await browser?.close();

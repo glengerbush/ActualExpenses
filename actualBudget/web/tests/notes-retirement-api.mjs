@@ -89,13 +89,16 @@ print(json.dumps({'version':c.execute('PRAGMA user_version').fetchone()[0], 'not
   expect(result.notes).toBe(0);
   expect(result.generic).toBe(0);
   expect(result.version).toBeGreaterThanOrEqual(32);
+  // Each archive compatibility scenario starts with an empty singleton.
+  await server.stop();
+  server = await startServer();
   // Actual archives and portable archives must still decode legacy columns.
   const staged = await call(
     "/imports/actual",
     await readFile("../tests/fixtures/budgeting-envelope-allocated.zip"),
   );
   expect(staged.status).toBe("ready");
-  await call(`/imports/${staged.id}/activate`, {});
+  staged.budget_id = (await call(`/imports/${staged.id}/activate`, {})).id;
   const imported = await call(
     `/budgets/${staged.budget_id}/categories?limit=1000`,
   );

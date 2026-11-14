@@ -21,16 +21,27 @@ class ExpenseWorkflowTest {
     @get:Rule val compose = createComposeRule()
     private val actions = RecordingActions()
     private val account = Choice("spending", "Spending")
-    private val state = ExpenseUiState(screen = Screen.EXPENSES, selectedBudget = account, online = true, expenseContext = ExpenseContext("http://fixture", "budget", "spending", "00000000000000000000000000000000", "USD", 2, "comma-dot"))
+    private val state = ExpenseUiState(screen = Screen.EXPENSES, online = true, expenseContext = ExpenseContext("http://fixture", "budget", "spending", "00000000000000000000000000000000", "USD", 2, "comma-dot"))
 
-    @Test fun expenseHistoryUsesBudgetNavigationWithoutAccounts() {
+    @Test fun expenseHistoryOpensWithoutBudgetOrAccountNavigation() {
         compose.setContent { ActualExpensesTheme { ExpensesScreen(state, actions) } }
         compose.onNodeWithContentDescription("Choose account").assertDoesNotExist()
         compose.onNodeWithContentDescription("Add expense").assertIsDisplayed()
         val directory = File(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null), "review").apply { mkdirs() }
         File(directory, "unified-history.png").outputStream().use { compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it) }
-        compose.onNodeWithContentDescription("Choose budget").performClick()
-        compose.runOnIdle { assertTrue(actions.budgetSelection) }
+        compose.onNodeWithContentDescription("Choose budget").assertDoesNotExist()
+        compose.onNodeWithText("Spending").assertDoesNotExist()
+        compose.onNodeWithText("Expenses").assertIsDisplayed()
+    }
+
+    @Test fun changedBudgetRequiresExportBeforeOpeningCurrentLedger() {
+        compose.setContent { ActualExpensesTheme { ExpensesScreen(state.copy(screen = Screen.SAVED_WORK, expenseContext = null, pendingCount = 1, recoveryMessage = "The server budget changed."), actions) } }
+        compose.onNodeWithText("Recover saved work").assertIsDisplayed()
+        compose.onNodeWithText("Save recovery file").assertIsDisplayed()
+        compose.onNodeWithText("Open current budget").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Add expense").assertDoesNotExist()
+        val directory = File(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null), "review").apply { mkdirs() }
+        File(directory, "single-budget-recovery.png").outputStream().use { compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
     @Test fun rejectedSplitEditHasExplicitRecoveryOutsideExpenseList() {
@@ -213,9 +224,9 @@ class ExpenseWorkflowTest {
         override fun beginEdit(id: String, completed: (EditSession) -> Unit) { editing = id; completed(session ?: EditSession(id,true)) }
         var server: String? = null
         override fun connect(server: String) {this.server=server}
-        override fun chooseBudget(id: String) = Unit
-        var budgetSelection = false
-        override fun showBudgets() { budgetSelection = true }
+        override fun recoverLegacyBudget(id: String) = Unit
+        override fun exportRecovery(destination: String, completed: () -> Unit) = Unit
+        override fun openCurrentAfterExport() = Unit
         var retriedSchedules=false
         var cancelledSchedules=false
         override fun retryScheduledWork(){retriedSchedules=true}

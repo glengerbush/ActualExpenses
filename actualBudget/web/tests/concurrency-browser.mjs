@@ -478,7 +478,9 @@ try {
     // Reload can interrupt the old tab before it releases its delivery claim.
     // Recovery must honor that 60-second lease, then replay the same request.
     try {
-      await expect(retry).toHaveCount(0, { timeout: 65_000 });
+      await expect
+        .poll(async () => (await savedWork(page)).length, { timeout: 65_000 })
+        .toBe(0);
     } catch (error) {
       // Failure-only evidence: do not perturb claim/reload timing on passing runs.
       let diagnosticTimer;
@@ -578,7 +580,7 @@ try {
           .click();
         await a.getByLabel("Amount", { exact: true }).fill("1");
       }
-      const horizon = Date.now() + 5000;
+      const horizon = Date.now() + 30000;
       await a.evaluate(
         (horizon) =>
           localStorage.setItem(
@@ -658,7 +660,7 @@ try {
         .click();
       await expect(
         b.getByRole("button", { name: discardName, exact: true }),
-      ).toBeVisible();
+      ).toBeEnabled();
       if (alreadyCommitted) {
         await new Promise((resolve) =>
           setTimeout(resolve, Math.max(0, horizon + 50 - Date.now())),

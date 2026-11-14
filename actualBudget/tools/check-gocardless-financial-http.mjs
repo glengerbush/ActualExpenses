@@ -5,7 +5,6 @@ import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
 import { startServer } from "../web/tests/server.mjs";
-import { cloneImportedTemplate } from "../web/tests/import-template.mjs";
 assert.ok(
   !process.env.ACTUALBUDGET_TEST_URL,
   "Controlled provider proof owns disposable server",
@@ -97,7 +96,7 @@ await new Promise((resolve) => provider.listen(0, "127.0.0.1", resolve));
 process.env.ACTUALBUDGET_BANK_TEST_ORIGIN = `http://127.0.0.1:${provider.address().port}`;
 process.env.ACTUALBUDGET_GOCARDLESS_TEST_ORIGIN =
   process.env.ACTUALBUDGET_BANK_TEST_ORIGIN;
-const server = await startServer(),
+let server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
 const proofs = [];
 async function call(path, body, headers = {}, status = 200) {
@@ -187,6 +186,9 @@ function projection(rows, payees, categories, source, before) {
 }
 try {
   for (current of financial.cases) {
+    await server.stop();
+    server = await startServer();
+    api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
     denyBalance = false;
     balanceCalls = 0;
     const bytes = await readFile(
@@ -213,7 +215,7 @@ try {
     assert.equal(stage.status, "ready");
     const active = (await call(`/imports/${stage.id}/activate`, {}, {}, 201))
       .data;
-    const budget = await cloneImportedTemplate(api, active.id),
+    const budget = active.id,
       root = `/budgets/${budget}`;
     const epoch = (await call(root + "/checkpoint")).data.epoch,
       headers = { "X-Actual-Budget-Epoch": epoch },

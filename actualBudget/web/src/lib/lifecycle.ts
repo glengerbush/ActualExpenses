@@ -234,9 +234,21 @@ export async function clearRestoreUpload(value: RestoreUpload) {
       throw new OfflineStateError(
         "Archive selection changed in another tab. Reload before continuing.",
       );
+    // An imported archive may originate from a different budget identity.
+    // Check the stage path as well as its original ID before clearing shared recovery.
+    const operations = current.stage
+      ? await result<unknown[]>(store.getAll())
+      : [];
     if (
       current.stage &&
-      (await result(store.get(operationKey(current.stage.budget_id))))
+      ((await result(store.get(operationKey(current.stage.budget_id)))) ||
+        operations.some((value) => {
+          const operation = value as Partial<LifecycleOperation> | null;
+          return (
+            operation?.kind === "restored" &&
+            operation.path?.endsWith(`/restores/${current.stage!.id}/activate`)
+          );
+        }))
     )
       throw new OfflineStateError(
         "A restore is unconfirmed. Resolve the saved restore before changing files.",

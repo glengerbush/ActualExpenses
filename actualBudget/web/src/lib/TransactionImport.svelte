@@ -884,8 +884,8 @@
     <section>
       <h2>Download transactions</h2>
       <p>
-        CSV shares transaction values. Use Manage budget for a complete native
-        backup preserving IDs, settings, rules and splits.
+        CSV shares transaction values. Use Settings → Backups for a complete
+        native backup preserving IDs, settings, rules and splits.
       </p>
       <label
         >CSV layout<select bind:value={layout}

@@ -25,6 +25,7 @@ pub fn router(store: Store) -> Router {
         )
         .route("/api/v1/info", get(info))
         .route("/api/v1/openapi.json", get(contract))
+        .route("/api/v1/budget", get(current_budget))
         .route("/api/v1/budgets", get(list_budgets).post(create_budget))
         .route(
             "/api/v1/budgets/{budget}/accounts",
@@ -225,12 +226,23 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["unified_ledger", "category_colors", "transaction_recurrence", "ynab_imports", "transaction_csv_export", "transaction_file_imports", "transaction_file_parsing", "transaction_import_settings", "transaction_matching", "transaction_merge", "recovery", "recovery_cancellation", "schedules", "schedule_catch_up", "schedule_matching", "schedule_discovery", "schedule_conversion", "android_upgrade", "rules", "rule_entry", "rule_preview", "rule_cancellation", "rule_receipt_lookup", "category_learning", "category_associations", "budget_planning", "tracking_budget", "bulk_transactions", "undo_redo", "history_cancellation", "history_receipt_lookup", "payee_locations", "location_cancellation", "expense_kind_precondition", "transfers", "transfer_cancellation", "transfer_receipt_lookup", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "actual_imports", "payee_management", "reference_cancellation", "splits", "register_queries", "register_settings", "reporting", "historical_reports", "bounded_report_inspection", "custom_reports", "bounded_queries", "notes", "atomic_transaction_batch", "crossover", ],
+        "capabilities": ["single_budget", "unified_ledger", "category_colors", "transaction_recurrence", "ynab_imports", "transaction_csv_export", "transaction_file_imports", "transaction_file_parsing", "transaction_import_settings", "transaction_matching", "transaction_merge", "recovery", "recovery_cancellation", "schedules", "schedule_catch_up", "schedule_matching", "schedule_discovery", "schedule_conversion", "android_upgrade", "rules", "rule_entry", "rule_preview", "rule_cancellation", "rule_receipt_lookup", "category_learning", "category_associations", "budget_planning", "tracking_budget", "bulk_transactions", "undo_redo", "history_cancellation", "history_receipt_lookup", "payee_locations", "location_cancellation", "expense_kind_precondition", "transfers", "transfer_cancellation", "transfer_receipt_lookup", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "actual_imports", "payee_management", "reference_cancellation", "splits", "register_queries", "register_settings", "reporting", "historical_reports", "bounded_report_inspection", "custom_reports", "bounded_queries", "notes", "atomic_transaction_batch", "crossover", ],
         "openapi": "/api/v1/openapi.json"
     }))
 }
 async fn contract() -> Json<Value> {
     Json(serde_json::from_str(include_str!("openapi.json")).expect("valid embedded OpenAPI"))
+}
+async fn current_budget(State(store): State<Store>) -> Result<Json<Value>, Error> {
+    let result = store
+        .run(|db| {
+            let tx = db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+            let value = crate::single_budget::current(&tx)?;
+            tx.commit()?;
+            Ok(value)
+        })
+        .await?;
+    Ok(data(result))
 }
 async fn list_budgets(
     State(store): State<Store>,

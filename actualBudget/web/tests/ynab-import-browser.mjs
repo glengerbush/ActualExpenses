@@ -38,6 +38,7 @@ try {
     page.setDefaultTimeout(10000);
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(server.url);
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
     await page.getByRole("button", { name: "Import", exact: true }).click();
     await page.getByLabel("Budget file format").selectOption(kind);
     await expect(
@@ -119,6 +120,7 @@ try {
     );
     assert.equal(attempts.length, 1);
     await page.reload();
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
     await page.getByRole("button", { name: "Import", exact: true }).click();
     await expect(page.getByText(name, { exact: true })).toBeVisible();
     await page
@@ -180,7 +182,9 @@ try {
     let activationFirst;
     const activations = [];
     await page.route(
-      "**/api/v1/imports/" + deliveredStage.id + "/activate",
+      "**/api/v1/imports/" +
+        deliveredStage.id +
+        (kind === "nynab" ? "/activate" : "/merge"),
       async (route) => {
         const r = route.request();
         activations.push({
@@ -189,14 +193,14 @@ try {
         });
         if (activations.length === 1) {
           const forwarded = await forward(route);
-          assert.equal(forwarded.status(), 201);
+          assert.ok(forwarded.ok(), await forwarded.text());
           activationFirst = (await forwarded.json()).data;
           await route.abort("failed");
         } else await route.continue();
       },
     );
     await page
-      .getByRole("button", { name: "Activate imported budget", exact: true })
+      .getByRole("button", { name: "Import reviewed archive", exact: true })
       .click();
     await expect(
       page.getByRole("button", { name: "Retry saved import", exact: true }),
@@ -209,6 +213,7 @@ try {
       "/budgets/" + activationFirst.id + "/transactions?limit=1000",
     );
     await page.reload();
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
     await page.getByRole("button", { name: "Import", exact: true }).click();
     await page
       .getByRole("button", { name: "Retry saved import", exact: true })

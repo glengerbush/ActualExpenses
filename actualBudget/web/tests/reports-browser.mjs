@@ -21,14 +21,14 @@ try {
   page.on("pageerror", (error) => console.error("PAGEERROR", error.message));
   await page.clock.setFixedTime(new Date("2026-11-09T12:00:00Z"));
   await page.goto(server.url);
-  const budget = randomUUID(),
+  let budget,
     account = randomUUID(),
     name = "Dashboard browser " + randomUUID();
   const api = (path, body) =>
     page.evaluate(
       async ({ path, body, key }) => {
         const r = await fetch("/api/v1" + path, {
-          method: "POST",
+          method: body === undefined ? "GET" : "POST",
           headers: {
             "Content-Type": "application/json",
             "Idempotency-Key": key,
@@ -40,7 +40,7 @@ try {
       },
       { path, body, key: randomUUID() },
     );
-  await api("/budgets", { id: budget, name, budget_type: "tracking" });
+  budget = (await api("/budget")).data.id;
   await api(`/budgets/${budget}/accounts`, {
     id: account,
     name: "Report spending",
@@ -49,10 +49,7 @@ try {
     opening_date: "2026-11-01",
   });
   await page.reload();
-  await page.getByRole("button", { name: new RegExp(name + ".*Open") }).click();
-  await page
-    .getByRole("button", { name: "Dashboards and reports", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Reports", exact: true }).click();
   await page
     .getByRole("button", { name: "New dashboard", exact: true })
     .click();
@@ -80,7 +77,7 @@ try {
   ).toContainText("100.00");
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Dashboards and reports", exact: true }),
+    page.getByRole("heading", { name: "Reports", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByTestId("report-widget").filter({ hasText: "Recorded total" }),
@@ -136,9 +133,7 @@ try {
   await page.reload();
   await expect(page.getByText(/Cancellation is pending/)).toBeVisible();
   // Public recovery flow clears downloaded caches; exact pending intent survives.
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
     .getByRole("navigation", { name: "Settings sections" })
@@ -150,9 +145,7 @@ try {
   await page
     .getByRole("button", { name: "Confirm cache reset", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Dashboards and reports", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Reports", exact: true }).click();
   await expect(page.getByText(/Cancellation is pending/)).toBeVisible();
   await expect(page.getByLabel("Widget name", { exact: true })).toHaveValue(
     "Interrupted private summary",
@@ -199,19 +192,13 @@ try {
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
   ).toHaveCount(0);
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
     .getByRole("combobox", { name: "Theme", exact: true })
     .selectOption("dark");
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Dashboards and reports", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
+  await page.getByRole("button", { name: "Reports", exact: true }).click();
   await page.setViewportSize({ width: 1280, height: 900 });
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   const exact = page
@@ -243,7 +230,7 @@ try {
   await zoomPage.goto(server.url);
   await expect(
     zoomPage.getByRole("heading", {
-      name: "Dashboards and reports",
+      name: "Reports",
       exact: true,
     }),
   ).toBeVisible();

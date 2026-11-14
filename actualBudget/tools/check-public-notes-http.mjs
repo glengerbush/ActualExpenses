@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
 import { startServer } from "../web/tests/server.mjs";
-import { cloneImportedTemplate } from "../web/tests/import-template.mjs";
 const source = JSON.parse(
     await readFile(
       new URL("../tests/fixtures/public-notes-source.json", import.meta.url),
@@ -64,7 +63,7 @@ try {
   );
   const activated = (await call("/imports/" + stage.id + "/activate", {}, 201))
       .data,
-    id = await cloneImportedTemplate(api, activated.id),
+    id = activated.id,
     root = "/budgets/" + id,
     ledger = await call(root + "/transactions?limit=1000"),
     epoch = (await call(root)).data.epoch;

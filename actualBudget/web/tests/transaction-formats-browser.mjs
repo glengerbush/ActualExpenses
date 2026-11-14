@@ -1,9 +1,8 @@
-import { cloneImportedTemplate } from "./import-template.mjs";
 import { chromium, expect } from "@playwright/test";
 import { readFile, mkdir } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
 import { startServer } from "./server.mjs";
-const fixture = JSON.parse(
+let fixture = JSON.parse(
     await readFile(
       new URL(
         "../../tests/fixtures/transaction-format-flows.json",
@@ -56,6 +55,9 @@ try {
     ],
   });
   for (const item of fixture.cases) {
+    await server.stop();
+    server = await startServer();
+    api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
     const archive = await readFile(
       new URL(
         "../../tests/fixtures/transaction-format-flows/" +
@@ -76,8 +78,7 @@ try {
     });
     expect(response.status).toBe(201);
     const stage = (await response.json()).data;
-    await call(`/imports/${stage.id}/activate`, {});
-    stage.budget_id = await cloneImportedTemplate(api, stage.budget_id);
+    stage.budget_id = (await call(`/imports/${stage.id}/activate`, {})).data.id;
     const root = `/budgets/${stage.budget_id}`,
       context = await browser.newContext({
         viewport: { width: 1280, height: 1000 },
@@ -99,12 +100,6 @@ try {
     await page.getByRole("button", { name: "Import", exact: true }).click();
     await page
       .getByRole("button", { name: "Transaction file", exact: true })
-      .click();
-    await page
-      .getByRole("button", {
-        name: "Continue to transaction import",
-        exact: true,
-      })
       .click();
     for (let round = 0; round < 2; round++) {
       await page.getByLabel("Transaction file").setInputFiles({

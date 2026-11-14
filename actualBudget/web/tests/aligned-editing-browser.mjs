@@ -66,7 +66,6 @@ try {
     errors = [];
   p.on("pageerror", (e) => errors.push(e.message));
   await p.goto(server.url);
-  await p.getByText("Aligned editing", { exact: true }).click();
   async function aligned() {
     await expect(p.locator(".aligned-field").first()).toBeVisible();
     const order = await p
@@ -183,12 +182,14 @@ try {
   await p.getByRole("button", { name: "Copy previous", exact: true }).click();
   await expect.poll(async () => (await category()).budgeted).toBe(5000);
   await expect(
-    p.getByRole("button", { name: "Transactions", exact: true }),
+    p.getByRole("button", { name: "View transactions", exact: true }),
   ).toBeEnabled();
   await p.screenshot({ path: "../../.scratch/immediate-category.png" });
-  await p.getByRole("button", { name: "Transactions", exact: true }).click();
+  await p
+    .getByRole("button", { name: "View transactions", exact: true })
+    .click();
   await expect(
-    p.getByRole("heading", { name: "Transaction history", exact: true }),
+    p.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   await expect(
     p.locator(".register-table tbody tr[data-transaction-id]"),

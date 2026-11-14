@@ -2,7 +2,6 @@ pub mod automatic;
 use crate::{
     api::{budget_id, idempotency_key, json_error},
     error::Error,
-    models::validate_name,
     store::{self, Store},
 };
 use axum::{
@@ -81,10 +80,7 @@ pub fn snapshot_query(
 pub fn router() -> Router<Store> {
     Router::new()
         .merge(automatic::router())
-        .route(
-            "/api/v1/budgets/{budget}",
-            get(read).patch(rename).delete(delete_budget),
-        )
+        .route("/api/v1/budgets/{budget}", get(read))
         .route(
             "/api/v1/budgets/{budget}/backups",
             get(backups).post(backup),
@@ -98,10 +94,6 @@ pub fn router() -> Router<Store> {
             axum::routing::post(restore_point),
         )
         .route("/api/v1/budgets/{budget}/checkpoint", get(checkpoint))
-        .route(
-            "/api/v1/budgets/{budget}/duplicate",
-            axum::routing::post(duplicate_budget),
-        )
         .route(
             "/api/v1/budgets/{budget}/restores/{id}/activate",
             axum::routing::post(activate_stage),
@@ -167,45 +159,6 @@ async fn checkpoint(
         Ok(result)
     }).await?})))
 }
-#[derive(Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-struct Rename {
-    name: String,
-}
-async fn rename(
-    State(store): State<Store>,
-    path: Result<Path<String>, PathRejection>,
-    headers: HeaderMap,
-    input: Result<Json<Rename>, JsonRejection>,
-) -> Result<Json<Value>, Error> {
-    let budget = budget_id(path)?;
-    let Json(input) = input.map_err(json_error)?;
-    validate_name(&input.name)?;
-    let key = idempotency_key(&headers)?;
-    let cancel = crate::concurrency::cancel_header(&headers)?;
-    let epoch = epoch_header(&headers)?;
-    let payload = serde_json::to_string(&input).map_err(Error::internal)?;
-    let result = store
-        .run(move |db| {
-            cancellation::write(
-                db,
-                &format!("PATCH /budgets/{budget}"),
-                &key,
-                &payload,
-                cancel,
-                |db| {
-                    require_epoch(db, &budget, epoch.as_deref())?;
-                    db.execute(
-                        "UPDATE budgets SET name=?2 WHERE id=?1",
-                        params![budget, input.name],
-                    )?;
-                    metadata(db, &budget, false)
-                },
-            )
-        })
-        .await?;
-    Ok(Json(json!({"data":result})))
-}
 pub(crate) mod archive;
 pub(crate) mod cancellation;
 fn receipt_budget(
@@ -245,9 +198,8 @@ fn receipt_budget(
                     |r| r.get(0),
                 )
                 .optional()?;
-            if found.as_deref() != result["budget_id"].as_str() && found.is_some() {
-                return Err(Error::conflict("Import receipt identity is inconsistent"));
-            }
+            // A staged archive reserves a source identity; activation installs into
+            // the singleton. Its durable staging row binds this receipt to that destination.
             found
         } else {
             None
@@ -375,7 +327,7 @@ fn verify_receipt_budget(
     Ok(())
 }
 fn confirm_name(db: &Connection, budget: &str, input: &Value) -> Result<Value, Error> {
-    let current = metadata(db, budget, true)?;
+    let current = metadata(db, budget, false)?;
     if input.as_object().is_none_or(|o| o.len() != 1) || input["confirm_name"] != current["name"] {
         return Err(Error::new(
             StatusCode::CONFLICT,
@@ -502,7 +454,7 @@ async fn download(
         bytes,
     ))
 }
-fn remove_active_data(db: &Connection, budget: &str) -> Result<(), Error> {
+pub(crate) fn remove_active_data(db: &Connection, budget: &str) -> Result<(), Error> {
     for table in [
         "budget_provenance",
         "imported_field_clocks",
@@ -550,22 +502,13 @@ fn install_restore(
     if validated.state.budget["id"] != budget {
         return Err(Error::invalid("Backup belongs to a different budget"));
     }
-    let current = metadata(db, budget, true)?;
+    let current = metadata(db, budget, false)?;
     let generation = current["generation"]
         .as_i64()
         .unwrap()
         .checked_add(1)
         .ok_or_else(|| Error::conflict("Budget generation exhausted"))?;
-    let recovery = if current["deleted"] == false {
-        Some(make_point(
-            db,
-            budget,
-            "before_restore",
-            "Before restoring a backup",
-        )?)
-    } else {
-        None
-    };
+    let recovery = make_point(db, budget, "before_restore", "Before restoring a backup")?;
     // Receipt history is monotonic: restoring financial state never rewinds exactly-once evidence.
     for receipt in &validated.state.receipts {
         let prior: Option<(String, String)> = db
@@ -612,9 +555,7 @@ fn install_restore(
         params![budget, epoch, validated.state.clock],
     )?;
     db.execute("UPDATE budget_lifecycle SET generation=?2,restored_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE budget_id=?1",params![budget,generation])?;
-    Ok(
-        json!({"budget":metadata(db,budget,false)?,"recovery_point_id":recovery.map(|v|v["id"].clone())}),
-    )
+    Ok(json!({"budget":metadata(db,budget,false)?,"recovery_point_id":recovery["id"]}))
 }
 async fn restore_point(
     State(store): State<Store>,
@@ -645,13 +586,10 @@ async fn restore_point(
                         )
                         .optional()?
                         .ok_or_else(Error::missing)?;
-                    let validated = archive::validate(&bytes)?;
-                    let current = confirm_name(db, &budget, &input)?;
-                    if current["deleted"] == false {
-                        require_epoch(db, &budget, expected.as_deref())?;
-                    } else if expected.is_some_and(|e| current["epoch"] != e) {
-                        return Err(Error::conflict("Deleted budget identity changed"));
-                    }
+                    let validated =
+                        crate::single_budget::retarget(archive::validate(&bytes)?, &budget)?;
+                    confirm_name(db, &budget, &input)?;
+                    require_epoch(db, &budget, expected.as_deref())?;
                     install_restore(db, &budget, &validated)
                 },
             )
@@ -659,21 +597,7 @@ async fn restore_point(
         .await?;
     Ok(Json(json!({"data":result})))
 }
-async fn delete_budget(
-    State(store): State<Store>,
-    path: Result<Path<String>, PathRejection>,
-    headers: HeaderMap,
-    input: Result<Json<Value>, JsonRejection>,
-) -> Result<Json<Value>, Error> {
-    let budget = budget_id(path)?;
-    let Json(input) = input.map_err(json_error)?;
-    let key = idempotency_key(&headers)?;
-    let cancel = crate::concurrency::cancel_header(&headers)?;
-    let epoch = epoch_header(&headers)?;
-    let payload = input.to_string();
-    let result=store.run(move|db|cancellation::write(db,&format!("DELETE /budgets/{budget}"),&key,&payload,cancel,|db|{require_epoch(db,&budget,epoch.as_deref())?;let info=confirm_name(db,&budget,&input)?;let recovery=make_point(db,&budget,"before_delete","Before deleting this budget")?;remove_active_data(db,&budget)?;db.execute("UPDATE budgets SET deleted=1 WHERE id=?1",[&budget])?;db.execute("UPDATE budget_lifecycle SET auto_due=NULL WHERE budget_id=?1",[&budget])?;Ok(json!({"id":budget,"name":info["name"],"deleted":true,"recovery_point_id":recovery["id"]}))})).await?;
-    Ok(Json(json!({"data":result})))
-}
+
 fn stage_report(db: &Connection, id: &str) -> Result<Value, Error> {
     db.query_row("SELECT id,budget_id,name,archive_sha256,created_at,report FROM native_restore_stages WHERE id=?1",[id],|r|Ok((r.get::<_,String>(0)?,r.get::<_,String>(1)?,r.get::<_,String>(2)?,r.get::<_,String>(3)?,r.get::<_,String>(4)?,r.get::<_,String>(5)?))).optional()?.ok_or_else(Error::missing).and_then(|(id,budget,name,sha,created,report)|Ok(json!({"id":id,"budget_id":budget,"name":name,"archive_sha256":sha,"created_at":created,"status":"ready","report":serde_json::from_str::<Value>(&report).map_err(Error::internal)?})))
 }
@@ -769,85 +693,36 @@ async fn activate_stage(
                 cancel,
                 |db| {
                     let bytes: Vec<u8> = db
-                .query_row(
-                    "SELECT original FROM native_restore_stages WHERE id=?1 AND budget_id=?2",
-                    params![id, budget],
-                    |r| r.get(0),
-                )
-                .optional()?
-                .ok_or_else(Error::missing)?;
-                    let validated = archive::validate(&bytes)?;
-                    let exists = db.query_row(
-                        "SELECT EXISTS(SELECT 1 FROM budgets WHERE id=?1)",
-                        [&budget],
+                        .query_row(
+                            "SELECT original FROM native_restore_stages WHERE id=?1",
+                            params![id],
+                            |r| r.get(0),
+                        )
+                        .optional()?
+                        .ok_or_else(Error::missing)?;
+                    let validated =
+                        crate::single_budget::retarget(archive::validate(&bytes)?, &budget)?;
+                    if !db.query_row(
+                        "SELECT EXISTS(SELECT 1 FROM budgets WHERE deleted=0)",
+                        [],
                         |r| r.get::<_, bool>(0),
-                    )?;
-                    if !exists {
-                        if input.as_object().is_none_or(|v| v.len() != 1)
-                            || input["confirm_name"] != validated.state.budget["name"]
-                        {
-                            return Err(Error::new(
-                                StatusCode::CONFLICT,
-                                "budget_confirmation_mismatch",
-                                "Confirm the archived budget name before restoring",
-                            ));
-                        }
-                        db.execute(
-                            "INSERT INTO budgets(id,name,budget_type,deleted) VALUES(?1,?2,?3,1)",
-                            params![
-                                budget,
-                                validated.state.budget["name"].as_str(),
-                                validated.state.budget["budget_type"].as_str()
-                            ],
+                    )? {
+                        store::create_budget(
+                            db,
+                            crate::models::NewBudget {
+                                id: budget.clone(),
+                                name: validated.state.budget["name"].as_str().unwrap().into(),
+                                budget_type: "tracking".into(),
+                            },
                         )?;
-                    } else {
-                        let current = confirm_name(db, &budget, &input)?;
-                        if current["deleted"] == false {
-                            require_epoch(db, &budget, expected.as_deref())?;
-                        } else if expected.is_some_and(|epoch| current["epoch"] != epoch) {
-                            return Err(Error::conflict("Deleted budget identity changed"));
-                        }
                     }
+                    store::require_budget(db, &budget)?;
+                    confirm_name(db, &budget, &input)?;
+                    require_epoch(db, &budget, expected.as_deref())?;
                     install_restore(db, &budget, &validated)
                 },
             )
         })
         .await?;
     Ok(Json(json!({"data":result})))
-}
-#[derive(Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-struct DuplicateBudget {
-    id: String,
-    name: String,
-}
-async fn duplicate_budget(
-    State(store): State<Store>,
-    path: Result<Path<String>, PathRejection>,
-    headers: HeaderMap,
-    input: Result<Json<DuplicateBudget>, JsonRejection>,
-) -> Result<(StatusCode, Json<Value>), Error> {
-    let budget = budget_id(path)?;
-    let Json(input) = input.map_err(json_error)?;
-    crate::models::validate_id(&input.id)?;
-    validate_name(&input.name)?;
-    let key = idempotency_key(&headers)?;
-    let cancel = crate::concurrency::cancel_header(&headers)?;
-    let expected = epoch_header(&headers)?;
-    let payload = serde_json::to_string(&input).map_err(Error::internal)?;
-    let result=store.run(move|db|cancellation::write(db,&format!("POST /budgets/{budget}/duplicate"),&key,&payload,cancel,|db|{
-  require_epoch(db,&budget,expected.as_deref())?;
-  if db.query_row("SELECT EXISTS(SELECT 1 FROM budgets WHERE id=?1)",[&input.id],|r|r.get::<_,bool>(0))?{return Err(Error::conflict("Budget identity already exists"));}
-  let mut copy=archive::validate(&archive::capture(db,&budget)?)?;let original_name=copy.state.budget["name"].clone();copy.state.budget["id"]=json!(input.id);copy.state.budget["name"]=json!(input.name);copy.state.receipts.clear();
-  // Clone provenance is evidence, never an active legacy/cloud identity mapping.
-  let mut provenance=vec![];
-  {let mut query=db.prepare("SELECT s.original,s.archive_sha256,i.source_metadata,s.report FROM imported_sources i JOIN staged_imports s ON s.id=i.import_id WHERE i.budget_id=?1")?;for row in query.query_map([&budget],|r|Ok((r.get::<_,Vec<u8>>(0)?,r.get::<_,String>(1)?,r.get::<_,String>(2)?,r.get::<_,String>(3)?)))?{provenance.push(row?);}}
-  copy.state.tables.get_mut("staged_imports").unwrap().rows.clear();copy.state.tables.get_mut("imported_sources").unwrap().rows.clear();
-  for table in copy.state.tables.values_mut(){let index=table.columns.iter().position(|c|c=="budget_id").unwrap();for row in &mut table.rows{row[index]=json!(input.id);}}
-  db.execute("INSERT INTO budgets(id,name,budget_type) VALUES(?1,?2,?3)",params![input.id,input.name,copy.state.budget["budget_type"].as_str()])?;archive::install_tables(db,&copy)?;
-  db.execute("INSERT INTO budget_provenance(budget_id,id,kind,source_budget_id,metadata) VALUES(?1,?2,'duplicate',?3,?4)",params![input.id,uuid::Uuid::new_v4().to_string(),budget,json!({"source_name":original_name}).to_string()])?;
-  for (bytes,sha,metadata,report) in provenance{let report:Value=serde_json::from_str(&report).map_err(Error::internal)?;let kind=match report["source_format"].as_str(){Some("ynab4")=>"ynab4-import",Some("nynab")=>"nynab-import",_=>"actual-import"};db.execute("INSERT INTO budget_provenance(budget_id,id,kind,source_budget_id,metadata,archive_sha256,original) VALUES(?1,?2,?3,?4,?5,?6,?7)",params![input.id,uuid::Uuid::new_v4().to_string(),kind,budget,metadata,sha,bytes])?;}
-  archive::validate_financial_state(db,&input.id)?;db.execute("UPDATE budget_sync SET clock=MAX(clock,?2) WHERE budget_id=?1",params![input.id,copy.state.clock])?;metadata(db,&input.id,false)
- })).await?;
-    Ok((StatusCode::CREATED, Json(json!({"data":result}))))
 }

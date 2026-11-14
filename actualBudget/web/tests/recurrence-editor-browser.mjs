@@ -148,7 +148,6 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
-  await page.getByText("Recurring editor", { exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Schedules", exact: true }),
   ).toHaveCount(0);

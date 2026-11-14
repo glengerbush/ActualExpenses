@@ -50,7 +50,6 @@ try {
     off_budget: false,
   });
   await page.reload();
-  await page.getByRole("button", { name: new RegExp(name + ".*Open") }).click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
@@ -75,7 +74,7 @@ try {
     .getByRole("button", { name: "Reconnect and refresh", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Transaction history", exact: true }),
+    page.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   await expect(page.getByTestId("register-total")).toHaveText("10.00");
   await expect(
@@ -124,8 +123,6 @@ try {
   await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
   const transactions = (await api(`/budgets/${budget}/transactions`)).data;
   expect(transactions.filter((row) => row.amount === -123)).toHaveLength(1);
-  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
-  await page.getByRole("button", { name: new RegExp(name + ".*Open") }).click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
@@ -135,7 +132,7 @@ try {
     .getByRole("button", { name: "Confirm cache reset", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Transaction history", exact: true }),
+    page.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   await expect(page.getByTestId("register-total")).toHaveText("8.77");
   expect(errors).toEqual([]);

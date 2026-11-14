@@ -36,13 +36,8 @@ try {
       },
       { path, body, method, key: randomUUID() },
     );
-  const id = randomUUID(),
+  const id = (await api("/budget", undefined, "GET")).data.id,
     account = randomUUID();
-  await api("/budgets", {
-    id,
-    name: "Navigation fixture",
-    budget_type: "tracking",
-  });
   await api(`/budgets/${id}/accounts`, {
     id: account,
     name: "Everyday",
@@ -52,9 +47,8 @@ try {
   });
   await page.reload();
   await page.waitForLoadState("networkidle");
-  await page.getByRole("button", { name: /Navigation fixture.*Open/ }).click();
   await expect(
-    page.getByRole("heading", { name: "Transaction history", exact: true }),
+    page.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   await expect(page.getByTestId("register-total")).toHaveText("1,234.56");
   await expect(
@@ -79,9 +73,7 @@ try {
   });
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.getByRole("button", { name: "Budget", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await expect.poll(() => held.length).toBeGreaterThan(0);
   await expect(page.getByTestId("register-total")).toHaveText("1,234.56");
   for (const route of held) await route.continue();
@@ -93,16 +85,16 @@ try {
   await page.keyboard.press("Control+k");
   const search = page.getByRole("searchbox", { name: "Search commands" });
   await expect(search).toBeFocused();
-  await search.fill("Transaction history");
+  await search.fill("Transactions");
   await page.keyboard.press("Enter");
   await expect(
-    page.getByRole("heading", { name: "Transaction history", exact: true }),
+    page.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   await page.keyboard.press("Control+k");
-  await search.fill("Transaction history");
+  await search.fill("Transactions");
   await page.keyboard.press("Enter");
   await expect(
-    page.getByRole("heading", { name: "Transaction history", exact: true }),
+    page.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   await page.keyboard.press("?");
   await expect(
@@ -206,10 +198,10 @@ try {
   await page
     .getByRole("button", { name: "Search commands", exact: true })
     .click();
-  await search.fill("Transaction history");
+  await search.fill("Transactions");
   await page.keyboard.press("Enter");
   await expect(
-    page.getByRole("heading", { name: "Transaction history", exact: true }),
+    page.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   await expect(page.locator(".amount").first()).toContainText("1,234.56");
   await context.setOffline(true);
@@ -240,33 +232,8 @@ try {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  // Recovery spans budgets after the chooser clears the active preference.
-  // Keep amounts visible across budgets, including offline recovery.
+  // Saved work remains available while navigating Settings offline.
   await context.setOffline(false);
-  const otherBudget = randomUUID(),
-    otherAccount = randomUUID();
-  await api("/budgets", {
-    id: otherBudget,
-    name: "Other recovery budget",
-    budget_type: "tracking",
-  });
-  await api(`/budgets/${otherBudget}/accounts`, {
-    id: otherAccount,
-    name: "Other recovery account",
-    opening_balance: 0,
-    opening_date: "2026-11-09",
-    off_budget: false,
-  });
-  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
-  await page
-    .getByRole("button", { name: /Other recovery budget.*Open/ })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "Transaction history", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Privacy mode", exact: true }),
-  ).toHaveCount(0);
   async function pending(amount) {
     await page
       .getByRole("button", { name: "Add transaction", exact: true })
@@ -284,19 +251,11 @@ try {
   ).toBeEnabled();
   await context.setOffline(true);
   await pending("4.56");
-  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
-  await page.getByRole("button", { name: /Navigation fixture.*Open/ }).click();
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
   ).toHaveCount(0);
   await pending("12.34");
-  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
-  await expect(
-    page.getByRole("heading", { name: "Your budgets", exact: true }),
-  ).toBeVisible();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page
@@ -309,7 +268,6 @@ try {
   ).toHaveCount(0);
   await expect(recovery).toContainText("-12.34");
   await expect(recovery).toContainText("-4.56");
-  await page.getByRole("button", { name: /^(All budgets|Budgets)$/ }).click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("button", { name: "Recovery", exact: true }).click();
   await page

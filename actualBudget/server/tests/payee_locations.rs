@@ -435,21 +435,6 @@ fn pinned_source_conversion_native_archive_and_alias_retention() {
         json!({"confirm_name":budget["data"]["name"]}),
     ));
     assert_eq!(restored.get(&format!("{path}?include_deleted=true")), rows);
-    let duplicate = ok(s.write(
-        "POST",
-        &format!("{root}/duplicate"),
-        "copy",
-        None,
-        json!({"id":id(900),"name":"Copy"}),
-    ));
-    assert_eq!(duplicate["data"]["id"], id(900));
-    assert_eq!(
-        s.get(&format!(
-            "/api/v1/budgets/{}/payee-locations?include_deleted=true",
-            id(900)
-        ))["data"],
-        rows["data"]
-    );
 }
 #[test]
 fn genuine_schema11_database_and_archive_upgrade_preserve_receipts_and_unblock_source() {
@@ -488,23 +473,19 @@ fn genuine_schema11_database_and_archive_upgrade_preserve_receipts_and_unblock_s
     let stage_id = fixture["stage"]["data"]["id"].as_str().unwrap();
     let refreshed = s.get(&format!("/api/v1/imports/{stage_id}"));
     assert_eq!(refreshed["data"]["status"], "ready");
-    let activated = ok(s.write(
+    let refused = s.write(
         "POST",
         &format!("/api/v1/imports/{stage_id}/activate"),
         "activate",
         None,
         json!({}),
-    ));
-    let imported = activated["data"]["id"].as_str().unwrap();
-    assert_eq!(
-        s.get(&format!(
-            "/api/v1/budgets/{imported}/payee-locations?include_deleted=true"
-        ))["data"]
-            .as_array()
-            .unwrap()
-            .len(),
-        15
     );
+    assert_eq!(refused.status(), 409);
+    assert_eq!(
+        refused.json::<Value>().unwrap()["error"]["code"],
+        "import_budget_conflict"
+    );
+    assert_eq!(s.get(&format!("{root}/payee-locations"))["data"], json!([]));
     let restored = Server::start();
     let staged = ok(restored
         .client
@@ -683,7 +664,7 @@ fn genuine_schema13_upgrade_completes_transfer_state_and_keeps_original_receipts
                 .body(include_bytes!("../../tests/fixtures/locations-schema13.zip").to_vec())
                 .send()
                 .unwrap());
-            assert_eq!(stage["data"]["report"]["schema_version"], 36);
+            assert_eq!(stage["data"]["report"]["schema_version"], 37);
             ok(s.write(
                 "POST",
                 &format!(

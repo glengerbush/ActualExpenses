@@ -58,12 +58,6 @@ try {
   await page
     .getByRole("button", { name: "Transaction file", exact: true })
     .click();
-  await page
-    .getByRole("button", {
-      name: "Continue to transaction import",
-      exact: true,
-    })
-    .click();
   await page.getByLabel("Transaction file").setInputFiles({
     name: "purchases.csv",
     mimeType: "text/csv",
@@ -374,9 +368,7 @@ try {
     cleared: false,
   });
   await page.getByRole("button", { name: "Close", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page
     .locator(`tr[data-transaction-id="${duplicate}"]`)
     .getByRole("checkbox")

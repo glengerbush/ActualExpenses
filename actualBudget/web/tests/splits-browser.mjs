@@ -62,10 +62,6 @@ try {
   });
   const page = await context.newPage();
   await page.goto(server.url);
-  await page
-    .locator(".budget-list button")
-    .filter({ hasText: "Split household" })
-    .click();
   await (
     await transactionAction(page, { name: "Split transaction", exact: true })
   ).click();

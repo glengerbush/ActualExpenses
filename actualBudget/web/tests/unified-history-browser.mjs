@@ -36,16 +36,9 @@ try {
       },
       { path, body, key: randomUUID() },
     );
-  await page.getByRole("button", { name: "New budget", exact: true }).click();
-  await page.getByLabel("Budget name", { exact: true }).fill("Manual history");
-  await page
-    .getByRole("button", { name: "Create budget", exact: true })
-    .click();
-  const budget = (await api("/budgets")).find(
-    (row) => row.name === "Manual history",
-  ).id;
+  const budget = (await api("/budget")).id;
   await expect(
-    page.getByRole("heading", { name: "Transaction history", exact: true }),
+    page.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   const nav = page.getByRole("complementary", { name: "Budget navigation" });
   await expect(
@@ -64,9 +57,7 @@ try {
   await expect(
     page.getByRole("button", { name: "Add group", exact: true }).first(),
   ).toBeEnabled();
-  await nav
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await nav.getByRole("button", { name: "Transactions", exact: true }).click();
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
@@ -75,9 +66,7 @@ try {
   await page.getByLabel("Date", { exact: true }).fill("2026-11-01");
   await expect(page.getByLabel("Notes", { exact: true })).toHaveCount(0);
   await nav.getByRole("button", { name: "Budget", exact: true }).click();
-  await nav
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await nav.getByRole("button", { name: "Transactions", exact: true }).click();
   await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("12.34");
   await expect(page.getByLabel("Date", { exact: true })).toHaveValue(
     "11/01/2026",
@@ -115,7 +104,7 @@ try {
   for (const view of ["account", "organize"]) {
     await page.goto(`${server.url}/?budget=${budget}&view=${view}`);
     await expect(
-      page.getByRole("heading", { name: "Transaction history", exact: true }),
+      page.getByRole("heading", { name: "Transactions", exact: true }),
     ).toBeVisible();
     expect(
       await page.evaluate(
@@ -195,7 +184,7 @@ try {
     .getByRole("button", { name: "Retry creation", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Transaction history", exact: true }),
+    page.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   expect(
     (await api(`/budgets/${budget}/accounts`)).filter(

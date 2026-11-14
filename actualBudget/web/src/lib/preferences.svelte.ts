@@ -19,8 +19,7 @@ function validDevice(value: unknown): value is DevicePreferences {
       typeof v.show_release_notices === "boolean") &&
     (v.seen_release === undefined ||
       (typeof v.seen_release === "string" && v.seen_release.length <= 128)) &&
-    ["light", "dark", "midnight", "system"].includes(v.theme) &&
-    ["dark", "midnight"].includes(v.preferred_dark_theme) &&
+    ["light", "dark", "system"].includes(v.theme) &&
     (v.language === "" || (languages as readonly string[]).includes(v.language))
   );
 }
@@ -41,11 +40,31 @@ class Preferences {
       const stored = localStorage.getItem(deviceKey);
       if (stored) {
         const record = JSON.parse(stored);
-        if (record.version !== 1 || !validDevice(record.values))
+        const saved = record.values;
+        const normalized =
+          saved && typeof saved === "object"
+            ? {
+                theme: saved.theme === "midnight" ? "dark" : saved.theme,
+                language: saved.language,
+                ...(saved.show_release_notices === undefined
+                  ? {}
+                  : { show_release_notices: saved.show_release_notices }),
+                ...(saved.seen_release === undefined
+                  ? {}
+                  : { seen_release: saved.seen_release }),
+              }
+            : null;
+        if (record.version !== 1 || !validDevice(normalized))
           throw new Error(
             "Saved device preferences are invalid; defaults are in use.",
           );
-        this.device = record.values;
+        this.device = normalized;
+        // Retire the old palette choice without changing language or release preferences.
+        if (JSON.stringify(saved) !== JSON.stringify(normalized))
+          localStorage.setItem(
+            deviceKey,
+            JSON.stringify({ version: 1, values: normalized }),
+          );
       }
     } catch (error) {
       this.deviceError = errorMessage(error);
@@ -58,12 +77,10 @@ class Preferences {
     return () => this.media?.removeEventListener("change", changed);
   }
   private applyTheme() {
-    const theme =
-      this.device.theme === "system"
-        ? this.media?.matches
-          ? this.device.preferred_dark_theme
-          : "light"
-        : this.device.theme;
+    const dark =
+      this.device.theme === "dark" ||
+      (this.device.theme === "system" && this.media?.matches);
+    const theme = dark ? "midnight" : "light";
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme =
       theme === "light" ? "light" : "dark";

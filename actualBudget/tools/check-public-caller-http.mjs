@@ -7,11 +7,14 @@ import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { createServer } from "node:http";
 import { startServer } from "../web/tests/server.mjs";
-import { cloneImportedTemplate } from "../web/tests/import-template.mjs";
-const server = await startServer(),
+assert.ok(
+  !process.env.ACTUALBUDGET_TEST_URL,
+  "This multi-fixture regression requires isolated local servers",
+);
+let server = await startServer(),
   upstream = server.url.replace("actualbudget.test", "127.0.0.1"),
-  api = upstream + "/api/v1",
-  directory = await mkdtemp(tmpdir() + "/public-caller-"),
+  api = upstream + "/api/v1";
+const directory = await mkdtemp(tmpdir() + "/public-caller-"),
   tool = fileURLToPath(new URL("./public-api-client.py", import.meta.url)),
   batch = JSON.parse(
     await readFile(
@@ -145,7 +148,7 @@ async function fixtureBudget(archive) {
   assert.equal(upload.status, 201);
   const stage = (await upload.json()).data,
     b = (await call("/imports/" + stage.id + "/activate", {}, 201)).data;
-  return cloneImportedTemplate(api, b.id);
+  return b.id;
 }
 async function jsonFile(name, value) {
   const path = directory + "/" + name;
@@ -292,6 +295,10 @@ try {
   console.log(
     "PASS real external caller read/update; lost committed ACK exact durable replay, immutable origin and0600 outbox",
   );
+  await server.stop();
+  server = await startServer();
+  upstream = server.url.replace("actualbudget.test", "127.0.0.1");
+  api = upstream + "/api/v1";
   const imported = await fixtureBudget(manual.archive),
     importRoot = "/budgets/" + imported,
     importCommon = ["--server", address, "--budget", imported],

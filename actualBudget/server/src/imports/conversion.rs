@@ -918,9 +918,20 @@ pub(super) fn convert_loaded(
     Ok((report, converted))
 }
 pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error> {
+    crate::store::require_budget(db, budget)?;
+    crate::lifecycle::remove_active_data(db, budget)?;
     db.execute(
-        "INSERT INTO budgets(id,name,budget_type) VALUES(?1,?2,?3)",
-        params![budget, data["name"].as_str(), data["budget_type"].as_str()],
+        "UPDATE budgets SET budget_type=?2 WHERE id=?1",
+        params![budget, data["budget_type"].as_str().unwrap_or("tracking")],
+    )?;
+    db.execute(
+        "INSERT INTO budget_settings(budget_id,method) VALUES(?1,?2)",
+        params![budget, data["budget_type"].as_str().unwrap_or("tracking")],
+    )?;
+    db.execute("INSERT INTO rule_settings(budget_id) VALUES(?1)", [budget])?;
+    db.execute(
+        "INSERT INTO schedule_settings(budget_id) VALUES(?1)",
+        [budget],
     )?;
     install_ledger(db, budget, data)?;
     let mut preferences = data["preferences"].clone();

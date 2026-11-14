@@ -41,7 +41,6 @@ try {
   const errors = [];
   p.on("pageerror", (e) => errors.push(e.message));
   await p.goto(server.url);
-  await p.getByText("Payee search", { exact: true }).click();
   await p
     .getByRole("button", { name: "Add Transaction", exact: false })
     .click();

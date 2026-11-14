@@ -1,12 +1,12 @@
 # ActualExpenses
 
-A focused native Android companion for recording expenses in one Actual budget. Select an account, add an expense, and correct recent purchases. New expenses are cleared automatically.
+A focused native Android companion for recording expenses in one Actual budget. Connect to the server, add an expense, and correct recent purchases. New expenses are cleared automatically.
 
 ## Install
 
 Download the signed APK from the [latest GitHub release](https://github.com/glengerbush/ActualExpenses/releases/latest), or use `app/build/outputs/apk/release/app-release.apk` after building. Install on Android 8.0 (API 26) or newer. Allow installation from your chosen file manager when Android asks. Updates must use the same signing key and retain the application ID; install over the previous version rather than uninstalling, which deletes local pending work.
 
-Setup: actualBudget server address → budget → account. No login or password. HTTP LAN and tailnet addresses are supported. The app checks the versioned API and required capabilities before connecting. It uses the Rust actualBudget server in this repository.
+Setup: actualBudget server address → expenses. The server’s single budget opens automatically and is created on first access. No budget name or chooser. No login or password. HTTP LAN and tailnet addresses are supported. The app checks the versioned API and required capabilities before connecting. It uses the Rust actualBudget server in this repository.
 
 An installation containing previous Actual sync data opens a recovery screen and leaves that encrypted data untouched. Legacy pending-work migration is ticket 20; do not uninstall or clear app storage to bypass recovery. This development slice is not yet a production replacement release.
 
@@ -51,3 +51,5 @@ The server resolves per-field logical ordering. A newer edit can reject an unpub
 Only bounded expense views and reference/change data cross the new API. Idle foreground refresh does not download full transaction history or rewrite unchanged cache data. Background delivery is best effort, only while changes are pending. Android encrypts local data with its existing Keystore identity and excludes it from backup.
 
 Transfer/split activation must add their eligibility rules in tickets 14/15; unsupported imported records currently block activation. Native payee/category rule suggestions and legacy pending-work conversion belong to tickets 19/20. Manual category selection and override remain available.
+
+If the server has merged or restored the budget while this device has queued work, the app keeps the original requests intact. Save the full JSON recovery file, then explicitly confirm opening the current budget. The old queue stops retrying and remains archived locally; review the export against server history before re-entering missing expenses. Failed or cancelled exports never clear work.

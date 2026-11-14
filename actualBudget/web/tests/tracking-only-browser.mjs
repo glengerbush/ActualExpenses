@@ -7,8 +7,10 @@ import { startServer } from "./server.mjs";
 const directory = await mkdtemp(tmpdir() + "/tracking-only-");
 let server = await startServer({ dataDirectory: directory }),
   browser;
+let importServer;
 const api = () =>
-  server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+  (importServer ?? server).url.replace("actualbudget.test", "127.0.0.1") +
+  "/api/v1";
 async function req(path, body, method) {
   return fetch(api() + path, {
     method: method ?? (body === undefined ? "GET" : "POST"),
@@ -174,6 +176,7 @@ c.execute('PRAGMA user_version=30');c.commit()`,
     await readFile("../tests/fixtures/budgeting-schema15.zip"),
   );
   // A real Actual envelope export is accepted and its active allocations survive conversion.
+  importServer = await startServer();
   const stage = await call(
     "/imports/actual",
     await readFile("../tests/fixtures/budgeting-envelope-allocated.zip"),
@@ -182,7 +185,7 @@ c.execute('PRAGMA user_version=30');c.commit()`,
   const activated = await call(`/imports/${stage.id}/activate`, {});
   expect(activated.budget_type).toBe("tracking");
   const imported = await call(
-    `/budgets/${stage.budget_id}/budget?month=2026-11&count=4`,
+    `/budgets/${activated.id}/budget?month=2026-11&count=4`,
   );
   const expected = JSON.parse(
     execFileSync(
@@ -208,6 +211,8 @@ c.close();os.unlink(f.name)`,
         imported.months[m].categories.find((c) => c.id === cat)?.budgeted,
       ).toBe(amount);
   }
+  await importServer.stop();
+  importServer = null;
   browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
     args: [
@@ -222,7 +227,6 @@ c.close();os.unlink(f.name)`,
     errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
-  await page.getByText("Tracking only", { exact: true }).click();
   await page.getByRole("button", { name: "Budget", exact: true }).click();
   for (const label of [
     "Change budgeting method",
@@ -234,6 +238,7 @@ c.close();os.unlink(f.name)`,
     await expect(
       page.getByRole("button", { name: label, exact: true }),
     ).toHaveCount(0);
+  await page.getByLabel("Months displayed").selectOption("3");
   await expect(page.locator(".budget-month")).toHaveCount(3);
   const row = page
     .locator(".budget-month")
@@ -263,22 +268,19 @@ c.close();os.unlink(f.name)`,
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page.getByRole("button", { name: "All budgets", exact: true }).click();
-  await page.getByRole("button", { name: "New budget", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "New budget", exact: true }),
+  ).toHaveCount(0);
   await expect(
     page.getByLabel("Budgeting method", { exact: true }),
   ).toHaveCount(0);
-  await page.getByLabel("Budget name", { exact: true }).fill("Just tracking");
-  await page
-    .getByRole("button", { name: "Create budget", exact: true })
-    .click();
-  await expect(page.getByText("Just tracking", { exact: true })).toBeVisible();
   expect(errors).toEqual([]);
   console.log(
     "PASS tracking-only migration, allocation carry, preserved transactions, retired APIs, Actual/native imports, row editing and desktop/mobile UI",
   );
 } finally {
   if (browser) await browser.close();
+  await importServer?.stop();
   await server.stop();
   await rm(directory, { recursive: true, force: true });
 }

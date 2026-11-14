@@ -4,7 +4,7 @@ import { chromium } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { startServer } from "./server.mjs";
-const server = await startServer();
+let server = await startServer();
 let browser;
 try {
   browser = await chromium.launch({
@@ -29,21 +29,7 @@ try {
       },
       { path, body, headers },
     );
-  const budget = randomUUID();
-  assert.equal(
-    (
-      await api(
-        "/budgets",
-        {
-          id: budget,
-          name: "Reporting API " + budget,
-          budget_type: "tracking",
-        },
-        { "Idempotency-Key": randomUUID() },
-      )
-    ).status,
-    201,
-  );
+  const budget = (await api("/budget")).data.id;
   const path = `/budgets/${budget}/reporting`,
     initial = await api(path);
   assert.equal(initial.status, 200);
@@ -285,6 +271,9 @@ try {
       "utf8",
     ),
   );
+  await server.stop();
+  server = await startServer();
+  await page.goto(server.url);
   const bytes = (
     await readFile(
       new URL("../../tests/fixtures/reports-source-26.10.zip", import.meta.url),
@@ -317,6 +306,7 @@ try {
     ).status,
     201,
   );
+  staged.data.budget_id = (await api("/budget")).data.id;
   const imported = (await api(`/budgets/${staged.data.budget_id}/reporting`))
     .data;
   for (const [table, kind] of [
@@ -486,6 +476,9 @@ try {
         ),
       )
     ).toString("base64");
+  await server.stop();
+  server = await startServer();
+  await page.goto(server.url);
   const horizonStage = await page.evaluate(
     async ({ bytes, key }) => {
       const r = await fetch("/api/v1/imports/actual", {
@@ -509,6 +502,7 @@ try {
     ).status,
     201,
   );
+  horizonStage.data.budget_id = (await api("/budget")).data.id;
   for (const oracle of horizon.cases) {
     const response = await api(
       `/budgets/${horizonStage.data.budget_id}/reports/query`,

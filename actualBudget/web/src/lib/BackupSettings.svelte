@@ -43,7 +43,7 @@
 
 <section aria-labelledby="backup-settings-title">
   <h2 id="backup-settings-title">Automatic backups</h2>
-  <label for="backup-schedule">Schedule for all budgets</label>
+  <label for="backup-schedule">Automatic backup schedule</label>
   <select
     id="backup-schedule"
     value={interval ?? 604800}

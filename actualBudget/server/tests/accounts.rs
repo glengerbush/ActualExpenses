@@ -513,18 +513,6 @@ fn pinned_actual_account_archive_import_preserves_groups_notes_order_and_closed_
     assert_eq!(groups["data"][0]["name"], "Daily accounts");
     let s = s.restart();
     assert_eq!(s.get(&format!("{root}/accounts")), actual);
-    let copy = ok(s.write(
-        "POST",
-        &format!("{root}/duplicate"),
-        "duplicate",
-        None,
-        json!({"id":id(90),"name":"Copied accounts"}),
-    ));
-    assert_eq!(copy["data"]["name"], "Copied accounts");
-    assert_eq!(
-        s.get(&format!("/api/v1/budgets/{}/accounts", id(90))),
-        actual
-    );
 }
 
 #[test]

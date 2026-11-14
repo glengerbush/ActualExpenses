@@ -22,8 +22,6 @@ try {
   page.on("pageerror", (error) => console.error("PAGEERROR", error.message));
   await page.clock.setFixedTime(new Date("2026-11-09T12:00:00Z"));
   await page.goto(server.url);
-  const budget = randomUUID(),
-    name = "Custom browser " + budget;
   const api = (path, body, headers = {}) =>
     page.evaluate(
       async ({ path, body, headers, key }) => {
@@ -61,18 +59,10 @@ try {
   expect(["ready", "activated"]).toContain(imported.data.status);
   if (imported.data.status === "ready")
     await api(`/imports/${imported.data.id}/activate`, {});
-  const root = "/budgets/" + imported.data.budget_id,
-    state = await api(root + "/reporting");
-  await api(
-    root + "/duplicate",
-    { id: budget, name },
-    { "X-Actual-Budget-Epoch": state.data.epoch },
-  );
+  const budget = (await api("/budget")).data.id;
+  const root = "/budgets/" + budget;
   await page.reload();
-  await page.getByRole("button", { name: new RegExp(name + ".*Open") }).click();
-  await page
-    .getByRole("button", { name: "Dashboards and reports", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Reports", exact: true }).click();
   await page
     .getByRole("button", { name: "Custom reports", exact: true })
     .click();
@@ -88,9 +78,7 @@ try {
   const savedBeforeLanguage = (
     await api(`/budgets/${budget}/reporting`)
   ).data.documents.find((d) => d.kind === "custom_report" && !d.tombstone);
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page.getByRole("button", { name: "Settings", exact: true }).click(); // Fault injection: conflicting downloaded keys must fail visibly, not overwrite a message.
   await context.route("**/de-*.json", (route) =>
     route.fulfill({
@@ -110,12 +98,8 @@ try {
   await context.unroute("**/de-*.json");
   await page.getByRole("button", { name: "Retry", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "de");
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Dashboards and reports", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
+  await page.getByRole("button", { name: "Berichte", exact: true }).click();
   const germanMode = page.getByRole("combobox", {
       name: "Balance mode",
       exact: true,
@@ -165,20 +149,14 @@ try {
       .pathname,
     fullPage: true,
   });
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page
     .getByRole("button", { name: "Einstellungen", exact: true })
     .click();
   await page.locator("#language").selectOption("en");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Dashboards and reports", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
+  await page.getByRole("button", { name: "Reports", exact: true }).click();
   await expect(result).toContainText("60.00");
   console.log(
     "PASS German shipped report labels preserve API option values, user report name, saved config and60.00 result",
@@ -323,12 +301,8 @@ try {
   });
   await page.reload();
   await page.waitForFunction(() => window.heldReportRead);
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Dashboards and reports", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
+  await page.getByRole("button", { name: "Reports", exact: true }).click();
   await expect(page.getByLabel("Report name", { exact: true })).toHaveValue(
     "Household custom report",
   );
@@ -379,9 +353,7 @@ try {
   await expect(page.getByText(/Cancellation is pending/)).toBeVisible();
   await page.reload();
   await expect(page.getByText(/Cancellation is pending/)).toBeVisible();
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
     .getByRole("navigation", { name: "Settings sections" })
@@ -393,9 +365,7 @@ try {
   await page
     .getByRole("button", { name: "Confirm cache reset", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Dashboards and reports", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Reports", exact: true }).click();
   await expect(page.getByText(/Cancellation is pending/)).toBeVisible();
   const recoveredWork = await savedCustomWork();
   expect(recoveredWork.draft).toEqual(savedBeforeNavigation.draft);
@@ -471,19 +441,13 @@ try {
   await page
     .getByRole("button", { name: "Reset to saved", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
     .getByRole("combobox", { name: "Theme", exact: true })
     .selectOption("dark");
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Dashboards and reports", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
+  await page.getByRole("button", { name: "Reports", exact: true }).click();
   await page.setViewportSize({ width: 1280, height: 900 });
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.getByLabel("Report name", { exact: true }).focus();

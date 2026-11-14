@@ -40,7 +40,7 @@
     offline = $state(!offlineStatus.reachable),
     error = $state(""),
     notice = $state(""),
-    name = $state(""),
+    approved = $state(false),
     confirmReset = $state(false),
     storageBlocked = $state(false);
   let mounted = true;
@@ -55,7 +55,7 @@
       );
       if (mounted) {
         preview = data;
-        name = "";
+        approved = false;
       }
     } catch (e) {
       error = errorMessage(e);
@@ -70,9 +70,9 @@
     notice = "";
     try {
       if (!pending) {
-        if (!preview?.can_apply || name !== preview.name)
+        if (!preview?.can_apply || !approved)
           throw new Error(
-            "Review the complete preview and enter this budget's name first.",
+            "Review the complete preview and confirm the repair first.",
           );
         const operation = prepareRepair(budget.id, preview);
         await saveRepair(operation);
@@ -256,7 +256,7 @@
         <a
           href={`/api/v1/budgets/${budget?.id}/backups/${confirmed.backup.id}/download`}
           >Download pre-repair backup</a
-        >. Restore through Manage budget → backups; restoring rotates the budget
+        >. Restore through Settings → Backups; restoring rotates the budget
         epoch and retains original receipt evidence.
       </p>{/if}
     {#if preview}<div class="preview">
@@ -336,23 +336,17 @@
           </ul>{:else}<p>
             No unsupported inconsistencies found by the registered checks.
           </p>{/if}
-        {#if preview.can_apply}<label for="repair-confirm-name"
-            >Confirm budget name</label
-          ><input
-            id="repair-confirm-name"
-            bind:value={name}
-            autocomplete="off"
-          />
-          <p class="hint">
-            Enter {preview.name} to approve this complete preview. A changed budget
-            requires a new preview.
-          </p>
+        {#if preview.can_apply}<label class="repair-confirm">
+            <input type="checkbox" bind:checked={approved} />
+            I reviewed and approve this repair
+          </label>
+          <p class="hint">Changed data requires a new preview.</p>
           <button
             class="primary"
             onclick={() => apply()}
             disabled={busy ||
               offline ||
-              name !== preview.name ||
+              !approved ||
               !readable ||
               storageBlocked}>Apply reviewed repair</button
           >{:else}<p role="status">

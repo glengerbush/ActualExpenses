@@ -3,13 +3,22 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
 import { startServer } from "../web/tests/server.mjs";
+assert.ok(
+  !process.env.ACTUALBUDGET_TEST_URL,
+  "This multi-fixture regression requires isolated local servers",
+);
 const fixture = JSON.parse(
-    await readFile(
-      new URL("../tests/fixtures/ynab-source.json", import.meta.url),
-    ),
+  await readFile(
+    new URL("../tests/fixtures/ynab-source.json", import.meta.url),
   ),
-  server = await startServer(),
+);
+let server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+async function freshServer() {
+  await server.stop();
+  server = await startServer();
+  api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+}
 async function call(path, body, headers = {}) {
   const r = await fetch(api + path, {
     method: body === undefined ? "GET" : "POST",
@@ -145,6 +154,7 @@ try {
       .find((a) => a.startsWith("--case="))
       ?.slice(7);
     if (selected && selected !== item.id) continue;
+    await freshServer();
     const bytes = await readFile(
       new URL("../tests/fixtures/ynab/" + item.input.filename, import.meta.url),
     );
@@ -500,6 +510,7 @@ try {
       ),
     );
     for (const expected of income.cases) {
+      await freshServer();
       const bytes = await readFile(
         new URL("../tests/fixtures/ynab/" + expected.input, import.meta.url),
       );
@@ -555,6 +566,7 @@ try {
       ),
     );
     for (const expected of names.cases) {
+      await freshServer();
       const bytes = await readFile(
         new URL("../tests/fixtures/ynab/" + expected.input, import.meta.url),
       );
@@ -659,6 +671,7 @@ try {
       ),
     );
     for (const expected of carry.cases) {
+      await freshServer();
       const bytes = await readFile(
         new URL("../tests/fixtures/ynab/" + expected.input, import.meta.url),
       );

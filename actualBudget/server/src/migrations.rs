@@ -40,6 +40,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("migrations/034_retire_experiments.sql"),
     include_str!("migrations/035_note_month_guards.sql"),
     include_str!("migrations/036_retired_rule_notes.sql"),
+    include_str!("migrations/037_single_budget.sql"),
 ];
 pub(crate) const CURRENT_VERSION: usize = MIGRATIONS.len();
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
@@ -60,6 +61,9 @@ pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let tx = db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     for (index, sql) in MIGRATIONS.iter().enumerate().skip(version as usize) {
         tx.execute_batch(sql)?;
+        if index == 36 {
+            crate::single_budget::migrate(&tx)?;
+        }
         if index == 35 {
             crate::rules::normalize_retired_notes(&tx, None)?;
             crate::imports::refresh_rule_capabilities(&tx, None)?;

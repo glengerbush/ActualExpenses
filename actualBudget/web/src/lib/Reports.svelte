@@ -427,7 +427,7 @@
 <section aria-labelledby="reporting-title">
   <header class="heading">
     <div>
-      <h2 id="reporting-title">{t("Dashboards and reports")}</h2>
+      <h2 id="reporting-title">{t("Reports")}</h2>
       <p class="muted">
         {t("Recorded history, saved views and transaction details.")}
       </p>

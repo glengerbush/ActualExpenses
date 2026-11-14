@@ -3,8 +3,15 @@ import { randomUUID } from "node:crypto";
 import { startServer } from "./server.mjs";
 const server = await startServer();
 const api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+let secondary;
 async function call(path, body) {
-  const response = await fetch(api + path, {
+  const target =
+    secondary &&
+    (path.startsWith(`/budgets/${secondary.id}`) || body?.id === secondary.id)
+      ? secondary.server.url.replace("actualbudget.test", "127.0.0.1") +
+        "/api/v1"
+      : api;
+  const response = await fetch(target + path, {
     method: body === undefined ? "GET" : "POST",
     headers: {
       "Content-Type": "application/json",
@@ -33,6 +40,7 @@ try {
   ).toBe(201);
   const longBudget = randomUUID(),
     longAccount = randomUUID();
+  secondary = { id: longBudget, server: await startServer() };
   await call("/budgets", { id: longBudget, name: "Long prefix work" });
   await call(`/budgets/${longBudget}/accounts`, {
     id: longAccount,
@@ -169,5 +177,6 @@ try {
     "PASS pathological match cancellation, compile bounds, cheap-match request budget, no partial totals, and subsequent valid request",
   );
 } finally {
+  await secondary?.server.stop();
   await server.stop();
 }

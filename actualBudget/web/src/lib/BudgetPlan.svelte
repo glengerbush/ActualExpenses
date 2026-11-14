@@ -48,7 +48,7 @@
   let view = $state.raw<PlanView | null>(null),
     draft = $state<PlanningDraft | null>(null);
   let month = $state(today().slice(0, 7)),
-    count = $state(3),
+    count = $state(1),
     busy = $state(false),
     loading = $state(true),
     error = $state(""),
@@ -378,11 +378,17 @@
         after: direction > 0,
       });
   }
+  function categoryTotal(
+    categories: PlanCategory[],
+    field: "budgeted" | "actual" | "balance",
+  ) {
+    return categories.reduce((sum, c) => sum + BigInt(c[field]), 0n);
+  }
   function groupTotal(
     categories: PlanCategory[],
     field: "budgeted" | "actual" | "balance",
   ) {
-    const total = categories.reduce((sum, c) => sum + BigInt(c[field]), 0n);
+    const total = categoryTotal(categories, field);
     return total > BigInt(Number.MAX_SAFE_INTEGER) ||
       total < BigInt(Number.MIN_SAFE_INTEGER)
       ? "—"
@@ -393,6 +399,18 @@
     redo: { id: string; label: string } | null;
   }>({ undo: null, redo: null });
   let selectedCategory = $state<{ id: string; month: string } | null>(null);
+  const inspectedMonth = $derived(
+    selectedCategory && view ? view.months[selectedCategory.month] : null,
+  );
+  const inspectedCategory = $derived(
+    inspectedMonth?.categories.find((c) => c.id === selectedCategory?.id),
+  );
+  function remainingTotal(m: PlanMonth) {
+    return groupTotal(
+      m.categories.filter((c) => !c.is_income),
+      "balance",
+    );
+  }
   let checkpoint: string | null = null;
   let quickTimer: ReturnType<typeof setTimeout> | undefined;
   let lastInputAt = 0;
@@ -703,9 +721,13 @@
       timeZone: "UTC",
     }).format(new Date(m + "-01T12:00:00Z"));
   }
-  function editRow(m: PlanMonth, c: PlanCategory) {
+  let inspector = $state<HTMLDivElement>();
+  async function editRow(m: PlanMonth, c: PlanCategory) {
     if (busy || disconnected || categoryEditor || draft) return;
     selectedCategory = { id: c.id, month: m.month };
+    await tick();
+    if (window.matchMedia("(max-width: 1200px)").matches)
+      inspector?.scrollIntoView({ block: "nearest" });
   }
   async function categoryAction(
     action: "carryover" | "copy_previous",
@@ -735,13 +757,23 @@
   }
 </script>
 
+{#snippet monthFigures(m: PlanMonth, testable = false)}
+  <dl class="inspector-figures">
+    {#each [["Planned income", "total_budget_income"], ["Projected savings", "total_saved"], ["Actual income", "total_income"], ["Actual spending", "total_spent"], ["Final savings", "real_saved"]] as [label, key] (key)}
+      <div>
+        <dt>{label}</dt>
+        <dd data-testid={testable ? `${m.month}-${key}` : undefined}>
+          {formatAmount(m.summary[key])}
+        </dd>
+      </div>
+    {/each}
+  </dl>
+{/snippet}
+
 {#snippet categoryControls(m: PlanMonth, c: PlanCategory)}
   <section
     class="category-controls"
     aria-label={`Budget options for ${c.name}`}
-    {@attach outsideClick(() => {
-      if (!busy && !draft) selectedCategory = null;
-    })}
   >
     <label class="carryover-toggle"
       ><input
@@ -762,7 +794,7 @@
       >
       <button
         disabled={busy || !!draft || disconnected}
-        onclick={() => ontransactions(c.id, m.month)}>Transactions</button
+        onclick={() => ontransactions(c.id, m.month)}>View transactions</button
       >
       <button
         class="add-icon delete-category-icon"
@@ -770,8 +802,9 @@
         title="Delete category"
         disabled={busy || !!draft || disconnected || !!categoryEditor}
         onclick={() => {
+          const id = c.id;
           selectedCategory = null;
-          categoryEditor = { kind: "categories", id: c.id, delete: true };
+          categoryEditor = { kind: "categories", id, delete: true };
         }}
         ><svg
           aria-hidden="true"
@@ -833,12 +866,7 @@
     onstep={(direction) => stepItem({ kind, id, month }, direction)}
   />
 {/snippet}
-<section aria-labelledby="planning-title">
-  <div class="page-heading">
-    <div>
-      <h1 id="planning-title">{t("Budget")}</h1>
-    </div>
-  </div>
+<section class="budget-workspace" aria-labelledby="planning-title">
   {#if arrangement.length}<div role="status">
       A group or category edit is saved for retry.
       <button
@@ -874,6 +902,7 @@
       />
     </section>{/if}
   <div class="month-controls">
+    <h1 id="planning-title">{t("Budget")}</h1>
     <div class="month-picker">
       <button
         class="month-arrow"
@@ -1034,169 +1063,111 @@
     </div>{/if}
   {#if view && current}
     {#if draft && !busy && !draft.quick}{@render planEditor()}{/if}
-    <div class="month-grid">
-      {#each Object.values(view.months) as m (m.month)}
-        <section class="budget-month" aria-labelledby={`month-${m.month}`}>
-          <h2 id={`month-${m.month}`}>{title(m.month)}</h2>
-          <dl class="summary">
-            {#each [["Planned income", "total_budget_income"], ["Planned expenses", "total_budgeted"], ["Projected savings", "total_saved"], ["Actual income", "total_income"], ["Actual spending", "total_spent"], ["Final savings", "real_saved"]] as [label, key] (key)}<div
-              >
-                <dt>{label}</dt>
-                <dd data-testid={`${m.month}-${key}`}>
-                  {formatAmount(m.summary[key])}
+    <div class="budget-layout">
+      <div class="month-grid" class:single-month={count === 1}>
+        {#each Object.values(view.months) as m (m.month)}
+          <section class="budget-month" aria-labelledby={`month-${m.month}`}>
+            <h2 id={`month-${m.month}`}>{title(m.month)}</h2>
+            <dl class="summary">
+              <div>
+                <dt>Planned</dt>
+                <dd data-testid={`${m.month}-total_budgeted`}>
+                  {formatAmount(m.summary.total_budgeted)}
                 </dd>
-              </div>{/each}
-          </dl>
-          <div class="month-actions">
-            <button
-              onclick={() => {
-                open("copy_previous", m);
-                void send();
+              </div>
+              <div>
+                <dt>Spent</dt>
+                <dd>{formatAmount(-m.summary.total_spent)}</dd>
+              </div>
+              <div>
+                <dt>Remaining</dt>
+                <dd>
+                  <span
+                    class="balance-badge"
+                    class:negative={categoryTotal(
+                      m.categories.filter((c) => !c.is_income),
+                      "balance",
+                    ) < 0n}>{remainingTotal(m)}</span
+                  >
+                </dd>
+              </div>
+            </dl>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions (The scroll region itself supports Home/End; child controls retain native keys.) -->
+            <div
+              class="budget-table-scroll"
+              tabindex="0"
+              role="region"
+              aria-label={`Budget categories for ${title(m.month)}`}
+              onkeydown={(event) => {
+                if (
+                  event.target === event.currentTarget &&
+                  (event.key === "Home" || event.key === "End")
+                ) {
+                  event.preventDefault();
+                  event.currentTarget.scrollLeft =
+                    event.key === "End" ? event.currentTarget.scrollWidth : 0;
+                }
               }}
-              disabled={!!draft || busy || disconnected}
-              >Copy previous month</button
             >
-          </div>
-          <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions (The scroll region itself supports Home/End; child controls retain native keys.) -->
-          <div
-            class="budget-table-scroll"
-            tabindex="0"
-            role="region"
-            aria-label={`Budget categories for ${title(m.month)}`}
-            onkeydown={(event) => {
-              if (
-                event.target === event.currentTarget &&
-                (event.key === "Home" || event.key === "End")
-              ) {
-                event.preventDefault();
-                event.currentTarget.scrollLeft =
-                  event.key === "End" ? event.currentTarget.scrollWidth : 0;
-              }
-            }}
-          >
-            <table>
-              <caption class="visually-hidden"
-                >{title(m.month)} allocations and actuals</caption
-              ><thead
-                ><tr
-                  ><th
-                    ><div class="group-label">
-                      {t("Category")}<button
-                        class="add-icon"
-                        aria-label="Add group"
-                        title="Add group"
-                        disabled={busy ||
-                          disconnected ||
-                          !!draft ||
-                          !!categoryEditor}
-                        onclick={() =>
-                          (categoryEditor = { kind: "category-groups" })}
-                        ><svg
-                          aria-hidden="true"
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.75"><path d="M12 5v14M5 12h14" /></svg
-                        ></button
-                      >
-                    </div></th
-                  ><th class="amount">Planned</th><th class="amount">Actual</th
-                  ><th class="amount">{t("Remaining")}</th></tr
-                ></thead
-              ><tbody
+              <table>
+                <caption class="visually-hidden"
+                  >{title(m.month)} allocations and actuals</caption
+                ><thead
+                  ><tr
+                    ><th
+                      ><div class="group-label">
+                        {t("Category")}
+                      </div></th
+                    ><th class="amount">Planned</th><th class="amount"
+                      >Actual</th
+                    ><th class="amount">{t("Remaining")}</th></tr
+                  ></thead
                 >{#each grouped(m.categories) as group (group.id)}
                   {@const record = categoryGroups.find(
                     (g) => g.id === group.id,
                   )}
-                  <tr
-                    class="budget-group"
+                  <tbody
+                    class="category-group"
                     style:--group-color={group.color}
-                    data-budget-kind="category-groups"
-                    data-id={group.id}
-                    data-month={m.month}
-                    class:drop-before={dragging?.month === m.month &&
-                      dropTarget?.id === group.id &&
-                      !dropTarget.after}
-                    class:drop-after={dragging?.month === m.month &&
-                      dropTarget?.id === group.id &&
-                      dropTarget.after}
                   >
-                    <th scope="row"
-                      ><div class="group-label">
-                        {#if categoryGroups.find((g) => g.id === group.id)}
-                          {@render reorderHandle(
-                            "category-groups",
-                            group.id,
-                            group.name,
-                            m.month,
-                          )}
-                        {/if}
-                        <button
-                          aria-label={`Toggle ${group.name}`}
-                          class="group-toggle"
-                          aria-expanded={!collapsedGroups.includes(group.id)}
-                          onclick={() => {
-                            collapsedGroups = collapsedGroups.includes(group.id)
-                              ? collapsedGroups.filter((id) => id !== group.id)
-                              : [...collapsedGroups, group.id];
-                          }}
-                        >
-                          <svg
-                            aria-hidden="true"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.75"
-                            ><path
-                              d={collapsedGroups.includes(group.id)
-                                ? "m9 5 7 7-7 7"
-                                : "m5 9 7 7 7-7"}
-                            /></svg
-                          >
-                        </button>
-                        {#if record}<input
-                            class="group-name"
-                            aria-label={`Group name ${group.name}`}
-                            maxlength="120"
-                            value={record.name}
-                            disabled={arrangementLocked}
-                            onblur={(e) =>
-                              void renameItem(record, e.currentTarget)}
-                            onkeydown={(e) => {
-                              if (e.key === "Enter") e.currentTarget.blur();
-                              if (e.key === "Escape") {
-                                e.currentTarget.value = record.name;
-                                e.currentTarget.blur();
-                              }
-                            }}
-                          />
-                        {:else}<span>{group.name}</span>{/if}
-                        {#if categoryGroups.some((g) => g.id === group.id)}<CategoryColor
-                            {budgetId}
-                            id={group.id}
-                            kind="category-groups"
-                            name={group.name}
-                            color={group.color}
-                            disabled={busy || disconnected || !!draft}
-                            onchanged={refresh}
-                          />{/if}
-                        {#if record}<button
-                            class="add-icon"
-                            aria-label={`Edit group ${group.name}`}
-                            title={`Edit group ${group.name}`}
-                            disabled={arrangementLocked}
+                    <tr
+                      class="budget-group"
+                      style:--group-color={group.color}
+                      data-budget-kind="category-groups"
+                      data-id={group.id}
+                      data-month={m.month}
+                      class:drop-before={dragging?.month === m.month &&
+                        dropTarget?.id === group.id &&
+                        !dropTarget.after}
+                      class:drop-after={dragging?.month === m.month &&
+                        dropTarget?.id === group.id &&
+                        dropTarget.after}
+                    >
+                      <th scope="row"
+                        ><div class="group-label">
+                          {#if categoryGroups.find((g) => g.id === group.id)}
+                            {@render reorderHandle(
+                              "category-groups",
+                              group.id,
+                              group.name,
+                              m.month,
+                            )}
+                          {/if}
+                          <button
+                            aria-label={`Toggle ${group.name}`}
+                            class="group-toggle"
+                            aria-expanded={!collapsedGroups.includes(group.id)}
                             onclick={() => {
-                              selectedCategory = null;
-                              categoryEditor = {
-                                kind: "category-groups",
-                                id: group.id,
-                              };
+                              collapsedGroups = collapsedGroups.includes(
+                                group.id,
+                              )
+                                ? collapsedGroups.filter(
+                                    (id) => id !== group.id,
+                                  )
+                                : [...collapsedGroups, group.id];
                             }}
-                            ><svg
+                          >
+                            <svg
                               aria-hidden="true"
                               width="16"
                               height="16"
@@ -1205,128 +1176,52 @@
                               stroke="currentColor"
                               stroke-width="1.75"
                               ><path
-                                d="m16 3 5 5-12 12-6 1 1-6Z M14 5l5 5"
+                                d={collapsedGroups.includes(group.id)
+                                  ? "m9 5 7 7-7 7"
+                                  : "m5 9 7 7 7-7"}
                               /></svg
-                            ></button
-                          >{/if}
-                        <button
-                          class="add-icon"
-                          aria-label={`Add category to ${group.name}`}
-                          title={`Add category to ${group.name}`}
-                          disabled={busy ||
-                            disconnected ||
-                            !!draft ||
-                            !!categoryEditor}
-                          onclick={() => {
-                            collapsedGroups = collapsedGroups.filter(
-                              (id) => id !== group.id,
-                            );
-                            categoryEditor = {
-                              kind: "categories",
-                              groupId: categoryGroups.some(
-                                (g) => g.id === group.id,
-                              )
-                                ? group.id
-                                : "",
-                              income: group.income,
-                            };
-                          }}
-                          ><svg
-                            aria-hidden="true"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.75"
-                            ><path d="M12 5v14M5 12h14" /></svg
-                          ></button
-                        >
-                      </div></th
-                    >
-                    <td class="amount"
-                      >{groupTotal(group.categories, "budgeted")}</td
-                    ><td class="amount"
-                      >{groupTotal(group.categories, "actual")}</td
-                    ><td class="amount"
-                      >{groupTotal(group.categories, "balance")}</td
-                    >
-                  </tr>
-                  {#if !collapsedGroups.includes(group.id)}
-                    {#each group.categories as c (c.id)}
-                      {@const categoryRecord = categoryRows.find(
-                        (row) => row.id === c.id,
-                      )}
-                      <tr
-                        class="budget-category"
-                        data-budget-kind="categories"
-                        data-id={c.id}
-                        data-month={m.month}
-                        class:drop-before={dragging?.month === m.month &&
-                          dropTarget?.id === c.id &&
-                          !dropTarget.after}
-                        class:drop-after={dragging?.month === m.month &&
-                          dropTarget?.id === c.id &&
-                          dropTarget.after}
-                        class:editing={draft?.category === c.id &&
-                          draft.month === m.month}
-                        style:--category-color={c.category_color ??
-                          "transparent"}
-                      >
-                        <th scope="row"
-                          ><div class="category-label">
-                            {@render reorderHandle(
-                              "categories",
-                              c.id,
-                              c.name,
-                              m.month,
-                            )}
-                            <CategoryColor
-                              {budgetId}
-                              id={c.id}
-                              kind="categories"
-                              name={c.name}
-                              color={c.category_color ?? group.color}
-                              compact
-                              disabled={busy ||
-                                disconnected ||
-                                !!draft?.pending}
-                              onchanged={refresh}
-                            />
-                            {#if categoryRecord}<input
-                                class="category-name group-name"
-                                aria-label={`Category name ${c.name}`}
-                                title={c.name}
-                                maxlength="120"
-                                value={categoryRecord.name}
-                                disabled={arrangementLocked}
-                                onblur={(e) =>
-                                  void renameItem(
-                                    categoryRecord,
-                                    e.currentTarget,
-                                    "categories",
-                                  )}
-                                onkeydown={(e) => {
-                                  if (e.key === "Enter") e.currentTarget.blur();
-                                  if (e.key === "Escape") {
-                                    e.currentTarget.value = categoryRecord.name;
-                                    e.currentTarget.blur();
-                                  }
-                                }}
-                              />{:else}<span class="category-name"
-                                >{c.name}</span
-                              >{/if}
-                            <button
-                              class="add-icon"
-                              aria-label={`Edit ${c.name} for ${title(m.month)}`}
-                              title={`Edit ${c.name}`}
-                              disabled={busy ||
-                                disconnected ||
-                                !!draft ||
-                                !!categoryEditor}
-                              onclick={() => editRow(m, c)}
                             >
-                              <svg
+                          </button>
+                          {#if categoryGroups.some((g) => g.id === group.id)}<CategoryColor
+                              {budgetId}
+                              id={group.id}
+                              kind="category-groups"
+                              name={group.name}
+                              color={group.color}
+                              disabled={busy || disconnected || !!draft}
+                              onchanged={refresh}
+                            />{/if}
+                          {#if record}<input
+                              class="group-name"
+                              aria-label={`Group name ${group.name}`}
+                              maxlength="120"
+                              value={record.name}
+                              disabled={arrangementLocked}
+                              onblur={(e) =>
+                                void renameItem(record, e.currentTarget)}
+                              onkeydown={(e) => {
+                                if (e.key === "Enter") e.currentTarget.blur();
+                                if (e.key === "Escape") {
+                                  e.currentTarget.value = record.name;
+                                  e.currentTarget.blur();
+                                }
+                              }}
+                            />
+                          {:else}<span>{group.name}</span>{/if}
+
+                          {#if record}<button
+                              class="add-icon"
+                              aria-label={`Edit group ${group.name}`}
+                              title={`Edit group ${group.name}`}
+                              disabled={arrangementLocked}
+                              onclick={() => {
+                                selectedCategory = null;
+                                categoryEditor = {
+                                  kind: "category-groups",
+                                  id: group.id,
+                                };
+                              }}
+                              ><svg
                                 aria-hidden="true"
                                 width="16"
                                 height="16"
@@ -1337,50 +1232,278 @@
                                 ><path
                                   d="m16 3 5 5-12 12-6 1 1-6Z M14 5l5 5"
                                 /></svg
-                              >
-                            </button>
-                          </div></th
-                        >
-                        <td class="amount"
-                          ><input
-                            class="planned-input"
-                            aria-label={`Planned ${c.name} for ${title(m.month)}`}
-                            inputmode="decimal"
-                            maxlength="256"
-                            value={isQuick(m, c)
-                              ? draft!.amount
-                              : formatAmountInput(c.budgeted)}
-                            disabled={disconnected ||
-                              !!categoryEditor ||
-                              (!!draft && !isQuick(m, c)) ||
-                              (busy && !isQuick(m, c))}
-                            oninput={(e) =>
-                              quickInput(m, c, e.currentTarget.value)}
-                            onblur={() => void flushQuick(true)}
-                            onkeydown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                void flushQuick(true);
-                              }
+                              ></button
+                            >{/if}
+                          <button
+                            class="add-icon"
+                            aria-label={`Add category to ${group.name}`}
+                            title={`Add category to ${group.name}`}
+                            disabled={busy ||
+                              disconnected ||
+                              !!draft ||
+                              !!categoryEditor}
+                            onclick={() => {
+                              collapsedGroups = collapsedGroups.filter(
+                                (id) => id !== group.id,
+                              );
+                              categoryEditor = {
+                                kind: "categories",
+                                groupId: categoryGroups.some(
+                                  (g) => g.id === group.id,
+                                )
+                                  ? group.id
+                                  : "",
+                                income: group.income,
+                              };
                             }}
-                          /></td
+                            ><svg
+                              aria-hidden="true"
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.75"
+                              ><path d="M12 5v14M5 12h14" /></svg
+                            ></button
+                          >
+                        </div></th
+                      >
+                      <td class="amount"
+                        >{groupTotal(group.categories, "budgeted")}</td
+                      ><td class="amount"
+                        >{groupTotal(group.categories, "actual")}</td
+                      ><td class="amount"
+                        ><span
+                          class="balance-badge"
+                          class:negative={categoryTotal(
+                            group.categories,
+                            "balance",
+                          ) < 0n}
+                          >{groupTotal(group.categories, "balance")}</span
+                        ></td
+                      >
+                    </tr>
+                    {#if !collapsedGroups.includes(group.id)}
+                      {#each group.categories as c (c.id)}
+                        {@const categoryRecord = categoryRows.find(
+                          (row) => row.id === c.id,
+                        )}
+                        <tr
+                          class="budget-category"
+                          data-budget-kind="categories"
+                          data-id={c.id}
+                          data-month={m.month}
+                          class:drop-before={dragging?.month === m.month &&
+                            dropTarget?.id === c.id &&
+                            !dropTarget.after}
+                          class:drop-after={dragging?.month === m.month &&
+                            dropTarget?.id === c.id &&
+                            dropTarget.after}
+                          class:editing={(draft?.category === c.id &&
+                            draft.month === m.month) ||
+                            (selectedCategory?.id === c.id &&
+                              selectedCategory.month === m.month)}
+                          style:--category-color={c.category_color ??
+                            "transparent"}
                         >
-                        <td class="amount">{formatAmount(c.actual)}</td>
-                        <td class="amount">{formatAmount(c.balance)}</td>
-                      </tr>
-                      {#if selectedCategory?.id === c.id && selectedCategory.month === m.month}<tr
-                          class="inline-plan-row"
-                          ><td colspan="4">{@render categoryControls(m, c)}</td
-                          ></tr
-                        >{/if}
-                    {/each}{/if}{/each}</tbody
+                          <th scope="row"
+                            ><div class="category-label">
+                              {@render reorderHandle(
+                                "categories",
+                                c.id,
+                                c.name,
+                                m.month,
+                              )}
+                              <CategoryColor
+                                {budgetId}
+                                id={c.id}
+                                kind="categories"
+                                name={c.name}
+                                color={c.category_color ?? group.color}
+                                compact
+                                disabled={busy ||
+                                  disconnected ||
+                                  !!draft?.pending}
+                                onchanged={refresh}
+                              />
+                              {#if categoryRecord}<input
+                                  class="category-name group-name"
+                                  aria-label={`Category name ${c.name}`}
+                                  title={c.name}
+                                  maxlength="120"
+                                  value={categoryRecord.name}
+                                  disabled={arrangementLocked}
+                                  onblur={(e) =>
+                                    void renameItem(
+                                      categoryRecord,
+                                      e.currentTarget,
+                                      "categories",
+                                    )}
+                                  onkeydown={(e) => {
+                                    if (e.key === "Enter")
+                                      e.currentTarget.blur();
+                                    if (e.key === "Escape") {
+                                      e.currentTarget.value =
+                                        categoryRecord.name;
+                                      e.currentTarget.blur();
+                                    }
+                                  }}
+                                />{:else}<span class="category-name"
+                                  >{c.name}</span
+                                >{/if}
+                              <button
+                                class="add-icon"
+                                aria-label={`Edit ${c.name} for ${title(m.month)}`}
+                                title={`Edit ${c.name}`}
+                                disabled={busy ||
+                                  disconnected ||
+                                  !!draft ||
+                                  !!categoryEditor}
+                                onclick={(event) => {
+                                  event.stopPropagation();
+                                  void editRow(m, c);
+                                }}
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="1.75"
+                                  ><path
+                                    d="m16 3 5 5-12 12-6 1 1-6Z M14 5l5 5"
+                                  /></svg
+                                >
+                              </button>
+                            </div></th
+                          >
+                          <td class="amount"
+                            ><input
+                              class="planned-input"
+                              aria-label={`Planned ${c.name} for ${title(m.month)}`}
+                              inputmode="decimal"
+                              maxlength="256"
+                              value={isQuick(m, c)
+                                ? draft!.amount
+                                : formatAmountInput(c.budgeted)}
+                              disabled={disconnected ||
+                                !!categoryEditor ||
+                                (!!draft && !isQuick(m, c)) ||
+                                (busy && !isQuick(m, c))}
+                              oninput={(e) =>
+                                quickInput(m, c, e.currentTarget.value)}
+                              onblur={() => void flushQuick(true)}
+                              onkeydown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  void flushQuick(true);
+                                }
+                              }}
+                            /></td
+                          >
+                          <td class="amount">{formatAmount(c.actual)}</td>
+                          <td class="amount"
+                            ><span
+                              class="balance-badge"
+                              class:negative={c.balance < 0}
+                              class:zero={c.balance === 0}
+                              >{formatAmount(c.balance)}</span
+                            ></td
+                          >
+                        </tr>
+                      {/each}{/if}</tbody
+                  >{/each}
+              </table>
+            </div>
+            <div class="month-actions">
+              <button
+                class="add-group"
+                disabled={busy || disconnected || !!draft || !!categoryEditor}
+                onclick={() => {
+                  categoryEditor = { kind: "category-groups" };
+                }}
               >
-            </table>
+                <svg
+                  aria-hidden="true"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"><path d="M12 5v14M5 12h14" /></svg
+                >Add group
+              </button>
+              <button
+                class="copy-month"
+                onclick={() => {
+                  open("copy_previous", m);
+                  void send();
+                }}
+                disabled={!!draft || busy || disconnected}
+                >Copy previous month</button
+              >
+            </div>
+            <details class="month-metrics">
+              <summary
+                >Income and savings <span class="visually-hidden"
+                  >for {title(m.month)}</span
+                ></summary
+              >
+              {@render monthFigures(m, true)}
+            </details>
+            {#if !m.categories.length}<p>
+                Create categories to start planning.
+              </p>{/if}
+          </section>{/each}
+      </div>
+      <aside class="budget-inspector" aria-label="Budget details">
+        {#if inspectedMonth && inspectedCategory}
+          {@const c = inspectedCategory}
+          {@const m = inspectedMonth}
+          <div
+            class="category-inspector"
+            bind:this={inspector}
+            {@attach outsideClick(() => {
+              if (!busy && !draft) selectedCategory = null;
+            })}
+          >
+            <header class="inspector-heading">
+              <span
+                class="inspector-dot"
+                style:background={c.category_color ?? c.category_group_color}
+              ></span>
+              <h2>{c.name}</h2>
+            </header>
+            <p class="inspector-caption">{title(m.month)}</p>
+            <dl class="inspector-figures">
+              <div>
+                <dt>Planned</dt>
+                <dd>{formatAmount(c.budgeted)}</dd>
+              </div>
+              <div>
+                <dt>{c.is_income ? "Received" : "Spent"}</dt>
+                <dd>{formatAmount(c.is_income ? c.actual : -c.actual)}</dd>
+              </div>
+              <div>
+                <dt>Remaining</dt>
+                <dd>
+                  <span class="balance-badge" class:negative={c.balance < 0}
+                    >{formatAmount(c.balance)}</span
+                  >
+                </dd>
+              </div>
+            </dl>
+            {@render categoryControls(m, c)}
           </div>
-          {#if !m.categories.length}<p>
-              Create categories to start planning.
-            </p>{/if}
-        </section>{/each}
+        {:else}
+          <h2>Month overview</h2>
+          <p class="inspector-caption">{title(current.month)}</p>
+          {@render monthFigures(current)}
+        {/if}
+      </aside>
     </div>
   {/if}
 </section>
@@ -1391,14 +1514,13 @@
     color: var(--muted);
   }
   .delete-category-icon:hover {
-    color: var(--error-text);
+    color: var(--error);
   }
   .category-controls {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem 1.5rem;
-    padding-block: 0.5rem;
+    display: grid;
+    gap: 1.25rem;
+    padding-block: 1.25rem;
+    border-top: 1px solid var(--line);
   }
   .carryover-toggle {
     position: relative;
@@ -1447,9 +1569,10 @@
     opacity: 0.5;
   }
   .group-name {
+    flex: 1;
     min-width: 4rem;
     width: 100%;
-    max-width: 16rem;
+    max-width: none;
     border: 1px solid transparent;
     background: transparent;
     font: inherit;
@@ -1501,14 +1624,15 @@
     text-overflow: ellipsis;
   }
   .planned-input {
-    width: 7rem;
+    width: 6.5rem;
     min-width: 0;
     text-align: right;
     font: inherit;
     font-variant-numeric: tabular-nums;
-    border: 1px solid transparent;
-    background: transparent;
-    padding: 0.35rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    padding: 0.25rem 0.5rem;
+    min-height: 32px;
   }
   .planned-input:hover,
   .planned-input:focus {
@@ -1528,8 +1652,8 @@
     }
   }
 
-  .budget-category:hover,
-  .budget-category.editing {
+  .budget-category:hover > *,
+  .budget-category.editing > * {
     background: color-mix(
       in srgb,
       var(--category-color) 14%,
@@ -1540,11 +1664,27 @@
     outline: 2px solid var(--accent);
     outline-offset: -2px;
   }
-  .inline-plan-row td {
-    padding: 1rem;
-  }
   .budget-month {
     scroll-snap-align: start;
+  }
+  .budget-table-scroll th,
+  .budget-table-scroll td {
+    padding: 0.15rem 0.6rem;
+  }
+  .budget-table-scroll thead th {
+    padding-block: 0.6rem;
+  }
+  .budget-group th,
+  .budget-category th {
+    font-size: 1rem;
+    color: var(--text);
+  }
+  .budget-category th {
+    font-weight: 400;
+  }
+  .group-label,
+  .category-label {
+    min-height: 44px;
   }
 
   thead th:first-child,
@@ -1568,12 +1708,35 @@
     border: 0;
   }
 
-  .budget-group {
-    background: color-mix(
-      in srgb,
-      var(--group-color) 12%,
-      var(--surface, #fff)
-    );
+  .budget-group > * {
+    background: var(--budget-group-surface, var(--selected));
+  }
+  .category-group > tr > :first-child {
+    border-left: 4px solid var(--group-color);
+  }
+  .budget-table-scroll table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .category-group + .category-group::before {
+    content: "";
+    display: table-row;
+    height: 12px;
+  }
+  .category-group > tr > :last-child {
+    border-right: 1px solid var(--line);
+  }
+  .category-group > tr:first-child > :first-child {
+    border-top-left-radius: 8px;
+  }
+  .category-group > tr:first-child > :last-child {
+    border-top-right-radius: 8px;
+  }
+  .category-group > tr:last-child > :first-child {
+    border-bottom-left-radius: 8px;
+  }
+  .category-group > tr:last-child > :last-child {
+    border-bottom-right-radius: 8px;
   }
   .budget-group th,
   .budget-group td {
@@ -1586,7 +1749,7 @@
     align-items: center;
   }
   .category-label {
-    padding-left: 1.25rem;
+    padding-left: 0.4rem;
   }
   .group-toggle {
     flex: 0 0 24px;
@@ -1604,12 +1767,8 @@
   .group-toggle svg {
     flex-shrink: 0;
   }
-  .budget-category {
-    background: color-mix(
-      in srgb,
-      var(--category-color) 12%,
-      var(--surface, #fff)
-    );
+  .budget-category > * {
+    background: var(--surface);
   }
 
   .month-controls,
@@ -1623,6 +1782,14 @@
   }
   .month-controls {
     align-items: center;
+    margin-bottom: 1rem;
+    gap: 0.75rem;
+  }
+  .month-controls h1 {
+    margin: 0 auto 0 0;
+  }
+  .plan-tools {
+    margin-left: auto;
   }
   .month-controls label {
     display: flex;
@@ -1630,10 +1797,6 @@
   }
   .months-count select {
     margin: 0;
-  }
-  .page-heading,
-  .page-heading h1 {
-    margin-bottom: 0;
   }
   .plan-tools {
     flex-wrap: nowrap;
@@ -1651,31 +1814,47 @@
     position: relative;
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: minmax(min(100%, 32rem), 1fr);
+    grid-auto-columns: minmax(min(100%, 44rem), 1fr);
     width: 100%;
     max-width: 100%;
     min-width: 0;
     overflow-x: auto;
     align-items: start;
     scroll-snap-type: x proximity;
-    gap: 2rem;
+    gap: 1.5rem;
   }
   .budget-month {
     min-width: 0;
-    padding: 1rem 0;
+    padding: 0;
+  }
+  .single-month .budget-month > h2 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
   }
   .summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem 2rem;
-    margin: 1rem 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin: 0 0 1rem;
+    padding: 1rem 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--budget-panel-surface, var(--hover));
+    text-align: center;
+  }
+  .summary > div + div {
+    border-left: 1px solid var(--line);
   }
   .summary dt {
-    font-size: 0.875rem;
+    font-size: 0.9rem;
   }
   .summary dd {
     margin: 0.25rem 0 0;
-    font-weight: 650;
+    font-weight: 750;
+    font-size: 1.5rem;
     font-variant-numeric: tabular-nums;
   }
   .month-actions {
@@ -1689,7 +1868,126 @@
     min-width: 30rem;
   }
   .editor-tools {
+    align-items: stretch;
     gap: 0.4rem;
+    flex-direction: column;
+  }
+  .editor-tools > button {
+    text-align: left;
+    border-color: transparent;
+    background: transparent;
+    color: var(--accent);
+  }
+  .editor-tools .delete-category-icon {
+    color: var(--muted);
+  }
+  .budget-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 18rem;
+    gap: 1.25rem;
+    align-items: start;
+  }
+  .budget-inspector {
+    min-width: 0;
+    background: var(--budget-panel-surface, var(--hover));
+    border-left: 1px solid var(--line);
+    padding: 1.5rem 1.25rem;
+    min-height: 32rem;
+    border-radius: 8px;
+  }
+  .inspector-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+  .inspector-heading h2 {
+    overflow-wrap: anywhere;
+    font-size: 1.45rem;
+    margin: 0;
+  }
+  .inspector-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .inspector-caption {
+    color: var(--muted);
+    margin: 0.5rem 0 1.5rem;
+    font-size: 0.9rem;
+  }
+  .inspector-figures {
+    margin: 0;
+    padding-block: 0.25rem 1.25rem;
+  }
+  .inspector-figures > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-block: 0.6rem;
+  }
+  .inspector-figures dd {
+    margin: 0;
+    font-weight: 650;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .balance-badge {
+    display: inline-block;
+    border-radius: 7px;
+    padding: 0.1rem 0.6rem;
+    color: var(--success);
+    background: var(--success-bg);
+    font-weight: 650;
+  }
+  .balance-badge.negative {
+    background: var(--error-bg);
+    color: var(--error);
+  }
+  .balance-badge.zero {
+    background: var(--hover);
+    color: var(--muted);
+  }
+  .month-metrics {
+    color: var(--muted);
+    margin-block: 0.75rem;
+  }
+  .month-metrics summary {
+    cursor: pointer;
+    font-size: 0.875rem;
+    min-height: 44px;
+    display: list-item;
+    padding-block: 0.6rem;
+  }
+  .month-metrics .inspector-figures {
+    max-width: 28rem;
+    color: var(--text);
+  }
+  .add-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--accent);
+  }
+  .copy-month {
+    margin-left: auto;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  @media (max-width: 1200px) {
+    .budget-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .budget-inspector {
+      min-height: 0;
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+    .inspector-figures {
+      max-width: 28rem;
+    }
   }
   .plan-form {
     border-top: 1px solid var(--border);
@@ -1700,20 +1998,25 @@
     .month-controls {
       display: flex;
     }
+    .month-controls h1 {
+      flex: 1 1 100%;
+    }
     .month-controls > label {
       min-width: 0;
-      flex: 1 1 100%;
     }
     .month-controls input,
     .month-controls select {
       width: 100%;
       min-width: 0;
     }
-    .summary {
-      gap: 1rem;
+    .summary dd {
+      font-size: 1.1rem;
     }
-    .summary > div {
-      min-width: 8rem;
+    .summary dt {
+      font-size: 0.8rem;
+    }
+    .summary .balance-badge {
+      padding-inline: 0.3rem;
     }
 
     .editor-tools {

@@ -5,7 +5,6 @@ import { readFile, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { randomUUID, createHash } from "node:crypto";
 import { startServer } from "../web/tests/server.mjs";
-import { cloneImportedTemplate } from "../web/tests/import-template.mjs";
 const source = JSON.parse(
   await readFile(
     new URL("../tests/fixtures/public-batch-source.json", import.meta.url),
@@ -64,7 +63,7 @@ try {
   assert.equal(upload.status, 201);
   const stage = (await upload.json()).data,
     template = (await call("/imports/" + stage.id + "/activate", {}, 201)).data,
-    id = await cloneImportedTemplate(api, template.id),
+    id = template.id,
     root = "/budgets/" + id,
     epoch = (await call(root)).data.epoch,
     owner = randomUUID(),

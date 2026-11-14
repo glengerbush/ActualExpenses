@@ -1,7 +1,7 @@
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { startServer, transactionCreatePattern } from "./server.mjs";
-const server = await startServer(),
+let server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1");
 async function write(path, body, method = "POST") {
   const response = await fetch(api + "/api/v1" + path, {
@@ -32,6 +32,9 @@ try {
     ["dd.MM.yyyy", "04.05.2026", "2026-05-04"],
     ["yyyy-MM-dd", "2026-4-5", "2026-04-05"],
   ]) {
+    await server.stop();
+    server = await startServer();
+    api = server.url.replace("actualbudget.test", "127.0.0.1");
     const context = await browser.newContext({ timezoneId: "UTC" }),
       page = await context.newPage();
     await page.clock.install({ time: new Date() });

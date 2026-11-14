@@ -41,7 +41,6 @@ try {
     errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
-  await page.getByText("Inline categories", { exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Categories", exact: true }),
   ).toHaveCount(0);
@@ -97,6 +96,9 @@ try {
   expect(category.is_income).toBe(false);
   expect(category.color).toBeNull();
   expect(category.resolved_color.toLowerCase()).toBe(shade);
+  await page
+    .getByRole("button", { name: "Choose color for Groceries", exact: true })
+    .click();
   const color = page.getByLabel("Color for Groceries", { exact: true });
   await color.fill("#cc2244");
   await expect
@@ -109,6 +111,7 @@ try {
     }),
   ).toHaveCount(0);
   await expect(color).toHaveValue("#cc2244");
+  await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Add group", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Income");
   await page

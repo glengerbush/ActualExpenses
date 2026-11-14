@@ -83,7 +83,6 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
-  await page.getByText("Outside editors", { exact: true }).click();
   const outside = () => page.locator(".brand").click();
   const transaction = () => page.locator(`[data-transaction-id="${row}"]`);
   await transaction().click();
@@ -145,11 +144,11 @@ try {
   const planned = () =>
     category().getByRole("textbox", { name: /^Planned Food for/ });
   await options().click();
-  await expect(page.locator(".inline-plan-row")).toBeVisible();
-  await page.getByRole("region", { name: "Budget options for Food" }).click();
-  await expect(page.locator(".inline-plan-row")).toBeVisible();
+  await expect(page.locator(".category-inspector")).toBeVisible();
+  await page.locator(".category-inspector h2").click();
+  await expect(page.locator(".category-inspector")).toBeVisible();
   await outside();
-  await expect(page.locator(".inline-plan-row")).toHaveCount(0);
+  await expect(page.locator(".category-inspector")).toHaveCount(0);
   // Planned amounts now save on blur. Outside clicks must preserve the write.
   let release;
   const paused = new Promise((resolve) => (release = resolve));
@@ -169,7 +168,7 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await options().click();
   await outside();
-  await expect(page.locator(".inline-plan-row")).toHaveCount(0);
+  await expect(page.locator(".category-inspector")).toHaveCount(0);
   expect((await call(root + `/transactions/${row}`)).amount).toBe(-1000);
   expect((await call(root + `/transactions/${row}`)).notes).toBe("");
   expect(errors).toEqual([]);

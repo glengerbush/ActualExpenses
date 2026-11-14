@@ -1,5 +1,4 @@
 // Consume independently executed ActualQL observations through running HTTP.
-import { cloneImportedTemplate } from "../web/tests/import-template.mjs";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
@@ -56,7 +55,7 @@ try {
   const stage = (await response.json()).data,
     activated = (await request("/imports/" + stage.id + "/activate", {}, 201))
       .data,
-    root = "/budgets/" + (await cloneImportedTemplate(api, activated.id));
+    root = "/budgets/" + activated.id;
   // Keep the pinned text oracle on the surviving arbitrary-note query surface.
   for (const row of fixture.cases.find((c) => c.id === "split-all").data)
     await request(root + "/notes/commands", {

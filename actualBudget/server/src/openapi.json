@@ -89,7 +89,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Legacy discovery. At most one active budget. include_deleted exposes retired identities solely for recovery."
       },
       "post": {
         "parameters": [
@@ -206,7 +207,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Legacy bootstrap only: creates the first budget on an empty installation. Returns409 if an active budget already exists. New clients use GET /api/v1/budget."
       }
     },
     "/api/v1/budgets/{budget}/accounts": {
@@ -3256,7 +3258,7 @@
     "/api/v1/imports/{id}/activate": {
       "post": {
         "summary": "Atomically activate reviewed ledger conversion",
-        "description": "Ready stages only. Insert source IDs, relationships, preferences, original field order and tombstones; verify target totals before commit. Durable result and receipt commit together. Retry/restart or a repeated activation returns the same budget. Source local/cloud/group IDs remain explicitly mapped to the assigned budget UUID.",
+        "description": "Installs the reviewed archive into the existing empty singleton, preserving its identity and rotating epoch. If populated, use merge instead. Original archive and receipt retained; automatic recovery point before replacement.",
         "parameters": [
           {
             "name": "id",
@@ -3706,549 +3708,6 @@
                   ],
                   "additionalProperties": false
                 }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128,
-              "pattern": "^[!-~]+$"
-            },
-            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
-          },
-          {
-            "name": "X-Actual-Budget-Epoch",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{32}$"
-            },
-            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
-          },
-          {
-            "name": "X-Actual-Cancel-If-Uncommitted",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            },
-            "description": "Requires advertised budget_lifecycle_cancellation capability. Same immutable key/body/epoch: returns original committed outcome or atomically fences delayed originals with durable operation_canceled. Persist cancellation intent through lost requests/reloads."
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Identity, generation, confirmation, or durable cancellation conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Archive or request too large",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "Unsupported media type",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Invalid native archive",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed without partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/Budget"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 120
-                  }
-                },
-                "required": [
-                  "name"
-                ],
-                "additionalProperties": false
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128,
-              "pattern": "^[!-~]+$"
-            },
-            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
-          },
-          {
-            "name": "X-Actual-Budget-Epoch",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{32}$"
-            },
-            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
-          },
-          {
-            "name": "X-Actual-Cancel-If-Uncommitted",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            },
-            "description": "Requires advertised budget_lifecycle_cancellation capability. Same immutable key/body/epoch: returns original committed outcome or atomically fences delayed originals with durable operation_canceled. Persist cancellation intent through lost requests/reloads."
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Identity, generation, confirmation, or durable cancellation conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Archive or request too large",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "Unsupported media type",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Invalid native archive",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed without partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/BudgetDeleteResult"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "confirm_name": {
-                    "type": "string",
-                    "maxLength": 120
-                  }
-                },
-                "required": [
-                  "confirm_name"
-                ],
-                "additionalProperties": false
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/budgets/{budget}/duplicate": {
-      "post": {
-        "parameters": [
-          {
-            "name": "budget",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128,
-              "pattern": "^[!-~]+$"
-            },
-            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
-          },
-          {
-            "name": "X-Actual-Budget-Epoch",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{32}$"
-            },
-            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
-          },
-          {
-            "name": "X-Actual-Cancel-If-Uncommitted",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            },
-            "description": "Requires advertised budget_lifecycle_cancellation capability. Same immutable key/body/epoch: returns original committed outcome or atomically fences delayed originals with durable operation_canceled. Persist cancellation intent through lost requests/reloads."
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Browser origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Identity, generation, confirmation, or durable cancellation conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Budget deleted; pending work retained",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Archive or request too large",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "Unsupported media type",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Invalid native archive",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Operation failed without partial commit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/Budget"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 120
-                  }
-                },
-                "required": [
-                  "id",
-                  "name"
-                ],
-                "additionalProperties": false
               }
             }
           }
@@ -4873,7 +4332,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Explicitly replaces the current budget from the reviewed archive or recovery point. Source identities are retargeted into the singleton. Requires current epoch and confirmation; saves a recovery point first. Old cached work cannot replay into the restored generation."
       }
     },
     "/api/v1/budgets/{budget}/restores/{id}/activate": {
@@ -5062,7 +4522,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Explicitly replaces the current budget from the reviewed archive or recovery point. Source identities are retargeted into the singleton. Requires current epoch and confirmation; saves a recovery point first. Old cached work cannot replay into the restored generation."
       }
     },
     "/api/v1/restores/{id}": {
@@ -18765,6 +18226,139 @@
           }
         }
       }
+    },
+    "/api/v1/budget": {
+      "get": {
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Identity, generation, confirmation, or durable cancellation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Archive or request too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported media type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid native archive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed without partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/Budget"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "empty": {
+                              "type": "boolean",
+                              "description": "No financial or custom category/reference data; a reviewed full archive may initialize this budget."
+                            }
+                          },
+                          "required": [
+                            "empty"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "summary": "Open the single budget",
+        "description": "Returns the only active budget, atomically initializing a blank installation. Stable identity across reloads. Existing multiple budgets merge during schema migration; archived identities remain recovery evidence."
+      }
     }
   },
   "components": {
@@ -18819,6 +18413,10 @@
               "string",
               "null"
             ]
+          },
+          "empty": {
+            "type": "boolean",
+            "description": "Present on singleton discovery; whether full import may initialize this budget."
           }
         },
         "required": [
@@ -20943,7 +20541,8 @@
                   33,
                   34,
                   35,
-                  36
+                  36,
+                  37
                 ]
               },
               "domains": {

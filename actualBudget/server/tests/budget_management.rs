@@ -1,3 +1,5 @@
+#[path = "support/single_budget_fixture.rs"]
+mod single_budget_fixture;
 use base64::Engine;
 use reqwest::blocking::{Client, Response};
 use serde_json::{Value, json};
@@ -141,7 +143,7 @@ fn epoch_write(
         .unwrap()
 }
 #[test]
-fn budget_restore_rotates_epoch_preserves_post_backup_receipts_and_can_recover_deleted_budget() {
+fn budget_restore_rotates_epoch_preserves_post_backup_receipts_and_restart() {
     let s = Server::start();
     seed(&s);
     let root = format!("/api/v1/budgets/{B}");
@@ -157,18 +159,6 @@ fn budget_restore_rotates_epoch_preserves_post_backup_receipts_and_can_recover_d
     let point = backup["data"]["id"].as_str().unwrap();
     let checkpoint = s.get(&format!("{root}/checkpoint"))["data"].clone();
     let epoch = checkpoint["epoch"].as_str().unwrap();
-    assert_eq!(
-        epoch_write(
-            &s,
-            "PATCH",
-            &root,
-            "rename",
-            epoch,
-            json!({"name":"Renamed"})
-        )
-        .status(),
-        200
-    );
     let edited = s.write(
         "PATCH",
         &format!("{root}/transactions/{T}"),
@@ -193,7 +183,7 @@ fn budget_restore_rotates_epoch_preserves_post_backup_receipts_and_can_recover_d
         &format!("{root}/backups/{point}/restore"),
         "restore",
         epoch,
-        json!({"confirm_name":"Renamed"}),
+        json!({"confirm_name":"Household"}),
     );
     assert_eq!(restore.status(), 200);
     let restored: Value = restore.json().unwrap();
@@ -252,47 +242,7 @@ fn budget_restore_rotates_epoch_preserves_post_backup_receipts_and_can_recover_d
         .status(),
         200
     );
-    let deletion = epoch_write(
-        &s,
-        "DELETE",
-        &root,
-        "delete",
-        &next,
-        json!({"confirm_name":"Household"}),
-    );
-    assert_eq!(deletion.status(), 200);
-    let deletion: Value = deletion.json().unwrap();
-    let recovery = deletion["data"]["recovery_point_id"]
-        .as_str()
-        .unwrap()
-        .to_owned();
-    assert!(
-        s.get("/api/v1/budgets")["data"]
-            .as_array()
-            .unwrap()
-            .is_empty()
-    );
-    assert_eq!(
-        s.write(
-            "PATCH",
-            &format!("{root}/transactions/{T}"),
-            "deleted-new",
-            None,
-            json!({"notes":"no"})
-        )
-        .status(),
-        410
-    );
     let s = s.restart();
-    let restore = epoch_write(
-        &s,
-        "POST",
-        &format!("{root}/backups/{recovery}/restore"),
-        "recover-deleted",
-        &next,
-        json!({"confirm_name":"Household"}),
-    );
-    assert_eq!(restore.status(), 200);
     assert_eq!(
         s.get(&format!("{root}/transactions/{T}"))["data"]["amount"],
         -345
@@ -452,40 +402,57 @@ fn automatic_recovery_is_dirty_driven_retained_and_restorable() {
 }
 
 #[test]
-fn duplicate_has_independent_identity_and_preserves_financial_records() {
+fn single_budget_rejects_additional_budgets_and_retired_lifecycle_actions() {
     let s = Server::start();
     seed(&s);
     let root = format!("/api/v1/budgets/{B}");
-    let copy = "80000000-0000-4000-8000-000000000004";
-    let body = json!({"id":copy,"name":"Independent copy"});
-    let response = s.write(
-        "POST",
-        &format!("{root}/duplicate"),
-        "copy",
-        None,
-        body.clone(),
-    );
-    assert_eq!(response.status(), 201, "{}", response.text().unwrap());
-    let created = s.get(&format!("/api/v1/budgets/{copy}"));
-    assert_ne!(created["data"]["epoch"], s.get(&root)["data"]["epoch"]);
+    assert_eq!(s.get("/api/v1/budget")["data"]["id"], B);
     assert_eq!(
-        s.get(&format!("/api/v1/budgets/{copy}/transactions/{T}"))["data"]["amount"],
-        -100
+        s.write(
+            "POST",
+            "/api/v1/budgets",
+            "second",
+            None,
+            json!({"id":uuid::Uuid::new_v4().to_string(),"name":"Second"})
+        )
+        .status(),
+        409
     );
-    let edit = s.write(
-        "PATCH",
-        &format!("/api/v1/budgets/{copy}/transactions/{T}"),
-        "transaction",
-        Some(NEW),
-        json!({"amount":-900}),
+    assert_eq!(
+        s.write("PATCH", &root, "rename", None, json!({"name":"Renamed"}))
+            .status(),
+        405
     );
-    assert_eq!(edit.status(), 200);
+    assert_eq!(
+        s.write(
+            "DELETE",
+            &root,
+            "delete",
+            None,
+            json!({"confirm_name":"Household"})
+        )
+        .status(),
+        405
+    );
+    assert_eq!(
+        s.write(
+            "POST",
+            &format!("{root}/duplicate"),
+            "copy",
+            None,
+            json!({"id":uuid::Uuid::new_v4().to_string(),"name":"Copy"})
+        )
+        .status(),
+        404
+    );
+    assert_eq!(
+        s.get("/api/v1/budgets")["data"].as_array().unwrap().len(),
+        1
+    );
     assert_eq!(
         s.get(&format!("{root}/transactions/{T}"))["data"]["amount"],
         -100
     );
-    let replay = s.write("POST", &format!("{root}/duplicate"), "copy", None, body);
-    assert_eq!(replay.json::<Value>().unwrap(), created);
 }
 #[test]
 fn genuine_v5_upgrade_keeps_exact_receipts_and_usable_upgrade_points() {
@@ -551,11 +518,16 @@ fn genuine_v5_upgrade_keeps_exact_receipts_and_usable_upgrade_points() {
         .iter()
         .find(|v| v["kind"] == "upgrade")
         .unwrap();
-    let restore = s.write(
+    let epoch = s.get(&format!("{root}/checkpoint"))["data"]["epoch"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let restore = epoch_write(
+        &s,
         "POST",
         &format!("{root}/backups/{}/restore", point["id"].as_str().unwrap()),
         "upgrade-restore",
-        None,
+        &epoch,
         json!({"confirm_name":"Pre-lifecycle receipts"}),
     );
     assert_eq!(restore.status(), 200, "{}", restore.text().unwrap());
@@ -571,6 +543,10 @@ fn exported_imported_budget_preserves_source_archive_and_clock_receipts_after_ne
         include_bytes!("../../tests/fixtures/server-v5.sqlite3"),
     )
     .unwrap();
+    single_budget_fixture::keep_budget(
+        &dir.path().join("actualbudget.sqlite3"),
+        f["imported_budget_id"].as_str().unwrap(),
+    );
     let source = Server::open(dir);
     let target = Server::start();
     let budget = f["imported_budget_id"].as_str().unwrap();
@@ -647,28 +623,6 @@ fn exported_imported_budget_preserves_source_archive_and_clock_receipts_after_ne
             .unwrap()
     };
     assert_eq!(original(&source), original(&target));
-    let copy = "80000000-0000-4000-8000-000000000099";
-    let epoch = target.get(&root)["data"]["epoch"]
-        .as_str()
-        .unwrap()
-        .to_owned();
-    let copied = epoch_write(
-        &target,
-        "POST",
-        &format!("{root}/duplicate"),
-        "copy-import",
-        &epoch,
-        json!({"id":copy,"name":"Copy of imported budget"}),
-    );
-    assert_eq!(copied.status(), 201, "{}", copied.text().unwrap());
-    let point = target.write(
-        "POST",
-        &format!("/api/v1/budgets/{copy}/backups"),
-        "copy-backup",
-        None,
-        json!({"label":"Copied provenance"}),
-    );
-    assert_eq!(point.status(), 201, "{}", point.text().unwrap());
 }
 
 #[test]

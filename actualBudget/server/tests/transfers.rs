@@ -1,3 +1,5 @@
+#[path = "support/single_budget_fixture.rs"]
+mod single_budget_fixture;
 use reqwest::blocking::{Client, Response};
 use serde_json::{Value, json};
 use std::{
@@ -1363,6 +1365,21 @@ fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native
         include_bytes!("../../tests/fixtures/reconciliation-schema12.sqlite3"),
     )
     .unwrap();
+    single_budget_fixture::keep_budget(
+        &directory.path().join("actualbudget.sqlite3"),
+        fixture["budget"].as_str().unwrap(),
+    );
+    let active_directory = tempfile::tempdir().unwrap();
+    std::fs::write(
+        active_directory.path().join("actualbudget.sqlite3"),
+        include_bytes!("../../tests/fixtures/reconciliation-schema12.sqlite3"),
+    )
+    .unwrap();
+    single_budget_fixture::keep_budget(
+        &active_directory.path().join("actualbudget.sqlite3"),
+        fixture["active_budget"].as_str().unwrap(),
+    );
+    let active_server = Server::open(active_directory);
     let s = Server::open(directory);
     let root = format!("/api/v1/budgets/{}", fixture["budget"].as_str().unwrap());
     let split = format!(
@@ -1400,7 +1417,7 @@ fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native
         "/api/v1/budgets/{}",
         fixture["active_budget"].as_str().unwrap()
     );
-    let mut current = s.get(&format!("{active}/transactions"));
+    let mut current = active_server.get(&format!("{active}/transactions"));
     let mut original = fixture["active_register"].clone();
     let old = original["snapshot"].as_str().unwrap();
     let fresh = current["snapshot"].as_str().unwrap();
@@ -1410,8 +1427,12 @@ fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native
         "Envelope retirement rotates epoch"
     );
     assert_eq!(
-        s.client
-            .get(format!("{}{active}/changes?cursor={old}&limit=1000", s.url))
+        active_server
+            .client
+            .get(format!(
+                "{}{active}/changes?cursor={old}&limit=1000",
+                active_server.url
+            ))
             .send()
             .unwrap()
             .status(),
@@ -1432,7 +1453,7 @@ fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native
         current, original,
         "Rules upgrade preserves every financial row, balance and ordering"
     );
-    assert_eq!(s.get(&format!("{active}/accounts")), {
+    assert_eq!(active_server.get(&format!("{active}/accounts")), {
         let mut expected = fixture["active_accounts"].clone();
         for row in expected["data"].as_array_mut().unwrap() {
             *row = current_row(row.clone());
@@ -1464,7 +1485,7 @@ fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native
     assert_eq!(upload("blocked-source"), fixture["blocked_receipt"]);
     let reviewed = upload("inspect-transfer-after-upgrade");
     assert_eq!(reviewed["data"]["status"], "ready");
-    ok(s.write(
+    let refused = s.write(
         "POST",
         &format!(
             "/api/v1/imports/{}/activate",
@@ -1473,10 +1494,30 @@ fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native
         "activate-upgraded-transfer",
         None,
         json!({}),
+    );
+    assert_eq!(refused.status(), 409);
+    let source_server = Server::start();
+    let fresh = ok(source_server
+        .client
+        .post(format!("{}/api/v1/imports/actual", source_server.url))
+        .header("Idempotency-Key", "fresh-source")
+        .header("Content-Type", "application/zip")
+        .body(include_bytes!("../../tests/fixtures/import-transfers-26.10.0.zip").to_vec())
+        .send()
+        .unwrap());
+    let installed = ok(source_server.write(
+        "POST",
+        &format!(
+            "/api/v1/imports/{}/activate",
+            fresh["data"]["id"].as_str().unwrap()
+        ),
+        "fresh-activate",
+        None,
+        json!({}),
     ));
     let imported = format!(
         "/api/v1/budgets/{}",
-        reviewed["data"]["budget_id"].as_str().unwrap()
+        installed["data"]["id"].as_str().unwrap()
     );
     let source: Value = serde_json::from_str(include_str!(
         "../../tests/fixtures/import-transfers-26.10.0.json"
@@ -1485,7 +1526,7 @@ fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native
     // Independent imported HLC exactness remains covered by the genuine synced source test;
     // this upgrade must re-inspect the same retained original bytes without changing its old receipt.
     assert!(
-        s.get(&format!("{imported}/transactions"))["data"]
+        source_server.get(&format!("{imported}/transactions"))["data"]
             .as_array()
             .unwrap()
             .iter()
@@ -1497,7 +1538,7 @@ fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native
         .iter()
         .filter(|t| !t["transfer_id"].is_null())
     {
-        let actual = s.get(&format!(
+        let actual = source_server.get(&format!(
             "{imported}/transactions/{}",
             expected["id"].as_str().unwrap()
         ))["data"]
@@ -1574,7 +1615,7 @@ fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native
             .body(archive)
             .send()
             .unwrap());
-        assert_eq!(staged["data"]["report"]["schema_version"], 36);
+        assert_eq!(staged["data"]["report"]["schema_version"], 37);
         ok(target.write(
             "POST",
             &format!(

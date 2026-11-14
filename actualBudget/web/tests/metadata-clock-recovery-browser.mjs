@@ -2,8 +2,8 @@ import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { startServer } from "./server.mjs";
-const server = await startServer();
-const api = server.url.replace("actualbudget.test", "127.0.0.1");
+let server = await startServer();
+let api = server.url.replace("actualbudget.test", "127.0.0.1");
 let browser;
 async function call(path, body) {
   const r = await fetch(api + "/api/v1" + path, {
@@ -36,6 +36,9 @@ try {
     recursive: true,
   });
   for (const kind of ["category", "category-group"]) {
+    await server.stop();
+    server = await startServer();
+    api = server.url.replace("actualbudget.test", "127.0.0.1");
     const budget = randomUUID(),
       account = randomUUID(),
       name = `Clock recovery ${kind}`;
@@ -58,9 +61,6 @@ try {
     });
     const page = await context.newPage();
     await page.goto(server.url);
-    await page
-      .getByRole("button", { name: `${name} Open`, exact: true })
-      .click();
     await page
       .getByRole("button", {
         name: "Budget",

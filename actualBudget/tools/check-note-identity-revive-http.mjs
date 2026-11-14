@@ -2,7 +2,11 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { startServer } from "../web/tests/server.mjs";
-const server = await startServer(),
+assert.ok(
+  !process.env.ACTUALBUDGET_TEST_URL,
+  "This multi-fixture regression requires isolated local servers",
+);
+let server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
 async function call(path, body, status = 200, headers = {}, method) {
   const r = await fetch(api + path, {
@@ -23,6 +27,9 @@ async function call(path, body, status = 200, headers = {}, method) {
 }
 try {
   for (const route of ["notes", "metadata"]) {
+    await server.stop();
+    server = await startServer();
+    api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
     const b = (
         await call(
           "/budgets",

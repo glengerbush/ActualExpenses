@@ -138,7 +138,7 @@ sys.stdout.buffer.write(output.getvalue())
     .getByRole("button", { name: "Retry saved upload", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Activate imported budget", exact: true }),
+    page.getByRole("button", { name: "Import reviewed archive", exact: true }),
   ).toBeEnabled();
   expect(uploads).toHaveLength(2);
   const stages = await (
@@ -157,10 +157,10 @@ sys.stdout.buffer.write(output.getvalue())
   await page.reload();
   await open(page);
   await page
-    .getByRole("button", { name: "Activate imported budget", exact: true })
+    .getByRole("button", { name: "Import reviewed archive", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Transaction history", exact: true }),
+    page.getByRole("heading", { name: "Transactions", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
@@ -209,7 +209,7 @@ sys.stdout.buffer.write(output.getvalue())
       .click();
     await expect(
       oldPage.getByRole("button", {
-        name: "Open imported budget",
+        name: "Import reviewed archive",
         exact: true,
       }),
     ).toBeEnabled();

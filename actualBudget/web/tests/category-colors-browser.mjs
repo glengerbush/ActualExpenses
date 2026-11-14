@@ -149,7 +149,6 @@ with zipfile.ZipFile(p+'/old.zip','w',zipfile.ZIP_DEFLATED) as z:
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
-  await page.getByText("Color groups", { exact: true }).click();
   const row = page
     .locator(".register-table tbody tr")
     .filter({ hasText: "Groceries" });
@@ -179,6 +178,9 @@ with zipfile.ZipFile(p+'/old.zip','w',zipfile.ZIP_DEFLATED) as z:
   ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Toggle Everyday", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Choose color for Everyday", exact: true })
     .click();
   await page.getByLabel("Color for Everyday", { exact: true }).fill("#558844");
   await expect
@@ -212,6 +214,10 @@ with zipfile.ZipFile(p+'/old.zip','w',zipfile.ZIP_DEFLATED) as z:
     });
     await route.abort();
   });
+  await page.keyboard.press("Escape");
+  await page
+    .getByRole("button", { name: "Choose color for Groceries", exact: true })
+    .click();
   await page.getByLabel("Color for Groceries", { exact: true }).fill("#337755");
   await expect(
     page.getByRole("button", { name: "Retry color", exact: true }),

@@ -30,12 +30,32 @@ function currentRows(name, rows, historical = false) {
   return rows.map((source) => {
     const row = structuredClone(source);
     if (name === "transactions") {
-      for (const key of ["category_color", "category_group_color", "color_override", "group_sort_order"]) delete row[key];
-      if (historical) Object.assign(row, {notes: "", cleared: true, reconciled: false});
+      for (const key of [
+        "category_color",
+        "category_group_color",
+        "color_override",
+        "group_sort_order",
+      ])
+        delete row[key];
+      if (historical)
+        Object.assign(row, { notes: "", cleared: true, reconciled: false });
     }
     if (name === "categories") {
-      for (const key of ["color", "color_override", "group_color", "category_color", "category_group_color", "group_sort_order", "resolved_color"]) delete row[key];
-      if (historical) { delete row.notes; row.hidden = false; delete row.field_versions?.notes; }
+      for (const key of [
+        "color",
+        "color_override",
+        "group_color",
+        "category_color",
+        "category_group_color",
+        "group_sort_order",
+        "resolved_color",
+      ])
+        delete row[key];
+      if (historical) {
+        delete row.notes;
+        row.hidden = false;
+        delete row.field_versions?.notes;
+      }
     }
     return row;
   });
@@ -76,7 +96,7 @@ for (const mode of ["database", "archive"]) {
       !Object.keys(contract.paths).some((p) => /\/banking(?:\/|$)/.test(p)),
       "No external-bank contract routes",
     );
-    const root = "/budgets/" + fixture.budget_id;
+    let root = "/budgets/" + fixture.budget_id;
     if (mode === "archive") {
       const res = await fetch(api + "/restores", {
         method: "POST",
@@ -88,13 +108,15 @@ for (const mode of ["database", "archive"]) {
       });
       assert.equal(res.status, 201, await res.clone().text());
       const stage = (await res.json()).data;
-      assert.equal(stage.report.schema_version, 36);
+      assert.equal(stage.report.schema_version, 37);
       assert.ok(
         stage.report.retired_external_connections > 0,
         "Legacy native conversion reports removed external configuration",
       );
+      const current = (await call("/budget")).data;
+      root = "/budgets/" + current.id;
       await call(root + "/restores/" + stage.id + "/activate", {
-        confirm_name: fixture.snapshot.budget.data.name,
+        confirm_name: current.name,
       });
     }
     for (const [name, path] of [
@@ -150,14 +172,29 @@ for (const mode of ["database", "archive"]) {
       // Converting the old envelope budget rotates its epoch and invalidates
       // undo graphs that could restore the removed budgeting method.
       assert.notEqual(before.data.epoch, fixture.snapshot.history.data.epoch);
-      assert.equal((await call(root + "/history", undefined, 200, owned)).data.undo, null);
-      await call(root + "/history/undo", {action_id: fixture.snapshot.history.data.undo.id}, 409, owned);
+      assert.equal(
+        (await call(root + "/history", undefined, 200, owned)).data.undo,
+        null,
+      );
+      await call(
+        root + "/history/undo",
+        { action_id: fixture.snapshot.history.data.undo.id },
+        409,
+        owned,
+      );
       // Owned inverses mint fresh field clocks; initial upgrade comparison above
       // still requires every original clock unchanged before user mutations.
       const financial = (rows) => rows.map(({ field_versions, ...row }) => row);
       assert.deepEqual(
-        financial(currentRows("transactions", (await call(root + "/transactions")).data)),
-        financial(currentRows("transactions", fixture.snapshot.transactions.data, true)),
+        financial(
+          currentRows(
+            "transactions",
+            (await call(root + "/transactions")).data,
+          ),
+        ),
+        financial(
+          currentRows("transactions", fixture.snapshot.transactions.data, true),
+        ),
         "Undo/redo restores every original financial/import field and identity",
       );
     }

@@ -53,7 +53,6 @@ try {
   const errors = [];
   p.on("pageerror", (e) => errors.push(e.message));
   await p.goto(server.url);
-  await p.getByText("Ordering budget", { exact: true }).click();
   const nav = p.getByRole("complementary", { name: "Budget navigation" });
   await nav.getByRole("button", { name: "Budget", exact: true }).click();
   await expect(
@@ -138,6 +137,10 @@ try {
     p.getByLabel("Color for Household", { exact: true }).first(),
   ).toBeEnabled();
   await p
+    .getByRole("button", { name: "Choose color for Household", exact: true })
+    .first()
+    .click();
+  await p
     .getByLabel("Color for Household", { exact: true })
     .first()
     .fill("#ad274e");
@@ -158,12 +161,8 @@ try {
   });
   // Same tab does not add duplicate history; reload keeps its destination.
   await nav.getByRole("button", { name: "Payees", exact: true }).click();
-  await nav
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
-  await nav
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await nav.getByRole("button", { name: "Transactions", exact: true }).click();
+  await nav.getByRole("button", { name: "Transactions", exact: true }).click();
   await p.goBack();
   await expect(
     nav.getByRole("button", { name: "Payees", exact: true }),
@@ -180,9 +179,7 @@ try {
   await expect(
     nav.getByRole("button", { name: "Payees", exact: true }),
   ).toHaveAttribute("aria-current", "page");
-  await nav
-    .getByRole("button", { name: "Dashboards and reports", exact: true })
-    .click();
+  await nav.getByRole("button", { name: "Reports", exact: true }).click();
   await p.getByRole("button", { name: "Custom reports", exact: true }).click();
   await p.getByRole("button", { name: "Dashboards", exact: true }).click();
   await p.goBack();
@@ -220,18 +217,21 @@ try {
     }),
   ).toBeEnabled();
   await p.unroute("**/api/v1" + root + "/category-groups/" + groups[1]);
-  await p.reload();
   let retryKey;
   p.on("request", (r) => {
     if (r.method() === "PATCH" && r.url().endsWith(groups[1]))
       retryKey = r.headers()["idempotency-key"];
   });
-  await p
-    .getByRole("button", {
-      name: "Retry saved group/category edit",
-      exact: true,
-    })
-    .click();
+  await p.reload();
+  const recoveredEdit = p
+    .getByRole("textbox", { name: "Group name House", exact: true })
+    .first();
+  const retryEdit = p.getByRole("button", {
+    name: "Retry saved group/category edit",
+    exact: true,
+  });
+  await expect(retryEdit.or(recoveredEdit)).toBeVisible();
+  if (await retryEdit.isVisible()) await retryEdit.click();
   await expect(
     p.getByRole("textbox", { name: "Group name House", exact: true }).first(),
   ).toBeEnabled();

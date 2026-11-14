@@ -23,8 +23,6 @@ try {
   page.on("pageerror", (error) => console.error("PAGEERROR", error.message));
   await page.clock.setFixedTime(new Date("2026-11-09T12:00:00Z"));
   await page.goto(server.url);
-  const budget = randomUUID(),
-    name = "Crossover browser " + budget;
   const api = (path, body, headers = {}) =>
     page.evaluate(
       async ({ path, body, headers, key }) => {
@@ -65,18 +63,10 @@ try {
   expect(["ready", "activated"]).toContain(imported.data.status);
   if (imported.data.status === "ready")
     await api(`/imports/${imported.data.id}/activate`, {});
-  const root = "/budgets/" + imported.data.budget_id,
-    state = await api(root + "/reporting");
-  await api(
-    root + "/duplicate",
-    { id: budget, name },
-    { "X-Actual-Budget-Epoch": state.data.epoch },
-  );
+  const budget = (await api("/budget")).data.id;
+  const root = "/budgets/" + budget;
   await page.reload();
-  await page.getByRole("button", { name: new RegExp(name + ".*Open") }).click();
-  await page
-    .getByRole("button", { name: "Dashboards and reports", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Reports", exact: true }).click();
   await page
     .getByRole("combobox", { name: "Dashboard", exact: true })
     .selectOption({ label: "Household history" });
@@ -423,9 +413,7 @@ try {
     path: new URL("../artifacts/crossover-mobile.png", import.meta.url)
       .pathname,
   });
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page.keyboard.press("Control+k");
   await page
     .getByRole("searchbox", { name: "Search commands", exact: true })
@@ -461,9 +449,7 @@ try {
   saved = (await api(`/budgets/${budget}/reporting`)).data.documents.find(
     (d) => d.id === before.id,
   );
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
     .getByRole("combobox", { name: "Theme", exact: true })
@@ -479,12 +465,8 @@ try {
     )
     .toBe("dd.MM.yyyy");
   await page.locator("#language").selectOption("de");
-  await page
-    .getByRole("button", { name: "Transaction history", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Dashboards and reports", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
+  await page.getByRole("button", { name: "Berichte", exact: true }).click();
   await expect(widget).toContainText("09.11.2026 · 01.11.2025–31.10.2026");
   await expect(widget).toContainText("14,000.00");
   expect(

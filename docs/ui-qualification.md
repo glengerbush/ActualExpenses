@@ -22,7 +22,7 @@ Host accessibility settings and the user's browser were untouched.
   navigation announced register column headers and rows. In report exact values,
   Orca announced the12×5 table and987,66 at row12/column5, then Transfers/0,00
   in column4. The exact table remains available alongside the chart.
-- Light/dark/midnight, reduced motion, German preferences,390px and320px widths
+- Light and Midnight dark mode, System following, reduced motion, German preferences,390px and320px widths
   were inspected. Register rows reflow into cards; keyboard actions remain
   reachable without document overflow. Emulated touch opened/cancelled an expense.
 - Actual browser200% zoom was applied using keyboard shortcuts, verified by CDP

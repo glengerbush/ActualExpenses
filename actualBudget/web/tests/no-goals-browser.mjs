@@ -5,6 +5,12 @@ import { startServer } from "./server.mjs";
 const server = await startServer();
 const api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
 async function req(path, body, method) {
+  const target = /^\/budgets\/([^/]+)/.exec(path)?.[1];
+  const epoch =
+    body && target
+      ? (await (await fetch(`${api}/budgets/${target}/checkpoint`)).json()).data
+          ?.epoch
+      : undefined;
   return fetch(api + path, {
     method: method ?? (body === undefined ? "GET" : "POST"),
     headers: {
@@ -12,6 +18,7 @@ async function req(path, body, method) {
         ? "application/zip"
         : "application/json",
       "Idempotency-Key": randomUUID(),
+      ...(epoch ? { "X-Actual-Budget-Epoch": epoch } : {}),
     },
     body:
       body === undefined
@@ -33,8 +40,8 @@ try {
   );
   const stage = await call("/imports/actual", bytes);
   expect(stage.status).toBe("ready");
-  await call(`/imports/${stage.id}/activate`, {});
-  const root = `/budgets/${stage.budget_id}`;
+  const current = await call(`/imports/${stage.id}/activate`, {});
+  const root = `/budgets/${current.id}`;
   const financial = await call(root + "/transactions");
   const plan = await call(root + "/budget?month=2026-11");
   const prefs = await call(root + "/preferences");
@@ -94,7 +101,7 @@ try {
       `actualBudget.templates.v1.${id}`,
       '{"obsolete":true}',
     );
-  }, stage.budget_id);
+  }, current.id);
   await page.reload();
   await page.getByRole("button", { name: "Budget", exact: true }).click();
   await expect(

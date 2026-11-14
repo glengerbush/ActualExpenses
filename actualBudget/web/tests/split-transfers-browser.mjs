@@ -57,10 +57,6 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
-  await page
-    .locator(".budget-list button")
-    .filter({ hasText: "Split transfers" })
-    .click();
   await page.getByRole("button", { name: "Checking", exact: true }).click();
   await (
     await transactionAction(page, { name: "Split transaction", exact: true })

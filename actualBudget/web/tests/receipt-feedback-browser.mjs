@@ -2,7 +2,7 @@ import { transactionRows } from "./register-ui.mjs";
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { startServer } from "./server.mjs";
-const server = await startServer(),
+let server = await startServer(),
   native = server.url.replace("actualbudget.test", "127.0.0.1");
 let browser;
 async function write(
@@ -34,6 +34,9 @@ try {
     ],
   });
   for (const hidden of [false, true]) {
+    await server.stop();
+    server = await startServer();
+    native = server.url.replace("actualbudget.test", "127.0.0.1");
     const budget = randomUUID(),
       account = randomUUID(),
       id = randomUUID(),

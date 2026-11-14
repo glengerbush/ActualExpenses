@@ -23,10 +23,6 @@ class ActualDeviceIntegrationTest {
         screenshot("01-setup")
         compose.onNodeWithText("Server address").performTextInput(server)
         compose.onNodeWithText("Connect", substring = false).performScrollTo().performClick()
-        compose.waitUntil(30_000) { compose.onAllNodesWithText("Native device fixture").fetchSemanticsNodes().isNotEmpty() }
-        compose.onNodeWithText("Native device fixture").performScrollTo().performClick()
-        compose.waitUntil(30_000) { compose.onAllNodesWithText("Spending").fetchSemanticsNodes().isNotEmpty() }
-        compose.onNodeWithText("Spending").performClick()
         compose.waitUntil(15_000) { compose.onAllNodesWithContentDescription("Add expense").fetchSemanticsNodes().isNotEmpty() }
         screenshot("02-register")
         val purchase="Device acceptance ${System.currentTimeMillis()}"

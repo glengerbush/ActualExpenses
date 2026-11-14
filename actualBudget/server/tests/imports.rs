@@ -766,6 +766,16 @@ fn activation_cannot_replace_existing_budget_and_upload_keys_cannot_change_paylo
             .status(),
         201
     );
+    assert_eq!(
+        server
+            .post(
+                &format!("/api/v1/budgets/{budget}/categories"),
+                "existing-category",
+                json!({"id":uuid::Uuid::new_v4().to_string(),"name":"Existing category"})
+            )
+            .status(),
+        201
+    );
     let result = server.post(
         &format!("/api/v1/imports/{id}/activate"),
         "activate",

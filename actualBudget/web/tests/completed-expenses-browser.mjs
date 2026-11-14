@@ -139,7 +139,6 @@ c.commit()`,
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
-  await page.getByRole("button", { name: /Completed expenses.*Open/ }).click();
   await expect(page.locator(".register-table")).toContainText("26.00");
   await expect(
     page.getByRole("columnheader", { name: "Status", exact: true }),

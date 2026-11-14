@@ -3,8 +3,8 @@ import { randomUUID } from "node:crypto";
 import { startServer, transactionCreatePattern } from "./server.mjs";
 
 // Real HTTP and browser seams: only transport responses are interrupted.
-const server = await startServer();
-const api = server.url.replace("actualbudget.test", "127.0.0.1");
+let server = await startServer();
+let api = server.url.replace("actualbudget.test", "127.0.0.1");
 let browser;
 const failures = [];
 async function request(path, body, method = "POST") {
@@ -20,6 +20,9 @@ async function request(path, body, method = "POST") {
   return (await response.json()).data;
 }
 async function fixture(name, opening = 0) {
+  await server.stop();
+  server = await startServer();
+  api = server.url.replace("actualbudget.test", "127.0.0.1");
   const budget = randomUUID(),
     account = randomUUID();
   await request("/budgets", { id: budget, name });

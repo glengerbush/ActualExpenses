@@ -2,9 +2,16 @@ import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { readFile, mkdir } from "node:fs/promises";
 import { startServer } from "./server.mjs";
-const server = await startServer(),
+let server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
 async function call(path, body, method = "POST", headers = {}) {
+  const target = /^\/budgets\/([^/]+)/.exec(path)?.[1];
+  if (body && target && !headers["X-Actual-Budget-Epoch"]) {
+    const checkpoint = (
+      await (await fetch(`${api}/budgets/${target}/checkpoint`)).json()
+    ).data;
+    headers = { ...headers, "X-Actual-Budget-Epoch": checkpoint.epoch };
+  }
   const r = await fetch(api + path, {
     method: body === undefined ? "GET" : method,
     headers: {
@@ -28,6 +35,9 @@ try {
     ],
   });
   async function setup(all = false) {
+    await server.stop();
+    server = await startServer();
+    api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
     const budget = randomUUID(),
       account = randomUUID();
     await call("/budgets", { id: budget, name: "Register review" });
@@ -318,6 +328,9 @@ try {
     );
   }
   if (!run || run === "identity") {
+    await server.stop();
+    server = await startServer();
+    api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
     const archive = await readFile(
       new URL(
         "../../tests/fixtures/register-settings-26.10.zip",
@@ -338,14 +351,7 @@ try {
     // this same fixture after register-query has already activated it.
     expect(["ready", "activated"]).toContain(staged.status);
     const imported = await call(`/imports/${staged.id}/activate`, {});
-    const source = await call(`/budgets/${imported.id}`);
-    const copy = await call(
-      `/budgets/${imported.id}/duplicate`,
-      { id: randomUUID(), name: "Imported identity filter review" },
-      "POST",
-      { "X-Actual-Budget-Epoch": source.epoch },
-    );
-    const budget = copy.id;
+    const budget = imported.id;
     const context = await browser.newContext(),
       page = await context.newPage();
     await page.goto(server.url);

@@ -1,27 +1,265 @@
-import {cloneImportedTemplate} from '../web/tests/import-template.mjs';
 // Committed format workflows compare real source ledgers and actual frontend
 // preference writes; fixed manual IDs and first-import identities remain exact.
-import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
-import {randomUUID,createHash} from 'node:crypto';
-import {startServer} from '../web/tests/server.mjs';
-const f=JSON.parse(await readFile(new URL('../tests/fixtures/transaction-format-flows.json',import.meta.url))),server=await startServer(),api=server.url.replace('actualbudget.test','127.0.0.1')+'/api/v1';
-async function call(path,body,headers={}){const r=await fetch(api+path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json','Idempotency-Key':randomUUID(),...headers},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(r.ok,`${path}: ${r.status} ${await r.clone().text()}`);return r.json();}
-function financial(rows,payees,categories,item,source){const refs=new Map(payees.map(p=>[p.id,p.name])),cats=new Map(categories.map(c=>[c.id,c.name]));return rows.map(row=>({id:row.id===item.ids.manual?row.id:'<new unique purchase>',date:row.date,amount:row.amount,account:row[source?'account':'account_id'],payee:refs.get(row[source?'payee':'payee_id'])??null,category:cats.get(row[source?'category':'category_id'])??null,notes:source?'':row.notes??'',cleared:source?true:!!row.cleared,reconciled:source?false:!!row.reconciled,imported_id:row.imported_id??null,imported_payee:row.imported_payee??null})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));}
-try{for(const item of f.cases){
- const archive=await readFile(new URL('../tests/fixtures/transaction-format-flows/'+item.archive.filename,import.meta.url));assert.equal(createHash('sha256').update(archive).digest('hex'),item.archive.sha256);const uploadSeed=await fetch(api+'/imports/actual',{method:'POST',headers:{'Content-Type':'application/zip','Idempotency-Key':randomUUID()},body:archive});assert.equal(uploadSeed.status,201,await uploadSeed.clone().text());const seed=(await uploadSeed.json()).data;assert.ok(['ready','activated'].includes(seed.status));await call(`/imports/${seed.id}/activate`,{});seed.budget_id=await cloneImportedTemplate(api,seed.budget_id);const root=`/budgets/${seed.budget_id}`,settingsPath=root+`/accounts/${item.ids.account}/transaction-import-settings?format=${item.filename.split('.').at(-1)}`;
- const state=async()=>({rows:(await call(root+'/transactions')).data,payees:(await call(root+'/payees')).data,categories:(await call(root+'/categories')).data});let current=await state();assert.deepEqual(financial(current.rows,current.payees,current.categories,item,false),financial(item.before.transactions,item.before.payees,item.before.categories,item,true));const defaults=(await call(settingsPath)).data;assert.deepEqual(defaults.raw_preferences,{});
- const bytes=Buffer.from(item.bytes_base64,'base64');assert.equal(createHash('sha256').update(bytes).digest('hex'),item.sha256);const file=await fetch(`${api}${root}/accounts/${item.ids.account}/transaction-imports?filename=${encodeURIComponent(item.filename)}`,{method:'POST',headers:{'Idempotency-Key':randomUUID()},body:bytes});assert.equal(file.status,201);const stage=(await file.json()).data.id,path=root+'/transaction-imports/'+stage;
- const options={...Object.fromEntries(Object.entries(item.options).map(([key,value])=>[key.replace(/[A-Z]/g,c=>'_'+c.toLowerCase()),value])),date_format:item.frontend.parseDateFormat,reimport_deleted:false};const parsed=(await call(path+'/parse',{options})).data;assert.deepEqual(parsed.transactions,item.parsed.transactions);assert.deepEqual(parsed.errors,[]);
- const original=await fetch(api+path+'/original');assert.equal(original.status,200);assert.deepEqual(Buffer.from(await original.arrayBuffer()),bytes);
- const owner=randomUUID();let firstIds,originalCommand,originalHeaders,receipt;
- for(const [round,expected]of [item.after,item.repeated].entries()){
-  const cp=(await call(root+'/checkpoint')).data,before=await state(),body={snapshot:cp.snapshot,options};const preview=(await call(path+'/preview',body)).data;assert.deepEqual(preview.errors,[]);assert.deepEqual(await state(),before);assert.deepEqual((await call(root+'/checkpoint')).data,cp);
-  const command={...body,remember:true,rows:preview.rows.map(row=>({row:row.row,action:'auto',...(row.match_id?{match_id:row.match_id}:{})}))};const headers={'Idempotency-Key':randomUUID(),'X-Actual-Budget-Epoch':cp.epoch,'X-Actual-History-Owner':owner};const result=await call(path+'/commit',command,headers);current=await state();assert.deepEqual(financial(current.rows,current.payees,current.categories,item,false),financial(expected.transactions,expected.payees,expected.categories,item,true),item.id);assert.equal(new Set(current.rows.map(row=>row.id)).size,current.rows.length);assert.deepEqual(current.payees.map(p=>p.name).sort(),expected.payees.filter(p=>!p.transfer_acct).map(p=>p.name).sort(),'No unused normalized payee is persisted');
-  const settings=(await call(settingsPath)).data;assert.deepEqual(settings.raw_preferences,item.saved_preferences,'Unchanged source UI preference writes');for(const key of Object.keys(item.saved_preferences))assert.equal(settings.field_versions[key].value,round===0?result.edit_clock:receipt.edit_clock,'Repeat never restamps unchanged defaults');
-  const ids=current.rows.map(row=>row.id).sort();if(round===0){firstIds=ids;originalCommand=command;originalHeaders=headers;receipt=result;}else assert.deepEqual(ids,firstIds);
-  assert.deepEqual(await call(path+'/commit',command,headers),result);assert.deepEqual(await state(),current);
- }
- const h=(await call(root+'/history',undefined,originalHeaders)).data;assert.ok(h.undo?.id);await call(root+'/history/undo',{action_id:h.undo.id},originalHeaders);current=await state();assert.deepEqual(financial(current.rows,current.payees,current.categories,item,false),financial(item.before.transactions,item.before.payees,item.before.categories,item,true));assert.deepEqual((await call(settingsPath)).data.raw_preferences,{},'Undo restores file defaults and financial rows atomically');assert.deepEqual(await call(path+'/commit',originalCommand,originalHeaders),receipt,'Original receipt cannot replay an undone import');assert.deepEqual(await state(),current);assert.equal((await call(root+'/history',undefined,originalHeaders)).data.undo,null);
- await call(root+'/history/redo',{action_id:h.undo.id},{...originalHeaders,'Idempotency-Key':randomUUID()});current=await state();assert.deepEqual(financial(current.rows,current.payees,current.categories,item,false),financial(item.after.transactions,item.after.payees,item.after.categories,item,true));assert.deepEqual(current.rows.map(row=>row.id).sort(),firstIds);assert.deepEqual((await call(settingsPath)).data.raw_preferences,item.saved_preferences);console.log('PASS '+item.id);
-}console.log('PASS four committed formats, native defaults, original receipts and one-action inverse');}finally{await server.stop();}
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { randomUUID, createHash } from "node:crypto";
+import { startServer } from "../web/tests/server.mjs";
+let f = JSON.parse(
+    await readFile(
+      new URL(
+        "../tests/fixtures/transaction-format-flows.json",
+        import.meta.url,
+      ),
+    ),
+  ),
+  server = await startServer(),
+  api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+async function call(path, body, headers = {}) {
+  const r = await fetch(api + path, {
+    method: body === undefined ? "GET" : "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Idempotency-Key": randomUUID(),
+      ...headers,
+    },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  });
+  assert.ok(r.ok, `${path}: ${r.status} ${await r.clone().text()}`);
+  return r.json();
+}
+function financial(rows, payees, categories, item, source) {
+  const refs = new Map(payees.map((p) => [p.id, p.name])),
+    cats = new Map(categories.map((c) => [c.id, c.name]));
+  return rows
+    .map((row) => ({
+      id: row.id === item.ids.manual ? row.id : "<new unique purchase>",
+      date: row.date,
+      amount: row.amount,
+      account: row[source ? "account" : "account_id"],
+      payee: refs.get(row[source ? "payee" : "payee_id"]) ?? null,
+      category: cats.get(row[source ? "category" : "category_id"]) ?? null,
+      notes: source ? "" : (row.notes ?? ""),
+      cleared: source ? true : !!row.cleared,
+      reconciled: source ? false : !!row.reconciled,
+      imported_id: row.imported_id ?? null,
+      imported_payee: row.imported_payee ?? null,
+    }))
+    .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+}
+try {
+  for (const item of f.cases) {
+    await server.stop();
+    server = await startServer();
+    api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+    const archive = await readFile(
+      new URL(
+        "../tests/fixtures/transaction-format-flows/" + item.archive.filename,
+        import.meta.url,
+      ),
+    );
+    assert.equal(
+      createHash("sha256").update(archive).digest("hex"),
+      item.archive.sha256,
+    );
+    const uploadSeed = await fetch(api + "/imports/actual", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/zip",
+        "Idempotency-Key": randomUUID(),
+      },
+      body: archive,
+    });
+    assert.equal(uploadSeed.status, 201, await uploadSeed.clone().text());
+    const seed = (await uploadSeed.json()).data;
+    assert.ok(["ready", "activated"].includes(seed.status));
+    seed.budget_id = (await call(`/imports/${seed.id}/activate`, {})).data.id;
+    const root = `/budgets/${seed.budget_id}`,
+      settingsPath =
+        root +
+        `/accounts/${item.ids.account}/transaction-import-settings?format=${item.filename.split(".").at(-1)}`;
+    const state = async () => ({
+      rows: (await call(root + "/transactions")).data,
+      payees: (await call(root + "/payees")).data,
+      categories: (await call(root + "/categories")).data,
+    });
+    let current = await state();
+    assert.deepEqual(
+      financial(current.rows, current.payees, current.categories, item, false),
+      financial(
+        item.before.transactions,
+        item.before.payees,
+        item.before.categories,
+        item,
+        true,
+      ),
+    );
+    const defaults = (await call(settingsPath)).data;
+    assert.deepEqual(defaults.raw_preferences, {});
+    const bytes = Buffer.from(item.bytes_base64, "base64");
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), item.sha256);
+    const file = await fetch(
+      `${api}${root}/accounts/${item.ids.account}/transaction-imports?filename=${encodeURIComponent(item.filename)}`,
+      {
+        method: "POST",
+        headers: { "Idempotency-Key": randomUUID() },
+        body: bytes,
+      },
+    );
+    assert.equal(file.status, 201);
+    const stage = (await file.json()).data.id,
+      path = root + "/transaction-imports/" + stage;
+    const options = {
+      ...Object.fromEntries(
+        Object.entries(item.options).map(([key, value]) => [
+          key.replace(/[A-Z]/g, (c) => "_" + c.toLowerCase()),
+          value,
+        ]),
+      ),
+      date_format: item.frontend.parseDateFormat,
+      reimport_deleted: false,
+    };
+    const parsed = (await call(path + "/parse", { options })).data;
+    assert.deepEqual(parsed.transactions, item.parsed.transactions);
+    assert.deepEqual(parsed.errors, []);
+    const original = await fetch(api + path + "/original");
+    assert.equal(original.status, 200);
+    assert.deepEqual(Buffer.from(await original.arrayBuffer()), bytes);
+    const owner = randomUUID();
+    let firstIds, originalCommand, originalHeaders, receipt;
+    for (const [round, expected] of [item.after, item.repeated].entries()) {
+      const cp = (await call(root + "/checkpoint")).data,
+        before = await state(),
+        body = { snapshot: cp.snapshot, options };
+      const preview = (await call(path + "/preview", body)).data;
+      assert.deepEqual(preview.errors, []);
+      assert.deepEqual(await state(), before);
+      assert.deepEqual((await call(root + "/checkpoint")).data, cp);
+      const command = {
+        ...body,
+        remember: true,
+        rows: preview.rows.map((row) => ({
+          row: row.row,
+          action: "auto",
+          ...(row.match_id ? { match_id: row.match_id } : {}),
+        })),
+      };
+      const headers = {
+        "Idempotency-Key": randomUUID(),
+        "X-Actual-Budget-Epoch": cp.epoch,
+        "X-Actual-History-Owner": owner,
+      };
+      const result = await call(path + "/commit", command, headers);
+      current = await state();
+      assert.deepEqual(
+        financial(
+          current.rows,
+          current.payees,
+          current.categories,
+          item,
+          false,
+        ),
+        financial(
+          expected.transactions,
+          expected.payees,
+          expected.categories,
+          item,
+          true,
+        ),
+        item.id,
+      );
+      assert.equal(
+        new Set(current.rows.map((row) => row.id)).size,
+        current.rows.length,
+      );
+      assert.deepEqual(
+        current.payees.map((p) => p.name).sort(),
+        expected.payees
+          .filter((p) => !p.transfer_acct)
+          .map((p) => p.name)
+          .sort(),
+        "No unused normalized payee is persisted",
+      );
+      const settings = (await call(settingsPath)).data;
+      assert.deepEqual(
+        settings.raw_preferences,
+        item.saved_preferences,
+        "Unchanged source UI preference writes",
+      );
+      for (const key of Object.keys(item.saved_preferences))
+        assert.equal(
+          settings.field_versions[key].value,
+          round === 0 ? result.edit_clock : receipt.edit_clock,
+          "Repeat never restamps unchanged defaults",
+        );
+      const ids = current.rows.map((row) => row.id).sort();
+      if (round === 0) {
+        firstIds = ids;
+        originalCommand = command;
+        originalHeaders = headers;
+        receipt = result;
+      } else assert.deepEqual(ids, firstIds);
+      assert.deepEqual(await call(path + "/commit", command, headers), result);
+      assert.deepEqual(await state(), current);
+    }
+    const h = (await call(root + "/history", undefined, originalHeaders)).data;
+    assert.ok(h.undo?.id);
+    await call(
+      root + "/history/undo",
+      { action_id: h.undo.id },
+      originalHeaders,
+    );
+    current = await state();
+    assert.deepEqual(
+      financial(current.rows, current.payees, current.categories, item, false),
+      financial(
+        item.before.transactions,
+        item.before.payees,
+        item.before.categories,
+        item,
+        true,
+      ),
+    );
+    assert.deepEqual(
+      (await call(settingsPath)).data.raw_preferences,
+      {},
+      "Undo restores file defaults and financial rows atomically",
+    );
+    assert.deepEqual(
+      await call(path + "/commit", originalCommand, originalHeaders),
+      receipt,
+      "Original receipt cannot replay an undone import",
+    );
+    assert.deepEqual(await state(), current);
+    assert.equal(
+      (await call(root + "/history", undefined, originalHeaders)).data.undo,
+      null,
+    );
+    await call(
+      root + "/history/redo",
+      { action_id: h.undo.id },
+      { ...originalHeaders, "Idempotency-Key": randomUUID() },
+    );
+    current = await state();
+    assert.deepEqual(
+      financial(current.rows, current.payees, current.categories, item, false),
+      financial(
+        item.after.transactions,
+        item.after.payees,
+        item.after.categories,
+        item,
+        true,
+      ),
+    );
+    assert.deepEqual(current.rows.map((row) => row.id).sort(), firstIds);
+    assert.deepEqual(
+      (await call(settingsPath)).data.raw_preferences,
+      item.saved_preferences,
+    );
+    console.log("PASS " + item.id);
+  }
+  console.log(
+    "PASS four committed formats, native defaults, original receipts and one-action inverse",
+  );
+} finally {
+  await server.stop();
+}

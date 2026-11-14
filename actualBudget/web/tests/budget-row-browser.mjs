@@ -99,8 +99,8 @@ c.commit()`,
     errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
-  await page.getByText("Editable budget", { exact: true }).click();
   await page.getByRole("button", { name: "Budget", exact: true }).click();
+  await page.getByLabel("Months displayed").selectOption("3");
   await expect(page.locator(".budget-month")).toHaveCount(3);
   await expect(
     page.getByText("Show hidden categories", { exact: true }),

@@ -5,8 +5,8 @@ import { tmpdir } from "node:os";
 import { randomUUID, createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { startServer } from "../web/tests/server.mjs";
-const external = !!process.env.ACTUALBUDGET_TEST_URL,
-  directory = external ? null : await mkdtemp(tmpdir() + "/ynab-recovery-");
+const external = !!process.env.ACTUALBUDGET_TEST_URL;
+let directory = external ? null : await mkdtemp(tmpdir() + "/ynab-recovery-");
 let server = await startServer(directory ? { dataDirectory: directory } : {}),
   api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
 async function restart() {
@@ -59,6 +59,15 @@ const financial = (response) => {
 };
 try {
   for (const kind of ["ynab4", "nynab"]) {
+    if (external)
+      throw new Error(
+        "YNAB recovery requires isolated local servers for each source format",
+      );
+    await server.stop();
+    if (directory) await rm(directory, { recursive: true, force: true });
+    directory = await mkdtemp(tmpdir() + "/ynab-recovery-");
+    server = await startServer({ dataDirectory: directory });
+    api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
     const bytes = await readFile(
         new URL(
           `../tests/fixtures/ynab/${kind === "ynab4" ? "ynab4-demo.zip" : "nynab-demo.json"}`,
@@ -159,40 +168,22 @@ try {
       state.receipts.some((r) => r.operation_id === activateKey),
       "Original activation receipt belongs to archive",
     );
-    const duplicateId = randomUUID(),
-      duplicate = (
-        await call(
-          root + "/duplicate",
-          { id: duplicateId, name: "YNAB recovery copy" },
-          {},
-          201,
-        )
-      ).data;
-    assert.equal(duplicate.id, duplicateId);
-    const copyPoint = (
-        await call(
-          "/budgets/" + duplicateId + "/backups",
-          { label: "Provenance" },
-          {},
-          201,
-        )
-      ).data,
-      copyArchive = unpack(
-        Buffer.from(
-          await (
-            await fetch(
-              api + `/budgets/${duplicateId}/backups/${copyPoint.id}/download`,
-            )
-          ).arrayBuffer(),
-        ),
-      );
-    const table = copyArchive.state.tables.budget_provenance,
-      kindIndex = table.columns.indexOf("kind");
-    assert.ok(
-      table.rows.some((r) => r[kindIndex] === kind + "-import"),
-      "Duplicate identifies the actual source format",
+    const checkpoint = await call(root + "/checkpoint");
+    await call(
+      root + "/duplicate",
+      { id: randomUUID(), name: "Retired copy" },
+      {},
+      404,
     );
-    assert.ok(Object.values(copyArchive.entries).includes(hash));
+    assert.deepEqual(await call(root + "/checkpoint"), checkpoint);
+    const imports = state.tables.staged_imports;
+    const reportIndex = imports.columns.indexOf("report");
+    assert.ok(
+      imports.rows.some(
+        (row) => JSON.parse(row[reportIndex]).source_format === kind,
+      ),
+      "Native backup retains the actual source format and original bytes",
+    );
     const nativeKey = randomUUID(),
       nativeResponse = await fetch(api + "/restores", {
         method: "POST",
@@ -256,31 +247,47 @@ try {
         });
         assert.equal(response.status, 201, await response.clone().text());
         const stage = (await response.json()).data;
-        await call(root + `/restores/${stage.id}/activate`, {
-          confirm_name: activated.data.name,
-        });
+        const destination = (await call("/budget")).data;
+        const portableRoot = "/budgets/" + destination.id;
+        await call(
+          portableRoot + `/restores/${stage.id}/activate`,
+          {
+            confirm_name: destination.name,
+          },
+          { "X-Actual-Budget-Epoch": destination.epoch },
+        );
+        assert.equal((await call("/budget")).data.id, destination.id);
+        assert.equal((await call("/budgets")).data.length, 1);
         assert.deepEqual(
-          financial(await call(root + "/transactions?limit=1000")),
+          financial(await call(portableRoot + "/transactions?limit=1000")),
           financial(ledger),
-          "Portable restore on a fresh server preserves complete financial rows",
+          "Cross-identity restore preserves complete financial rows in the singleton",
+        );
+        const freshUpload = await upload(kind, bytes, key);
+        assert.notEqual(
+          freshUpload.data.id,
+          staged.data.id,
+          "Cross-identity restore cannot resurrect the source upload receipt",
+        );
+        const current = (await call("/budget")).data;
+        const repeated = await call(`/imports/${freshUpload.data.id}/merge`, {
+          budget_id: current.id,
+          epoch: current.epoch,
+        });
+        assert.equal(
+          repeated.data.import_result.added,
+          0,
+          "Original import provenance prevents duplicate financial rows after cross-ID restore",
         );
         assert.deepEqual(
-          await upload(kind, bytes, key),
-          staged,
-          "Fresh server restores original upload receipt, not a new stage",
-        );
-        assert.deepEqual(
-          await call(
-            `/imports/${id}/activate`,
-            {},
-            { "Idempotency-Key": activateKey },
-            201,
-          ),
-          activated,
+          financial(await call(portableRoot + "/transactions?limit=1000")),
+          financial(ledger),
         );
         assert.deepEqual(
           Buffer.from(
-            await (await fetch(api + `/imports/${id}/original`)).arrayBuffer(),
+            await (
+              await fetch(api + `/imports/${freshUpload.data.id}/original`)
+            ).arrayBuffer(),
           ),
           bytes,
         );
@@ -292,7 +299,7 @@ try {
     console.log(
       "PASS " +
         kind +
-        " interrupted staging/activation, original receipts, duplication and native restore",
+        " interrupted staging/activation, original receipts, retired duplication and singleton native restore",
     );
   }
   const before = await call("/imports"),

@@ -20,6 +20,7 @@ export interface CatalogCache {
   version: 1;
   origin: string;
   budgets: Budget[];
+  singletonId?: string;
   savedAt: string;
 }
 export interface BudgetCache {
@@ -61,14 +62,19 @@ export async function readCatalog(): Promise<CatalogCache | null> {
     );
   return value;
 }
-export async function saveCatalog(budgets: Budget[]) {
+export async function saveCatalog(budgets: Budget[], singletonId?: string) {
   const existing = await readCatalog().catch(() => null);
-  if (existing && JSON.stringify(existing.budgets) === JSON.stringify(budgets))
+  if (
+    existing &&
+    existing.singletonId === singletonId &&
+    JSON.stringify(existing.budgets) === JSON.stringify(budgets)
+  )
     return;
   await writeValue("catalog", {
     version: 1,
     origin: location.origin,
     budgets,
+    singletonId,
     savedAt: stamp(),
   } satisfies CatalogCache);
 }

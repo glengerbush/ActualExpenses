@@ -24,8 +24,7 @@ export interface SharedPreferences {
   revision: number;
 }
 export interface DevicePreferences {
-  theme: "light" | "dark" | "midnight" | "system";
-  preferred_dark_theme: "dark" | "midnight";
+  theme: "light" | "dark" | "system";
   language: string;
   show_release_notices?: boolean;
   seen_release?: string;
@@ -39,6 +38,5 @@ export const defaultShared = (): SharedPreferences => ({
 });
 export const defaultDevice = (): DevicePreferences => ({
   theme: "system",
-  preferred_dark_theme: "dark",
   language: "",
 });

@@ -4,7 +4,7 @@ actualBudget owns the engine and financial state. Call HTTP directly; do not sta
 `@actual-app/api`, download a working database or run a local calculation engine.
 Use `/api/v1/info`, `/api/v1/openapi.json` and `/api/v1/query-capabilities` to discover
 the installed version, access model, routes and exact supported query profiles.
-IDs in URLs are native budget UUIDs, not names or source cloud IDs.
+Discover the single current budget with `GET /api/v1/budget`; a fresh server initializes it automatically. Continue using its native UUID in scoped routes, not a name or source cloud ID. `GET /api/v1/budgets` remains a compatibility listing, not a budget-switching workflow. Never retarget an old queued request to the discovered UUID: review/export it and start a new operation after resolving its original outcome. See [single-budget behavior](single-budget.md).
 
 [SDK migration map](public-api-sdk-map.json) explicitly maps all67 functions in
 pinned Actual26.10 `packages/api/methods.ts` and all18 declared query resources.
@@ -15,7 +15,7 @@ own validation and revision contracts.
 
 | SDK/resource family | Remote interface |
 | --- | --- |
-| Load/list/download/export budgets | `GET /budgets`; explicit budget scope; retained imports and portable backup/download routes. No local sync cache/password handshake. |
+| Open/download/export budget | `GET /budget` discovers the singleton; scoped imports and portable backup/download routes remain. Native restore replaces the current budget regardless of archive source identity. No local sync cache/password handshake. |
 | Accounts/groups, categories/groups, payees | Existing typed resource CRUD/lifecycle/merge routes. Queries expose fixed profiles where advertised. |
 | Transactions/import/merge | Register pages; bank-file upload→read-only preview→selected commit; graph-aware merge preview/commit. Plain entry preserves manual intent; rule-entry route is opt-in. |
 | Query | `POST /budgets/{b}/query`, typed JSON below. `runQuery` is deprecated upstream; both SDK calls map here. |

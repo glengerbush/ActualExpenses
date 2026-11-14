@@ -158,16 +158,14 @@ try {
     await (await fetch(api + "/api/v1" + root + "/checkpoint")).json()
   ).data.epoch;
   await write(
-    root,
+    `${root}/backups/${point.id}/restore`,
     { confirm_name: "Outbox generation" },
     deletionEpoch,
-    "DELETE",
   );
   await context.unroute("**/api/v1/**");
   await page.evaluate(() => dispatchEvent(new Event("online")));
-  await expect(page.getByTestId("sync-issues")).toContainText(/deleted/i);
+  await expect(page.getByTestId("sync-issues")).toContainText(/restored/i);
   const deletedAttempt = attempts.at(-1);
-  await page.getByRole("button", { name: "All budgets", exact: true }).click();
   await page.reload();
   await openSavedWork(page);
   await expectSavedWork(page, 1);
@@ -206,7 +204,7 @@ try {
   expect(cancellation.epoch).toBe(deletedAttempt.epoch);
   expect(cancellation.cancel).toBe("true");
   console.log(
-    "PASS deleted budget retains queued work across reload and resolves only through explicit original-identity cancellation",
+    "PASS restored budget retains queued work across reload and resolves only through explicit original-identity cancellation",
   );
   await context.close();
 } finally {

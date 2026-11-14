@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, tick } from "svelte";
-  import { request, errorMessage, RequestError, uuid } from "./api";
+  import { request, errorMessage, RequestError } from "./api";
   import { t } from "./i18n.svelte";
   import { offlineStatus, subscribeOffline } from "./offline/events";
   import {
@@ -18,14 +18,14 @@
   let {
     budget,
     onchanged,
-    onclose,
+    onrestore,
   }: {
     budget: ManagedBudget;
     onchanged: (
       budget: ManagedBudget,
       reason: LifecycleKind,
     ) => void | Promise<void>;
-    onclose: () => void;
+    onrestore: () => void;
   } = $props();
   let current = $state.raw<ManagedBudget | null>(null);
   let points = $state.raw<BackupPoint[]>([]);
@@ -33,12 +33,10 @@
   let busy = $state(true),
     error = $state(""),
     notice = $state("");
-  let name = $state(""),
-    copyName = $state(""),
-    label = $state(""),
-    confirmation = $state("");
+  let label = $state(""),
+    confirmation = $state(false);
   let confirm = $state.raw<{
-    kind: "deleted" | "restored";
+    kind: "restored";
     point?: BackupPoint;
     budget: ManagedBudget;
   } | null>(null);
@@ -46,18 +44,19 @@
   let mounted = true;
   let confirmationHeading: HTMLElement | undefined;
   let confirmationTrigger: HTMLElement | undefined;
+  const retired = $derived(
+    !!pending && !["backup", "restored"].includes(pending.kind),
+  );
   const locked = $derived(busy || offline || !!pending || !current);
   async function refresh() {
     const id = budget.id;
     const [metadata, backups] = await Promise.all([
-      request<{ data: ManagedBudget }>(`/budgets/${id}?include_deleted=true`),
+      request<{ data: ManagedBudget }>(`/budgets/${id}`),
       request<{ data: BackupPoint[] }>(`/budgets/${id}/backups`),
     ]);
     if (!mounted || id !== budget.id) return;
     current = metadata.data;
     points = backups.data;
-    name = current.name;
-    copyName = current.name + " copy";
   }
   async function initialize() {
     busy = true;
@@ -82,7 +81,7 @@
     };
   });
   async function finish(operation: LifecycleOperation) {
-    const response = await sendLifecycle(operation);
+    await sendLifecycle(operation);
     if (!mounted) return;
     notice = operation.cancelRequested
       ? t(
@@ -90,26 +89,16 @@
         )
       : operation.kind === "backup"
         ? t("Backup saved. Download a copy to keep it outside this server.")
-        : operation.kind === "duplicated"
-          ? t("Independent budget copy created.")
-          : operation.kind === "restored"
-            ? t(
-                "Budget restored. Saved device changes will be checked against the restored budget.",
-              )
-            : operation.kind === "deleted"
-              ? t("Budget deleted. Its recovery backup is available below.")
-              : t("Budget name saved.");
+        : t(
+            "Budget restored. Saved device changes will be checked against the restored budget.",
+          );
     await refresh();
     await completeLifecycle(operation);
     pending = null;
     confirm = null;
-    confirmation = "";
+    confirmation = false;
     if (operation.kind !== "backup") {
-      const value =
-        operation.kind === "duplicated"
-          ? (response.data as ManagedBudget)
-          : current!;
-      await onchanged(value, operation.kind);
+      await onchanged(current!, operation.kind);
     }
   }
   async function run(operation?: LifecycleOperation) {
@@ -152,36 +141,27 @@
       error = errorMessage(e);
     }
   }
-  function submit(
-    event: SubmitEvent,
-    kind: "renamed" | "duplicated" | "backup",
-  ) {
+  function submit(event: SubmitEvent) {
     event.preventDefault();
     if (locked || !current) return;
-    const root = `/budgets/${current.id}`;
-    const operation =
-      kind === "renamed"
-        ? lifecycleOperation(current, kind, root, "PATCH", {
-            name: name.trim(),
-          })
-        : kind === "duplicated"
-          ? lifecycleOperation(current, kind, root + "/duplicate", "POST", {
-              id: uuid(),
-              name: copyName.trim(),
-            })
-          : lifecycleOperation(current, kind, root + "/backups", "POST", {
-              label: label.trim(),
-            });
-    void run(operation);
+    void run(
+      lifecycleOperation(
+        current,
+        "backup",
+        `/budgets/${current.id}/backups`,
+        "POST",
+        { label: label.trim() },
+      ),
+    );
   }
   async function choose(
-    kind: "deleted" | "restored",
+    kind: "restored",
     point: BackupPoint | undefined,
     trigger: HTMLElement,
   ) {
     if (locked || !current) return;
     confirm = { kind, point, budget: structuredClone(current) };
-    confirmation = "";
+    confirmation = false;
     error = "";
     confirmationTrigger = trigger;
     await tick();
@@ -194,15 +174,15 @@
   }
   function confirmed(event: SubmitEvent) {
     event.preventDefault();
-    if (!confirm || confirmation !== confirm.budget.name || locked) return;
+    if (!confirm || !confirmation || locked) return;
     const { kind, point, budget: target } = confirm;
     void run(
       lifecycleOperation(
         target,
         kind,
         `/budgets/${target.id}${point ? `/backups/${point.id}/restore` : ""}`,
-        kind === "deleted" ? "DELETE" : "POST",
-        { confirm_name: confirmation },
+        "POST",
+        { confirm_name: target.name },
       ),
     );
   }
@@ -228,8 +208,11 @@
 >
   <header class="page-heading">
     <div>
-      <h1 id="manage-budget-title">{t("Manage budget")}</h1>
-      <p class="muted">{current?.name ?? budget.name}</p>
+      <h1 id="manage-budget-title">{t("Backups")}</h1>
+      <p class="muted">Save a copy or restore your data.</p>
+      <button onclick={onrestore} disabled={busy || offline || !!pending}
+        >Restore backup file</button
+      >
     </div>
   </header>
   {#if offline}<p role="status">
@@ -248,18 +231,46 @@
         )}
       </p>
       <p>{t("Operation")}: {pending.kind}</p>
-      <div class="actions">
-        <button class="primary" disabled={busy || offline} onclick={() => run()}
-          >{t(
-            pending.cancelRequested
-              ? "Retry cancellation"
-              : "Retry saved operation",
-          )}</button
-        ><button
-          disabled={busy || offline || pending.cancelRequested}
-          onclick={cancelPending}>{t("Cancel saved operation")}</button
-        >
-      </div>
+      {#if retired}
+        <p>
+          This operation is no longer supported. Download its saved details
+          before removing the request.
+        </p>
+        <div class="actions">
+          <a
+            href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(pending, null, 2))}`}
+            download="saved-budget-operation.json">Download saved request</a
+          >
+          <button
+            disabled={busy}
+            onclick={async () => {
+              if (!pending) return;
+              try {
+                await completeLifecycle(pending);
+                pending = null;
+              } catch (e) {
+                error = errorMessage(e);
+              }
+            }}>Remove retired request</button
+          >
+        </div>
+      {:else}
+        <div class="actions">
+          <button
+            class="primary"
+            disabled={busy || offline}
+            onclick={() => run()}
+            >{t(
+              pending.cancelRequested
+                ? "Retry cancellation"
+                : "Retry saved operation",
+            )}</button
+          ><button
+            disabled={busy || offline || pending.cancelRequested}
+            onclick={cancelPending}>{t("Cancel saved operation")}</button
+          >
+        </div>
+      {/if}
     </section>
   {/if}
   {#if !current}
@@ -273,12 +284,6 @@
     {#if !busy}<button onclick={initialize}>{t("Retry loading budget")}</button
       >{/if}
   {:else}
-    {#if current.deleted}<p role="status">{t("This budget is deleted.")}</p>
-      <p>
-        {t(
-          "Choose a recovery backup below to restore its accounts and history.",
-        )}
-      </p>{/if}
     {#if confirm}
       <form class="confirmation" onsubmit={confirmed}>
         <h2
@@ -290,46 +295,27 @@
             };
           }}
         >
-          {t(
-            confirm.kind === "deleted"
-              ? "Delete this budget?"
-              : "Restore this backup?",
-          )}
+          {t("Restore this backup?")}
         </h2>
         <p>
-          {confirm.kind === "deleted"
-            ? t(
-                "This removes the active budget. A recovery backup is saved before deletion.",
-              )
-            : t(
-                "This replaces the budget’s current data. A recovery backup is saved first; pending work must be reviewed afterward.",
-              )}
+          This replaces current data. A recovery backup is saved first; saved
+          device changes must be reviewed afterward.
         </p>
         {#if confirm.point}<p>
             {confirm.point.label || kindLabel(confirm.point.kind)} · {new Date(
               confirm.point.created_at,
             ).toLocaleString()}
           </p>{/if}
-        <p>
-          {t("Type the budget name to confirm")}:
-          <strong>{confirm.budget.name}</strong>
-        </p>
-        <label for="budget-confirm">{t("Confirm budget name")}</label><input
-          id="budget-confirm"
-          bind:value={confirmation}
-          disabled={locked}
-          autocomplete="off"
-          required
-        />
+        <label class="restore-consent"
+          ><input
+            type="checkbox"
+            bind:checked={confirmation}
+            disabled={locked}
+          /> Replace current data with this backup</label
+        >
         <div class="actions">
-          <button
-            class="primary"
-            disabled={locked || confirmation !== confirm.budget.name}
-            >{t(
-              confirm.kind === "deleted"
-                ? "Confirm deletion"
-                : "Confirm restore",
-            )}</button
+          <button class="primary" disabled={locked || !confirmation}
+            >{t("Confirm restore")}</button
           ><button
             type="button"
             disabled={busy || !!pending}
@@ -338,25 +324,10 @@
         </div>
       </form>
     {/if}
-    {#if !current.deleted}
-      <form onsubmit={(event) => submit(event, "renamed")}>
-        <h2>{t("Budget details")}</h2>
-        <fieldset disabled={locked || !!confirm}>
-          <label for="managed-name">{t("Budget name")}</label><input
-            id="managed-name"
-            bind:value={name}
-            maxlength="120"
-            required
-          /><button>{t("Save budget name")}</button>
-        </fieldset>
-      </form>
-    {/if}
     <section aria-labelledby="backups-heading">
-      <h2 id="backups-heading">{t("Backups")}</h2>
+      <h2 id="backups-heading">{t("Saved backups")}</h2>
       <p class="muted">
-        {t(
-          "Download a backup to keep a copy outside this server. Restoring keeps the budget’s original identity.",
-        )}
+        {t("Download a backup to keep a copy outside this server.")}
       </p>
       {#if current.backup_error}<p class="error" role="alert">
           {t("Automatic backup failed. Existing backups are retained.")}
@@ -367,16 +338,16 @@
             current.last_auto * 1000,
           ).toLocaleString()}
         </p>{/if}
-      {#if !current.deleted}<form onsubmit={(event) => submit(event, "backup")}>
-          <fieldset disabled={locked || !!confirm}>
-            <label for="backup-label">{t("Backup label")}</label><input
-              id="backup-label"
-              bind:value={label}
-              maxlength="120"
-              placeholder={t("Optional label")}
-            /><button>{t("Create backup")}</button>
-          </fieldset>
-        </form>{/if}
+      <form onsubmit={submit}>
+        <fieldset disabled={locked || !!confirm}>
+          <label for="backup-label">{t("Backup label")}</label><input
+            id="backup-label"
+            bind:value={label}
+            maxlength="120"
+            placeholder={t("Optional label")}
+          /><button>{t("Create backup")}</button>
+        </fieldset>
+      </form>
       {#if !points.length}<p>{t("No backups yet.")}</p>{:else}<ul
           class="backup-list"
         >
@@ -408,39 +379,6 @@
         >{t("Refresh backups")}</button
       >
     </section>
-    {#if !current.deleted}
-      <form onsubmit={(event) => submit(event, "duplicated")}>
-        <h2>{t("Make an independent copy")}</h2>
-        <p class="muted">
-          {t(
-            "Copy the budget’s accounts, history and settings. Future changes stay separate.",
-          )}
-        </p>
-        <fieldset disabled={locked || !!confirm}>
-          <label for="copy-name">{t("Copy name")}</label><input
-            id="copy-name"
-            bind:value={copyName}
-            maxlength="120"
-            required
-          /><button>{t("Duplicate budget")}</button>
-        </fieldset>
-      </form>
-      <section>
-        <h2>{t("Close or delete")}</h2>
-        <p class="muted">
-          {t("Closing returns to the budget list and keeps all saved data.")}
-        </p>
-        <div class="actions">
-          <button onclick={onclose} disabled={busy}>{t("Close budget")}</button
-          ><button
-            disabled={locked || !!confirm}
-            onclick={(event) =>
-              choose("deleted", undefined, event.currentTarget)}
-            >{t("Delete budget")}</button
-          >
-        </div>
-      </section>
-    {/if}
   {/if}
 </section>
 
@@ -509,9 +447,17 @@
     align-items: center;
     min-height: 44px;
   }
+  .restore-consent {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  .restore-consent input {
+    width: auto;
+  }
   .confirmation {
     padding: 1.25rem;
-    background: var(--sidebar);
+    background: var(--hover);
   }
   .confirmation .actions {
     margin-top: 1rem;

@@ -224,7 +224,7 @@ fn genuine20_database_preserves_finances_history_receipts_and_refreshes_blocked_
             .post(format!("{}/api/v1/imports/actual", s.url))
             .header("Content-Type", "application/zip")
             .header("Idempotency-Key", stage["key"].as_str().unwrap())
-            .body(bytes)
+            .body(bytes.clone())
             .send()
             .unwrap()
             .error_for_status()
@@ -239,7 +239,35 @@ fn genuine20_database_preserves_finances_history_receipts_and_refreshes_blocked_
             .json(&json!({}))
             .send()
             .unwrap();
-        assert_eq!(activated.status(), 201, "{}", activated.text().unwrap());
+        assert_eq!(activated.status(), 409);
+        let standalone = Server::start(tempfile::tempdir().unwrap());
+        let fresh: Value = standalone
+            .client
+            .post(format!("{}/api/v1/imports/actual", standalone.url))
+            .header("Idempotency-Key", "fresh-source")
+            .header("Content-Type", "application/zip")
+            .body(bytes)
+            .send()
+            .unwrap()
+            .error_for_status()
+            .unwrap()
+            .json()
+            .unwrap();
+        let installed: Value = standalone
+            .client
+            .post(format!(
+                "{}/api/v1/imports/{}/activate",
+                standalone.url,
+                fresh["data"]["id"].as_str().unwrap()
+            ))
+            .header("Idempotency-Key", "fresh-activate")
+            .json(&json!({}))
+            .send()
+            .unwrap()
+            .error_for_status()
+            .unwrap()
+            .json()
+            .unwrap();
         if stage["archive"] == "transaction-import-rules-before-match-26.10.zip" {
             let source: Value =
                 serde_json::from_slice(&fixture("transaction-import-rules-source.json")).unwrap();
@@ -249,9 +277,9 @@ fn genuine20_database_preserves_finances_history_receipts_and_refreshes_blocked_
                 .iter()
                 .find(|r| r["id"] == "rules-before-match")
                 .unwrap();
-            let settings = s.get(&format!(
+            let settings = standalone.get(&format!(
                 "/api/v1/budgets/{}/accounts/{}/transaction-import-settings?format=csv",
-                current["data"]["budget_id"].as_str().unwrap(),
+                installed["data"]["id"].as_str().unwrap(),
                 case["ids"]["account"].as_str().unwrap()
             ));
             assert_eq!(settings["data"]["raw_preferences"], case["settings"]);
@@ -290,7 +318,7 @@ fn genuine20_native_backup_preserves_receipts_finances_and_rotates_history_epoch
         .unwrap();
     assert_eq!(upload.status(), 201, "{}", upload.text().unwrap());
     let stage: Value = upload.json().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 36);
+    assert_eq!(stage["data"]["report"]["schema_version"], 37);
     let response = s
         .client
         .post(format!(

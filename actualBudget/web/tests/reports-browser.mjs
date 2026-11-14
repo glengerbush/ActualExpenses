@@ -200,7 +200,7 @@ try {
   await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page.getByRole("button", { name: "Reports", exact: true }).click();
   await page.setViewportSize({ width: 1280, height: 900 });
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "midnight");
   const exact = page
     .getByTestId("report-widget")
     .filter({ hasText: "Recorded total" })
@@ -234,7 +234,7 @@ try {
       exact: true,
     }),
   ).toBeVisible();
-  await expect(zoomPage.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(zoomPage.locator("html")).toHaveAttribute("data-theme", "midnight");
   expect(
     await zoomPage.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

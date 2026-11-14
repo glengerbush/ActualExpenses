@@ -230,7 +230,7 @@ try {
     name: "Retry saved group/category edit",
     exact: true,
   });
-  await expect(retryEdit.or(recoveredEdit)).toBeVisible();
+  await expect(retryEdit.or(recoveredEdit).first()).toBeVisible();
   if (await retryEdit.isVisible()) await retryEdit.click();
   await expect(
     p.getByRole("textbox", { name: "Group name House", exact: true }).first(),
@@ -252,18 +252,23 @@ try {
     .toEqual([groups[0], groups[2], groups[1]]);
   // Real touch events exercise pointer capture, including the scrollable mobile table.
   await p.setViewportSize({ width: 390, height: 844 });
+  const cdp = await p.context().newCDPSession(p);
+  await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true });
   const touchHandle = p
     .getByRole("button", { name: "Move group Travel", exact: true })
     .first();
   await expect(touchHandle).toBeEnabled();
   await touchHandle.scrollIntoViewIfNeeded();
-  const touchStart = await touchHandle.boundingBox();
-  const touchEnd = await p
+  const touchTarget = p
     .locator(`[data-budget-kind="category-groups"][data-id="${groups[1]}"]`)
-    .first()
-    .boundingBox();
-  const cdp = await p.context().newCDPSession(p);
-  await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true });
+    .first();
+  // Both endpoints must be visible before capturing viewport coordinates.
+  await touchTarget.evaluate((row) =>
+    row.scrollIntoView({ block: "center", inline: "nearest" }),
+  );
+  await expect(touchHandle).toBeInViewport();
+  const touchStart = await touchHandle.boundingBox();
+  const touchEnd = await touchTarget.boundingBox();
   await cdp.send("Input.dispatchTouchEvent", {
     type: "touchStart",
     touchPoints: [{ x: touchStart.x + 14, y: touchStart.y + 22 }],

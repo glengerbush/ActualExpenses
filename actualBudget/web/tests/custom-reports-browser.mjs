@@ -449,7 +449,7 @@ try {
   await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page.getByRole("button", { name: "Reports", exact: true }).click();
   await page.setViewportSize({ width: 1280, height: 900 });
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "midnight");
   await page.getByLabel("Report name", { exact: true }).focus();
   await page.keyboard.press("Tab");
   await expect(

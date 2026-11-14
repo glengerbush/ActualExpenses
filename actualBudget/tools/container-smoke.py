@@ -206,7 +206,10 @@ def main():
         assert opening["starting_balance"] is True, opening
         verify_receipts(base, budget_id, account_id)
         if args.browser or args.browser_test:
-            environment = dict(os.environ, ACTUALBUDGET_TEST_URL=f"http://actualbudget.test:{urlsplit(base).port}")
+            environment = dict(os.environ)
+            # Scenarios launch isolated servers from the exact image below. Do
+            # not also advertise a shared URL: multi-fixture checks reject it.
+            environment.pop("ACTUALBUDGET_TEST_URL", None)
             # Recovery fault-injection needs a disposable database it can stop and
             # reopen. Use the exact image's executable/assets, never a debug build.
             binary = Path(extracted.name) / "actualbudget-server"
@@ -215,18 +218,9 @@ def main():
             docker("cp", f"{container}:/app/web", str(web))
             environment.update(ACTUALBUDGET_TEST_BINARY=str(binary),
                                ACTUALBUDGET_TEST_WEB_DIR=str(web))
-            def fresh_database():
-                # Imported fixtures have stable identities. Every command needs
-                # its own database, regardless of shard ordering or prior tests.
-                docker("rm", "--force", container)
-                docker("volume", "rm", volume)
-                docker("volume", "create", volume)
-                fresh_base = start(image, container, volume)
-                return {"ACTUALBUDGET_TEST_URL": f"http://actualbudget.test:{urlsplit(fresh_base).port}"}
             if commands is not None:
                 run_commands(commands, project, environment,
-                             project.parent / f"qualification-results/browser-{args.shard_index}.json",
-                             prepare=fresh_database)
+                             project.parent / f"qualification-results/browser-{args.shard_index}.json")
             elif args.browser:
                 subprocess.run(["npm", "--prefix", str(project / "web"), "run", "test:browser"],
                                env=environment, check=True)

@@ -96,7 +96,11 @@ try {
       (r) => r.date === "2026-02-01",
     ),
   ).toHaveLength(2);
-  await page.locator("#register-title").click();
+  // The success notice can precede the refreshed history becoming actionable.
+  // Focus a non-input control so the shortcut cannot be consumed by date input.
+  const undo = page.getByRole("button", { name: "Undo", exact: true });
+  await expect(undo).toBeEnabled();
+  await undo.focus();
   await page.keyboard.press("Control+z");
   await expect(
     page.getByRole("button", { name: "Redo", exact: true }),
@@ -287,7 +291,9 @@ try {
     path: "test-results/bulk-history/desktop.png",
     fullPage: true,
   });
-  await page.evaluate(() => (document.documentElement.dataset.theme = "dark"));
+  await page.evaluate(
+    () => (document.documentElement.dataset.theme = "midnight"),
+  );
   await page.screenshot({
     path: "test-results/bulk-history/dark.png",
     fullPage: true,

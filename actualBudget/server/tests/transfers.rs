@@ -1,5 +1,3 @@
-#[path = "support/single_budget_fixture.rs"]
-mod single_budget_fixture;
 use reqwest::blocking::{Client, Response};
 use serde_json::{Value, json};
 use std::{
@@ -97,60 +95,12 @@ fn ok(r: Response) -> Value {
 }
 fn manual_field(expected: &Value, field: &str) -> Value {
     match field {
-        "notes" => json!(""),
         "cleared" => json!(true),
         "reconciled" => json!(false),
         _ => expected[field].clone(),
     }
 }
-fn current_row(mut row: Value) -> Value {
-    if let Some(obj) = row.as_object_mut() {
-        for field in ["notes", "cleared", "reconciled"] {
-            if obj.contains_key(field) {
-                obj.insert(
-                    field.into(),
-                    match field {
-                        "notes" => json!(""),
-                        "cleared" => json!(true),
-                        _ => json!(false),
-                    },
-                );
-            }
-        }
-        if obj.contains_key("last_reconciled") {
-            obj.insert("last_reconciled".into(), Value::Null);
-        }
-        if let Some(children) = obj.get_mut("children").and_then(Value::as_array_mut) {
-            for child in children {
-                *child = current_row(child.clone());
-            }
-        }
-    }
-    row
-}
-fn strip_display(value: &mut Value) {
-    match value {
-        Value::Object(row) => {
-            for key in [
-                "category_color",
-                "category_group_color",
-                "color_override",
-                "group_sort_order",
-            ] {
-                row.remove(key);
-            }
-            for child in row.values_mut() {
-                strip_display(child);
-            }
-        }
-        Value::Array(rows) => {
-            for row in rows {
-                strip_display(row);
-            }
-        }
-        _ => {}
-    }
-}
+
 #[test]
 fn paired_transfer_matches_pinned_actual_and_companion_excludes_both_legs() {
     let s = Server::start();
@@ -213,7 +163,7 @@ fn paired_transfer_matches_pinned_actual_and_companion_excludes_both_legs() {
     ));
     let other = s.get(&format!("{root}/transactions/{}", id(12)));
     assert_eq!(other["data"]["amount"], 3100);
-    assert_eq!(other["data"]["notes"], "");
+    assert_eq!(other["data"]["notes"], "Corrected payment");
     assert_eq!(other["data"]["date"], "2026-01-01");
     ok(s.write(
         "DELETE",
@@ -653,7 +603,11 @@ fn genuine_synced_transfer_source_keeps_ids_balances_original_bytes_and_hlcs() {
         ] {
             assert_eq!(
                 actual["data"][field],
-                manual_field(expected, field),
+                if field == "notes" {
+                    json!("")
+                } else {
+                    manual_field(expected, field)
+                },
                 "{field}"
             );
         }
@@ -1246,7 +1200,7 @@ fn closed_counterpart_keeps_existing_split_transfer_history_editable() {
     ok(s.write("POST",&path,"edit-closed-history",None,json!({"snapshot":snapshot,"children":[{"id":id(11),"amount":-600,"notes":"Historical correction","transfer_account_id":id(3),"counterpart_id":id(12)},{"id":id(13),"amount":-400}]})));
     assert_eq!(
         s.get(&format!("{root}/transactions/{}", id(12)))["data"]["notes"],
-        ""
+        "Historical correction"
     );
     ok(s.write(
         "PATCH",
@@ -1351,309 +1305,6 @@ fn deleted_transfer_peer_merges_stay_local_after_child_detach_and_relink() {
     assert_eq!(other["amount"], 20);
     assert_eq!(other["date"], "2026-01-01");
     assert_eq!(other["cleared"], true);
-}
-
-#[test]
-fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native_archive() {
-    let fixture: Value = serde_json::from_str(include_str!(
-        "../../tests/fixtures/reconciliation-schema12.json"
-    ))
-    .unwrap();
-    let directory = tempfile::tempdir().unwrap();
-    std::fs::write(
-        directory.path().join("actualbudget.sqlite3"),
-        include_bytes!("../../tests/fixtures/reconciliation-schema12.sqlite3"),
-    )
-    .unwrap();
-    single_budget_fixture::keep_budget(
-        &directory.path().join("actualbudget.sqlite3"),
-        fixture["budget"].as_str().unwrap(),
-    );
-    let active_directory = tempfile::tempdir().unwrap();
-    std::fs::write(
-        active_directory.path().join("actualbudget.sqlite3"),
-        include_bytes!("../../tests/fixtures/reconciliation-schema12.sqlite3"),
-    )
-    .unwrap();
-    single_budget_fixture::keep_budget(
-        &active_directory.path().join("actualbudget.sqlite3"),
-        fixture["active_budget"].as_str().unwrap(),
-    );
-    let active_server = Server::open(active_directory);
-    let s = Server::open(directory);
-    let root = format!("/api/v1/budgets/{}", fixture["budget"].as_str().unwrap());
-    let split = format!(
-        "{root}/transactions/{}/splits",
-        fixture["parent"].as_str().unwrap()
-    );
-    let account = format!("{root}/accounts/{}", fixture["account"].as_str().unwrap());
-    for (path, key, body, receipt) in [
-        (
-            format!("{root}/accounts"),
-            "account",
-            "account_body",
-            "account_receipt",
-        ),
-        (split.clone(), "split", "split_body", "split_receipt"),
-    ] {
-        assert_eq!(
-            ok(s.write("POST", &path, key, None, fixture[body].clone())),
-            fixture[receipt]
-        );
-    }
-    assert_eq!(
-        s.get(&split)["data"],
-        current_row(fixture["locked_split"].clone())
-    );
-    assert_eq!(
-        s.get(&account)["data"],
-        current_row(fixture["account_state"].clone())
-    );
-    assert_eq!(
-        s.get(&format!("{root}/register-settings"))["data"]["settings"],
-        fixture["settings"]
-    );
-    let active = format!(
-        "/api/v1/budgets/{}",
-        fixture["active_budget"].as_str().unwrap()
-    );
-    let mut current = active_server.get(&format!("{active}/transactions"));
-    let mut original = fixture["active_register"].clone();
-    let old = original["snapshot"].as_str().unwrap();
-    let fresh = current["snapshot"].as_str().unwrap();
-    assert_ne!(
-        &old[..34],
-        &fresh[..34],
-        "Envelope retirement rotates epoch"
-    );
-    assert_eq!(
-        active_server
-            .client
-            .get(format!(
-                "{}{active}/changes?cursor={old}&limit=1000",
-                active_server.url
-            ))
-            .send()
-            .unwrap()
-            .status(),
-        409
-    );
-    for row in original["data"].as_array_mut().unwrap() {
-        *row = current_row(row.clone());
-    }
-    original["balances"]["cleared"] = original["balances"]["total"].clone();
-    original["balances"]["uncleared"] = json!(0);
-    original["filtered_balances"]["cleared"] = original["filtered_balances"]["total"].clone();
-    original["filtered_balances"]["uncleared"] = json!(0);
-    strip_display(&mut current);
-    strip_display(&mut original);
-    current.as_object_mut().unwrap().remove("snapshot");
-    original.as_object_mut().unwrap().remove("snapshot");
-    assert_eq!(
-        current, original,
-        "Rules upgrade preserves every financial row, balance and ordering"
-    );
-    assert_eq!(active_server.get(&format!("{active}/accounts")), {
-        let mut expected = fixture["active_accounts"].clone();
-        for row in expected["data"].as_array_mut().unwrap() {
-            *row = current_row(row.clone());
-        }
-        expected
-    });
-    let original = s
-        .client
-        .get(format!(
-            "{}/api/v1/imports/{}/original.zip",
-            s.url,
-            fixture["active_import"].as_str().unwrap()
-        ))
-        .send()
-        .unwrap();
-    assert_eq!(
-        original.bytes().unwrap().as_ref(),
-        include_bytes!("../../tests/fixtures/reconciliation-import.zip")
-    );
-    let upload = |key: &str| {
-        ok(s.client
-            .post(format!("{}/api/v1/imports/actual", s.url))
-            .header("Idempotency-Key", key)
-            .header("Content-Type", "application/zip")
-            .body(include_bytes!("../../tests/fixtures/import-transfers-26.10.0.zip").to_vec())
-            .send()
-            .unwrap())
-    };
-    assert_eq!(upload("blocked-source"), fixture["blocked_receipt"]);
-    let reviewed = upload("inspect-transfer-after-upgrade");
-    assert_eq!(reviewed["data"]["status"], "ready");
-    let refused = s.write(
-        "POST",
-        &format!(
-            "/api/v1/imports/{}/activate",
-            reviewed["data"]["id"].as_str().unwrap()
-        ),
-        "activate-upgraded-transfer",
-        None,
-        json!({}),
-    );
-    assert_eq!(refused.status(), 409);
-    let source_server = Server::start();
-    let fresh = ok(source_server
-        .client
-        .post(format!("{}/api/v1/imports/actual", source_server.url))
-        .header("Idempotency-Key", "fresh-source")
-        .header("Content-Type", "application/zip")
-        .body(include_bytes!("../../tests/fixtures/import-transfers-26.10.0.zip").to_vec())
-        .send()
-        .unwrap());
-    let installed = ok(source_server.write(
-        "POST",
-        &format!(
-            "/api/v1/imports/{}/activate",
-            fresh["data"]["id"].as_str().unwrap()
-        ),
-        "fresh-activate",
-        None,
-        json!({}),
-    ));
-    let imported = format!(
-        "/api/v1/budgets/{}",
-        installed["data"]["id"].as_str().unwrap()
-    );
-    let source: Value = serde_json::from_str(include_str!(
-        "../../tests/fixtures/import-transfers-26.10.0.json"
-    ))
-    .unwrap();
-    // Independent imported HLC exactness remains covered by the genuine synced source test;
-    // this upgrade must re-inspect the same retained original bytes without changing its old receipt.
-    assert!(
-        source_server.get(&format!("{imported}/transactions"))["data"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|r| !r["transfer_id"].is_null())
-    );
-    for expected in source["public"]["transactions"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .filter(|t| !t["transfer_id"].is_null())
-    {
-        let actual = source_server.get(&format!(
-            "{imported}/transactions/{}",
-            expected["id"].as_str().unwrap()
-        ))["data"]
-            .clone();
-        for field in [
-            "amount",
-            "date",
-            "cleared",
-            "reconciled",
-            "notes",
-            "transfer_id",
-        ] {
-            assert_eq!(actual[field], manual_field(expected, field));
-        }
-        for clock in source["inspection"]["latest_field_clocks"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .filter(|c| c["dataset"] == "transactions" && c["row"] == expected["id"])
-        {
-            let field = match clock["column"].as_str().unwrap() {
-                "transferred_id" => "transfer_id",
-                "acct" => "account_id",
-                "description" => "payee_id",
-                "category" => "category_id",
-                other => other,
-            };
-            if [
-                "transfer_id",
-                "account_id",
-                "payee_id",
-                "category_id",
-                "amount",
-                "date",
-                "notes",
-                "cleared",
-                "reconciled",
-            ]
-            .contains(&field)
-            {
-                assert_eq!(actual["field_versions"][field], clock["timestamp"]);
-            }
-        }
-    }
-    for archive in [
-        include_bytes!("../../tests/fixtures/reconciliation-schema12.zip").to_vec(),
-        {
-            let backup = ok(s.write(
-                "POST",
-                &format!("{root}/backups"),
-                "upgraded-backup",
-                None,
-                json!({"label":"Schema13 settled split"}),
-            ));
-            s.client
-                .get(format!(
-                    "{}{root}/backups/{}/download",
-                    s.url,
-                    backup["data"]["id"].as_str().unwrap()
-                ))
-                .send()
-                .unwrap()
-                .bytes()
-                .unwrap()
-                .to_vec()
-        },
-    ] {
-        let target = Server::start();
-        let staged = ok(target
-            .client
-            .post(format!("{}/api/v1/restores", target.url))
-            .header("Idempotency-Key", "stage")
-            .header("Content-Type", "application/zip")
-            .body(archive)
-            .send()
-            .unwrap());
-        assert_eq!(staged["data"]["report"]["schema_version"], 37);
-        ok(target.write(
-            "POST",
-            &format!(
-                "{root}/restores/{}/activate",
-                staged["data"]["id"].as_str().unwrap()
-            ),
-            "activate",
-            None,
-            json!({"confirm_name":"Schema12 reconciliation"}),
-        ));
-        let target = target.restart();
-        assert_eq!(
-            target.get(&split)["data"],
-            current_row(fixture["locked_split"].clone())
-        );
-        assert_eq!(
-            target.get(&account)["data"],
-            current_row(fixture["account_state"].clone())
-        );
-        assert_eq!(
-            target.get(&format!("{root}/register-settings"))["data"]["settings"],
-            fixture["settings"]
-        );
-        for (path, key, body, receipt) in [
-            (
-                format!("{root}/accounts"),
-                "account",
-                "account_body",
-                "account_receipt",
-            ),
-            (split.clone(), "split", "split_body", "split_receipt"),
-        ] {
-            assert_eq!(
-                ok(target.write("POST", &path, key, None, fixture[body].clone())),
-                fixture[receipt]
-            );
-        }
-    }
 }
 
 #[test]

@@ -27,9 +27,9 @@ class QualificationTests(unittest.TestCase):
     def test_every_source_check_runs_exactly_once_including_expanded_npm_commands(self):
         commands = q.source_commands()
         self.assertTrue(commands)
-        self.assertIn(['node', 'tests/single-budget-migration.mjs'], [c['argv'] for c in commands])
-        self.assertIn(['node', 'tests/single-budget-provenance.mjs'], [c['argv'] for c in commands])
-        self.assertIn(['python3', 'actualBudget/tools/generate-v5-receipts.py', '--check'], [c['argv'] for c in commands])
+        self.assertIn(['python3', 'actualBudget/tools/contract-smoke.py'], [c['argv'] for c in commands])
+        for command in commands:
+            self.assertTrue((q.ROOT / command['cwd'] / command['argv'][1]).is_file(), command)
         self.assert_partition(commands, 4)
 
     def assert_partition(self, commands, count):

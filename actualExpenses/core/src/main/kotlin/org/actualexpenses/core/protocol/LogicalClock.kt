@@ -38,8 +38,8 @@ class LogicalClock(
     }
 
     private fun update(nextMillis: Long, nextCounter: Int, physical: Long) {
-        if (nextMillis - physical > 300_000) throw ActualException(ActualException.Kind.CLOCK, "Device clocks differ by more than five minutes. Correct the device time and retry.")
-        if (nextCounter > 65535) throw ActualException(ActualException.Kind.CLOCK, "Logical clock counter exceeded its limit. Retry after the clock advances.")
+        if (nextMillis - physical > 300_000) throw IllegalStateException( "Device clocks differ by more than five minutes. Correct the device time and retry.")
+        if (nextCounter > 65535) throw IllegalStateException( "Logical clock counter exceeded its limit. Retry after the clock advances.")
         millis = nextMillis
         counter = nextCounter
     }
@@ -49,9 +49,9 @@ class LogicalClock(
         private val pattern = Regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z-[0-9A-F]{4}-[A-Za-z0-9]{16}$")
         fun validate(timestamp: String) { parse(timestamp) }
         private fun parse(timestamp: String): Pair<Long, Int> {
-            if (!pattern.matches(timestamp)) throw ActualException(ActualException.Kind.INVALID_DATA, "Actual returned an invalid logical timestamp")
+            if (!pattern.matches(timestamp)) throw IllegalArgumentException( "Actual returned an invalid logical timestamp")
             return try { Instant.parse(timestamp.take(24)).toEpochMilli() to timestamp.substring(25, 29).toInt(16) }
-            catch (e: RuntimeException) { throw ActualException(ActualException.Kind.INVALID_DATA, "Actual returned an invalid logical timestamp", e) }
+            catch (e: RuntimeException) { throw IllegalArgumentException( "Actual returned an invalid logical timestamp", e) }
         }
         private fun format(millis: Long, counter: Int, node: String) = "${iso.format(Instant.ofEpochMilli(millis))}-${counter.toString(16).uppercase().padStart(4, '0')}-$node"
     }

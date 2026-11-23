@@ -364,7 +364,7 @@
             direction: initial && initial.amount >= 0 ? "income" : "expense",
             payee: initial?.payee_id ?? "",
             category: initial?.category_id ?? "",
-            notes: "",
+            notes: initial?.notes ?? "",
             cleared: true,
             newPayee: "",
             newCategory: "",
@@ -538,7 +538,7 @@
           f.category === "new"
             ? draft.referenceIds.category
             : f.category || null,
-
+        notes: f.notes,
         cleared: true,
       };
       const result = await request<{
@@ -677,6 +677,7 @@
         amount: (f.direction === "expense" ? -1 : 1) * Math.abs(amount),
 
         cleared: true,
+        notes: f.notes,
         payee_id: f.payee === "new" ? null : f.payee || null,
         category_id:
           selectedAccount?.off_budget || f.category === "new"
@@ -801,6 +802,7 @@
       account_id: f.account_id,
       date,
       cleared: true,
+      notes: f.notes,
 
       payee_id: f.payee === "new" ? null : f.payee || null,
       category_id:
@@ -954,7 +956,7 @@
     return {
       id: draft!.id,
       account_id: fields.account_id,
-      notes: "",
+      notes: fields.notes,
       account_name:
         accounts.find((a) => a.id === fields.account_id)?.name ?? "",
       amount: body.amount ?? draft!.original?.amount ?? 0,
@@ -1444,6 +1446,18 @@
             <div>{@render categoryField()}</div>
           </div>
         {/if}
+        <div class="transaction-notes">
+          <label for="transaction-notes"
+            >{t("Notes")} <span>({t("optional")})</span></label
+          >
+          <textarea
+            id="transaction-notes"
+            rows="2"
+            maxlength="10000"
+            bind:value={
+              () => draft!.fields.notes, (value) => update("notes", value)
+            }></textarea>
+        </div>
         {#if !inline && !expenseOnly}<RecurrenceFields
             value={draft.fields.recurrence ??
               transactionRecurrence(
@@ -1608,6 +1622,21 @@
   .amount-field {
     min-width: 0;
     flex: 1;
+  }
+  .transaction-notes {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+  .transaction-notes textarea {
+    width: 100%;
+    resize: vertical;
+  }
+  .transaction-notes label span {
+    color: var(--muted);
+    font-weight: normal;
+  }
+  .inline .transaction-notes {
+    padding: 0.25rem 0.5rem 0.5rem;
   }
   .inline-recurrence-options {
     grid-column: 1 / -1;

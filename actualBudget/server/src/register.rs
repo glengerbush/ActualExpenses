@@ -430,7 +430,7 @@ impl Query {
         } else {
             format!("{col} {dir},t.date DESC,t.starting_balance ASC,t.sort_order DESC,t.id ASC")
         };
-        order.replace("t.sort_order", crate::android_upgrade::order::SQL)
+        order.replace("t.sort_order", crate::transaction_order::SQL)
     }
 }
 // Saved queries retain stable source IDs. Resolve aliases when executing, without
@@ -593,7 +593,7 @@ fn latest(
     }
     let order = format!(
         "date DESC,starting_balance ASC,{} DESC,id ASC",
-        crate::android_upgrade::order::SQL
+        crate::transaction_order::SQL
     );
     let count: i64 = db.query_row(
         &format!("SELECT count(*) FROM transactions WHERE {filter}"),
@@ -767,7 +767,7 @@ fn list_inner(
     let mut count = 0u64;
     // Stream integers on the server, keeping only the requested page. i128 avoids
     // SQLite's intermediate SUM overflow and floating-point TOTAL rounding.
-    let mut stmt=db.prepare(&format!("SELECT t.id,t.amount,t.cleared,coalesce(({filter}),0) {joins} WHERE {base} ORDER BY t.date ASC,t.starting_balance DESC,{} ASC,t.id DESC",crate::android_upgrade::order::SQL))?;
+    let mut stmt=db.prepare(&format!("SELECT t.id,t.amount,t.cleared,coalesce(({filter}),0) {joins} WHERE {base} ORDER BY t.date ASC,t.starting_balance DESC,{} ASC,t.id DESC",crate::transaction_order::SQL))?;
     let mut rows = stmt.query(params_from_iter(values.iter()))?;
     while let Some(row) = rows.next()? {
         let id: String = row.get(0)?;

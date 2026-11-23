@@ -59,7 +59,7 @@ pub(super) fn apply(
         .filter_map(|r| r["transaction"]["amount"].as_i64())
         .collect::<BTreeSet<_>>();
     let mut indexed: BTreeMap<i64, Vec<Candidate>> = BTreeMap::new();
-    let mut query=db.prepare(&format!("SELECT t.id,t.date,t.payee_id,t.amount,CASE WHEN m.tombstone=0 THEN m.imported_id END FROM transactions t LEFT JOIN transaction_import_metadata m ON m.budget_id=t.budget_id AND m.id=t.id LEFT JOIN transactions parent ON parent.budget_id=t.budget_id AND parent.id=t.parent_id WHERE t.budget_id=?1 AND t.account_id=?2 AND t.tombstone=0 AND (t.parent_id IS NULL OR parent.tombstone=0) AND t.date>=?3 AND t.date<=?4 ORDER BY t.date DESC,t.starting_balance,{} DESC,t.id",crate::android_upgrade::order::SQL))?;
+    let mut query=db.prepare(&format!("SELECT t.id,t.date,t.payee_id,t.amount,CASE WHEN m.tombstone=0 THEN m.imported_id END FROM transactions t LEFT JOIN transaction_import_metadata m ON m.budget_id=t.budget_id AND m.id=t.id LEFT JOIN transactions parent ON parent.budget_id=t.budget_id AND parent.id=t.parent_id WHERE t.budget_id=?1 AND t.account_id=?2 AND t.tombstone=0 AND (t.parent_id IS NULL OR parent.tombstone=0) AND t.date>=?3 AND t.date<=?4 ORDER BY t.date DESC,t.starting_balance,{} DESC,t.id",crate::transaction_order::SQL))?;
     for (rank, result) in query
         .query_map(params![b, account, start, end], |r| {
             Ok((
@@ -99,7 +99,7 @@ pub(super) fn apply(
         let found = if let Some(found) = primary_cache.get(bank_id) {
             found.clone()
         } else {
-            let found=db.query_row(&format!("SELECT t.id FROM transactions t JOIN transaction_import_metadata m ON m.budget_id=t.budget_id AND m.id=t.id WHERE t.budget_id=?1 AND t.account_id=?2 AND m.imported_id=?3 AND m.tombstone=0 AND (?4=0 OR t.tombstone=0) ORDER BY t.date DESC,t.starting_balance,{} DESC,t.id LIMIT 1",crate::android_upgrade::order::SQL),params![b,account,bank_id,options.reimport_deleted],|r|r.get::<_,String>(0)).optional()?;
+            let found=db.query_row(&format!("SELECT t.id FROM transactions t JOIN transaction_import_metadata m ON m.budget_id=t.budget_id AND m.id=t.id WHERE t.budget_id=?1 AND t.account_id=?2 AND m.imported_id=?3 AND m.tombstone=0 AND (?4=0 OR t.tombstone=0) ORDER BY t.date DESC,t.starting_balance,{} DESC,t.id LIMIT 1",crate::transaction_order::SQL),params![b,account,bank_id,options.reimport_deleted],|r|r.get::<_,String>(0)).optional()?;
             primary_cache.insert(bank_id.into(), found.clone());
             found
         };

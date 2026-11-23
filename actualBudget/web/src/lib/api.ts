@@ -18,21 +18,6 @@ export interface Account {
   deleted?: boolean;
   field_versions?: Record<string, string>;
 }
-export interface AccountGroup {
-  id: string;
-  name: string;
-  sort_order: number;
-  deleted?: boolean;
-  field_versions?: Record<string, string>;
-}
-export interface NewAccount {
-  id: string;
-  name: string;
-  off_budget: boolean;
-  opening_balance: number;
-  opening_date: string;
-  notes: string;
-}
 export class RequestError extends Error {
   constructor(
     message: string,
@@ -126,31 +111,4 @@ export function errorMessage(error: unknown): string {
   return error instanceof Error
     ? error.message
     : "Request failed. Please retry.";
-}
-export function saveSelection(budgetId: string, accountId = ""): void {
-  try {
-    localStorage.setItem(
-      "actualBudget.selection",
-      JSON.stringify({ budgetId, accountId }),
-    );
-  } catch {
-    /* Storage may be disabled; server data is unaffected. */
-  }
-}
-export function loadSelection(): { budgetId?: string; accountId?: string } {
-  try {
-    const saved = JSON.parse(
-      localStorage.getItem("actualBudget.selection") ?? "{}",
-    );
-    return saved && typeof saved === "object"
-      ? {
-          budgetId:
-            typeof saved.budgetId === "string" ? saved.budgetId : undefined,
-          accountId:
-            typeof saved.accountId === "string" ? saved.accountId : undefined,
-        }
-      : {};
-  } catch {
-    return {};
-  }
 }

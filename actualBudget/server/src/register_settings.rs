@@ -407,21 +407,6 @@ pub fn imported_preference(key: &str) -> bool {
         .iter()
         .any(|prefix| key.starts_with(prefix))
 }
-pub fn enrich_legacy_imports(db: &Connection, only_budget: Option<&str>) -> Result<(), Error> {
-    let mut q=db.prepare("SELECT i.budget_id,s.original FROM imported_sources i JOIN staged_imports s ON s.id=i.import_id AND COALESCE(json_extract(s.report,'$.source_format'),'actual') NOT IN('ynab4','nynab') WHERE (?1 IS NULL OR i.budget_id=?1) AND NOT EXISTS(SELECT 1 FROM register_settings r WHERE r.budget_id=i.budget_id)")?;
-    let sources = q
-        .query_map([only_budget], |r| {
-            Ok((r.get::<_, String>(0)?, r.get::<_, Vec<u8>>(1)?))
-        })?
-        .collect::<Result<Vec<_>, _>>()?;
-    for (budget, bytes) in sources {
-        let (_, data) = crate::imports::conversion::inspect(&bytes)?;
-        if let Some(settings) = data.get("register_settings") {
-            db.execute("INSERT OR IGNORE INTO register_settings(budget_id,settings,revision) VALUES(?1,?2,0)",params![budget,settings.to_string()])?;
-        }
-    }
-    Ok(())
-}
 
 #[cfg(test)]
 mod retirement_tests {

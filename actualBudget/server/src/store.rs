@@ -23,6 +23,7 @@ impl Store {
         std::fs::create_dir_all(directory).map_err(Error::internal)?;
         let mut db = Connection::open(directory.join("actualbudget.sqlite3"))?;
         db.busy_timeout(Duration::from_secs(5))?;
+        crate::migrations::supported_version(&db)?;
         db.execute_batch(
             "PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;",
         )?;

@@ -23,7 +23,7 @@ class AppGraph(private val context: Context) {
     private val mutex = Mutex()
     private val service = scope.async {
         try {
-            ApiExpenseService(EncryptedStateStore(context, "expenses.api-v1.state"), EncryptedStateStore(context)).also { state.value = it.state() }
+            ApiExpenseService(EncryptedStateStore(context)).also { state.value = it.state() }
         } catch (error: Exception) {
             fatalError.value = "Saved data could not be opened. Keep app data intact and seek support. ${error.message.orEmpty()}"
             throw error

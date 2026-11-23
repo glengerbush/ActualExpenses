@@ -1074,7 +1074,7 @@ pub(super) fn install_ledger(db: &Connection, budget: &str, data: &Value) -> Res
         db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,reconciled,starting_balance,payee_id,category_id,notes,tombstone,sort_order,is_parent,parent_id,imported_payee,transfer_id) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17)",params![budget,row["id"].as_str(),row["account_id"].as_str(),row["amount"].as_i64(),row["date"].as_str(),row["cleared"].as_bool(),row["reconciled"].as_bool(),row["starting_balance"].as_bool(),row["payee_id"].as_str(),category,row["notes"].as_str(),row["tombstone"].as_bool(),row["sort_order"].as_i64(),row["is_parent"].as_bool().unwrap_or(false),row["parent_id"].as_str(),row["imported_payee"].as_str(),row["transfer_id"].as_str()])?;
     }
     for row in array(data, "transactions") {
-        crate::android_upgrade::order::seed(
+        crate::transaction_order::seed(
             db,
             budget,
             row["id"].as_str().unwrap(),

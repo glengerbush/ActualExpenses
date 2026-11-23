@@ -117,71 +117,11 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
                 if(state.screen!=Screen.EXPENSES&&state.screen!=Screen.SAVED_WORK&&state.scheduledWorkError!=null)ScheduledWorkRecovery(state,actions)
                 when (state.screen) {
                     Screen.SERVER -> ServerSelection(state, actions)
-                    Screen.RECOVERY -> LegacyRecovery(state, actions)
                     Screen.SAVED_WORK -> SavedWorkRecovery(state, actions)
                     Screen.EXPENSES -> ExpenseList(state,actions) { row -> actions.beginEdit(row.id) { session -> editorContext=Gson().toJson(session.context);editorSession=Gson().toJson(session);editorId = row.id } }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun LegacyRecovery(state: ExpenseUiState, actions: ExpenseUiActions) {
-    var server by rememberSaveable(state.server) { mutableStateOf(state.server) }
-    Column(
-        Modifier.verticalScroll(rememberScrollState()).imePadding().padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Text(
-            "Recover saved expenses",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.semantics { heading() },
-        )
-        Text(state.recoveryMessage.orEmpty())
-        if (state.pendingCount > 0)
-            Text(
-                "${state.pendingCount} ${if(state.pendingCount == 1) "expense is" else "expenses are"} saved on this phone."
-            )
-        OutlinedTextField(
-            server,
-            { server = it },
-            label = { Text("actualBudget server address") },
-            placeholder = { Text("http://server:5006") },
-            singleLine = true,
-            enabled = !state.busy,
-            keyboardOptions =
-                KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Button(
-            onClick = { actions.connect(server.trim()) },
-            enabled = server.isNotBlank() && !state.busy,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-        ) {
-            Text(if (state.busy) "Checking original budget…" else "Find imported budget")
-        }
-        if (state.budgets.isNotEmpty() && server.trim() == state.server) {
-            Text("Choose the exact imported budget", style = MaterialTheme.typography.titleMedium)
-            Text(
-                "Check its identity in actualBudget. Saved expenses will keep their original account IDs.",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            state.budgets.forEach { budget ->
-                OutlinedButton(
-                    onClick = { actions.recoverLegacyBudget(budget.id) },
-                    enabled = !state.busy,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                ) {
-                    Text(budget.name, modifier = Modifier.fillMaxWidth())
-                }
-            }
-        }
-        Text(
-            "Keep this app’s data. Your original saved work stays on this phone after recovery.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 
@@ -264,6 +204,7 @@ private fun ExpenseList(state: ExpenseUiState, actions:ExpenseUiActions, onEdit:
                 headlineContent = { Text(expense.payee.ifBlank { "Expense" }, maxLines = 2, overflow = TextOverflow.Ellipsis) },
                 supportingContent = {
                     Column {
+                        if (expense.notes.isNotBlank()) Text(expense.notes, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Text(listOf(dateLabel(expense.date), expense.category).filter { it.isNotBlank() }.joinToString(" · "), maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 },
@@ -287,6 +228,7 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
     val operationId = rememberSaveable(key) { UUID.randomUUID().toString() }
     var amount by rememberSaveable(key) { mutableStateOf(original?.amount ?: existing?.let { BigDecimal.valueOf(it.amountMinor).abs().movePointLeft(decimalPlaces).toPlainString() } ?: "") }
     var payee by rememberSaveable(key) { mutableStateOf(original?.payee ?: existing?.payee ?: "") }
+    var notes by rememberSaveable(key) { mutableStateOf(original?.notes ?: existing?.notes ?: "") }
     var categoryId by rememberSaveable(key) { mutableStateOf(original?.categoryId ?: existing?.categoryId) }
     var date by rememberSaveable(key) { mutableStateOf(original?.date ?: (existing?.date ?: LocalDate.now()).toString()) }
     var categoryPicker by rememberSaveable { mutableStateOf(false) }
@@ -306,7 +248,7 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
     val save: () -> Unit = {
         submitted = true
         if (valid && !saving) {
-            actions.save(ExpenseForm(transactionId, amount, LocalDate.parse(date), payee.trim(), categoryId, "", operationId, capturedContext, editSession))
+            actions.save(ExpenseForm(transactionId, amount, LocalDate.parse(date), payee.trim(), categoryId, notes, operationId, capturedContext, editSession))
         }
     }
     Scaffold(
@@ -352,6 +294,8 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
                     Text(dateLabel(LocalDate.parse(date)), Modifier.weight(1f))
                     Icon(Icons.Outlined.DateRange, contentDescription = "Change date")
                 }
+                OutlinedTextField(notes, { notes = it }, label = { Text("Notes (optional)") },
+                    enabled = !saving, minLines = 2, maxLines = 5, modifier = Modifier.fillMaxWidth())
                 Button(onClick = save, enabled = !saving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text(if (saving) "Saving…" else "Save expense") }
                 if (!state.online) Text("Saved on this phone; syncs when connected.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

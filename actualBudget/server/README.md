@@ -89,7 +89,7 @@ initialization and migrations. Before upgrading an existing schema, SQLite write
 a consistent standalone backup (including committed WAL data) under
 `ACTUALBUDGET_DATA_DIR/backups/before-v{schema}-{uuid}.sqlite3`; migration failure
 leaves the original schema intact. Restore a backup into a separate data directory
-with its matching old binary. Newer schema versions fail startup. A
+with its matching old binary. Versions outside the current/immediately previous patch window fail startup before database writes. A
 single asynchronous permit bounds blocking SQLite work; two Tokio event threads
 serve network traffic. SIGTERM/SIGINT drain active requests; successful writes
 also survive abrupt process termination.
@@ -112,7 +112,7 @@ balance cases consume the independent pinned Actual 26.10.0 fixture from
 
 Register validation additionally covers pinned Actual transaction snapshots,
 calculator cases, per-field PATCH, duplicate/delete, atomic references, aggregate
-overflow rollback, and a genuine schema-1 database upgrade/backup fixture. See
+overflow rollback, and previous-patch database upgrade/archive/backup coverage. See
 [register validation](REGISTER-VALIDATION.md) for reproduction and limits.
 
 See [ordered edits and change cursors](CONCURRENCY.md) for clock, deletion,

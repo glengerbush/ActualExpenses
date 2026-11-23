@@ -633,15 +633,15 @@ pub fn write(
     key: &str,
     payload: &str,
     clock: Option<&str>,
-    legacy_status: StatusCode,
+    default_status: StatusCode,
     operation: impl FnOnce(&Connection) -> Result<Value, Error>,
 ) -> Result<(StatusCode, Json<Value>), Error> {
     let payload = receipt_payload(payload, clock);
     let result = store::write(db, scope, key, &payload, operation)?;
-    receipt_response(result, legacy_status)
+    receipt_response(result, default_status)
 }
 pub(crate) fn receipt_payload(payload: &str, clock: Option<&str>) -> String {
-    // Keep old headerless payload bytes so pre-upgrade pending receipts still replay.
+    // Headerless requests keep their canonical receipt bytes across patch updates.
     clock
         .map(|clock| json!({"payload":payload,"edit_clock":clock}).to_string())
         .unwrap_or_else(|| payload.to_owned())
@@ -652,7 +652,7 @@ pub fn receipt(
     key: &str,
     payload: &str,
     clock: Option<&str>,
-    legacy_status: StatusCode,
+    default_status: StatusCode,
 ) -> Result<(StatusCode, Json<Value>), Error> {
     let result =
         store::receipt(db, scope, key, &receipt_payload(payload, clock))?.ok_or_else(|| {
@@ -662,11 +662,11 @@ pub fn receipt(
                 "No committed outcome exists for this request.",
             )
         })?;
-    receipt_response(result, legacy_status)
+    receipt_response(result, default_status)
 }
 fn receipt_response(
     result: Value,
-    legacy_status: StatusCode,
+    default_status: StatusCode,
 ) -> Result<(StatusCode, Json<Value>), Error> {
     if let (Some(status), Some(body)) = (
         result["response_status"].as_u64(),
@@ -677,7 +677,7 @@ fn receipt_response(
             Json(body.clone()),
         ))
     } else {
-        Ok((legacy_status, Json(json!({"data":result}))))
+        Ok((default_status, Json(json!({"data":result}))))
     }
 }
 #[derive(Deserialize)]
@@ -851,7 +851,7 @@ pub(crate) fn decorate_many(
         let (id, field, clock) = row?;
         rows[positions[&id]]["field_versions"][field] = json!(clock);
     }
-    crate::android_upgrade::order::decorate(db, budget, rows)?;
+    crate::transaction_order::decorate(db, budget, rows)?;
     crate::transaction_imports::decorate_many(db, budget, rows)?;
     Ok(())
 }

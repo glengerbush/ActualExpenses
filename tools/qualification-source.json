@@ -86,17 +86,6 @@
     "--prefix",
     "actualBudget/web",
     "run",
-    "test:migration-source"
-  ],
-  [
-    "node",
-    "actualBudget/tools/check-complete-migration-http.mjs"
-  ],
-  [
-    "npm",
-    "--prefix",
-    "actualBudget/web",
-    "run",
     "test:ynab-source"
   ],
   [
@@ -107,26 +96,7 @@
     "test:public-api-source"
   ],
   [
-    "npm",
-    "--prefix",
-    "actualBudget/web",
-    "run",
-    "test:public-api-upgrade"
-  ],
-  [
-    "python3",
-    "actualBudget/tools/generate-v5-receipts.py",
-    "--check"
-  ],
-  [
     "python3",
     "actualBudget/tools/contract-smoke.py"
-  ],
-  [
-    "npm",
-    "--prefix",
-    "actualBudget/web",
-    "run",
-    "test:single-budget-migration"
   ]
 ]

@@ -133,7 +133,7 @@ try {
       { input: archive, encoding: "utf8" },
     ),
   );
-  assert.equal(portable.manifest.schema_version, 37);
+  assert.equal(portable.manifest.schema_version, 38);
   assert.ok(
     !Object.keys(portable.state.tables).some((name) =>
       name.startsWith("bank_"),

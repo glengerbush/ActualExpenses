@@ -1,6 +1,5 @@
 //! Keep archive deduplication mappings while retiring executable source identities.
 use crate::{error::Error, imports::merge_identity, lifecycle::archive};
-use rusqlite::{Connection, OptionalExtension, params};
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -125,29 +124,6 @@ fn mappings(saved: &archive::Validated) -> Result<BTreeMap<String, Value>, Error
         )?;
     }
     Ok(result)
-}
-
-/// Primary destination mappings win when several budgets imported the same source.
-/// All financial copies remain; subsequent imports select one existing copy.
-pub(super) fn preserve(
-    db: &Connection,
-    target: &str,
-    saved: &archive::Validated,
-    ids: &BTreeMap<String, String>,
-) -> Result<(), Error> {
-    for (source, mapping) in mappings(saved)? {
-        let id = merge_identity(&source, "provenance", "mapping");
-        let previous: Option<String> = db.query_row("SELECT metadata FROM budget_provenance WHERE budget_id=?1 AND id=?2 AND kind='archive-merge'", params![target,id], |row| row.get(0)).optional()?;
-        let mut combined = previous
-            .as_deref()
-            .map(serde_json::from_str)
-            .transpose()
-            .map_err(Error::internal)?
-            .unwrap_or_else(|| json!({}));
-        extend(&mut combined, &mapping, ids)?;
-        db.execute("INSERT INTO budget_provenance(budget_id,id,kind,source_budget_id,metadata) VALUES(?1,?2,'archive-merge',?3,?4) ON CONFLICT(budget_id,id) DO UPDATE SET metadata=excluded.metadata", params![target,id,source,combined.to_string()])?;
-    }
-    Ok(())
 }
 
 /// A replacement restore keeps entity IDs, but cannot keep executable import sessions.

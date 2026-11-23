@@ -1679,9 +1679,7 @@
           },
           "notes": {
             "type": "string",
-            "const": "",
-            "deprecated": true,
-            "description": "Legacy response field; transaction notes are retired and always empty."
+            "description": "Optional transaction notes."
           },
           "account_name": {
             "type": "string"
@@ -2164,9 +2162,7 @@
           },
           "notes": {
             "type": "string",
-            "const": "",
-            "deprecated": true,
-            "description": "Legacy response field; transaction notes are retired and always empty."
+            "description": "Optional transaction notes."
           },
           "account_name": {
             "type": "string"

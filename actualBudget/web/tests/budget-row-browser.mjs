@@ -53,23 +53,6 @@ try {
     date,
     amount: -2500,
   });
-  await server.stop();
-  // Actual pre-retirement storage: both category and group hidden.
-  execFileSync("python3", [
-    "tests/historical-schema.py",
-    directory + "/actualbudget.sqlite3",
-    "29",
-  ]);
-  execFileSync("python3", [
-    "-c",
-    `import sqlite3,sys
-c=sqlite3.connect(sys.argv[1]+'/actualbudget.sqlite3')
-for t in ['categories','category_groups']:
- c.execute('UPDATE '+t+' SET hidden=1')
-c.commit()`,
-    directory,
-  ]);
-  server = await startServer({ dataDirectory: directory });
   expect((await call(root + "/categories/" + category)).hidden).toBe(false);
   expect((await call(root + "/category-groups/" + group)).hidden).toBe(false);
   expect(
@@ -167,7 +150,7 @@ c.commit()`,
   });
   expect(errors).toEqual([]);
   console.log(
-    "PASS row click/keyboard, inline save/settings, horizontal months desktop/mobile, hidden migration, totals and rejected hiding",
+    "PASS row click/keyboard, inline save/settings, horizontal months desktop/mobile, visible categories, totals and rejected hiding",
   );
 } finally {
   await browser?.close();

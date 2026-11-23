@@ -724,46 +724,7 @@ fn cursor_coalescing_during_pagination_retains_every_latest_entity() {
         404
     );
 }
-#[test]
-fn genuine_schema_three_receipts_replay_exactly_without_clock_reinterpretation() {
-    let fixture: Value =
-        serde_json::from_str(include_str!("../../tests/fixtures/server-v3.json")).unwrap();
-    let data = tempfile::tempdir().unwrap();
-    std::fs::write(
-        data.path().join("actualbudget.sqlite3"),
-        include_bytes!("../../tests/fixtures/server-v3.sqlite3"),
-    )
-    .unwrap();
-    let s = Server::open(data);
-    for receipt in fixture["receipts"].as_array().unwrap() {
-        let response = s.write(
-            receipt["method"].as_str().unwrap(),
-            &format!("/api/v1{}", receipt["path"].as_str().unwrap()),
-            receipt["key"].as_str().unwrap(),
-            None,
-            receipt["body"].clone(),
-        );
-        assert_eq!(
-            response.status().as_u16() as u64,
-            receipt["status"].as_u64().unwrap()
-        );
-        assert_eq!(response.json::<Value>().unwrap(), receipt["response"]);
-    }
-    let budget = fixture["budget_id"].as_str().unwrap();
-    let path = format!("/api/v1/budgets/{budget}/transactions");
-    let rows = s.get(&path);
-    assert_eq!(rows["data"].as_array().unwrap().len(), 1);
-    assert_eq!(rows["balances"]["total"], -234);
-    for clock in rows["data"][0]["field_versions"]
-        .as_object()
-        .unwrap()
-        .values()
-    {
-        assert_eq!(clock, "1970-01-01T00:00:00.000Z-0000-0000000000000000");
-    }
-    let s = s.restart();
-    assert_eq!(s.get(&path)["snapshot"], rows["snapshot"]);
-}
+
 #[test]
 fn bounded_future_counter_overflow_is_recoverable_without_consuming_operation() {
     let s = Server::start();

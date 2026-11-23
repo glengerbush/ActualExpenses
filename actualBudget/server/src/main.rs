@@ -1,5 +1,4 @@
 mod accounts;
-mod android_upgrade;
 mod api;
 mod budgeting;
 mod calculator;
@@ -33,6 +32,7 @@ mod splits;
 mod store;
 mod transaction_batch;
 mod transaction_imports;
+mod transaction_order;
 mod transfers;
 use std::path::PathBuf;
 #[tokio::main(worker_threads = 2)]

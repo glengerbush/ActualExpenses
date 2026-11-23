@@ -1,4 +1,4 @@
-//! Legacy archive/token compatibility. Manual entries are never reconciled.
+//! Aggregate identity proofs for split/transfer edit preconditions.
 use crate::{concurrency, error::Error, ledger};
 use axum::http::StatusCode;
 use rusqlite::Connection;

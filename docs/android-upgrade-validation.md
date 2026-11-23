@@ -1,3 +1,5 @@
+> Historical verification record. These older-version upgrade paths and harnesses have been removed. Current support is defined in [compatibility.md](compatibility.md).
+
 # Android upgrade recovery qualification
 
 Ticket20 accepted2026-11-09 through `f4b9ca0`, with backend `c8456d7`, native product `22a1f30` and independent ledger assertions `2c35335`. Independent Standards/Spec, qualification-harness and Impeccable reviews pass. Full replacement qualification remains open.

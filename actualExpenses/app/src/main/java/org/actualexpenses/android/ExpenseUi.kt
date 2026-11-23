@@ -4,7 +4,7 @@ import java.time.LocalDate
 import org.actualexpenses.core.EditSession
 import org.actualexpenses.core.ExpenseContext
 
-enum class Screen { SERVER, EXPENSES, RECOVERY, SAVED_WORK }
+enum class Screen { SERVER, EXPENSES, SAVED_WORK }
 
 data class Choice(val id: String, val name: String)
 
@@ -16,7 +16,6 @@ data class ExpenseRow(
     val categoryId: String?,
     val category: String,
     val notes: String,
-    val pending: Boolean,
     val pendingDeletion: Boolean,
     val editable: Boolean,
 )
@@ -24,7 +23,6 @@ data class ExpenseRow(
 data class ExpenseUiState(
     val screen: Screen = Screen.SERVER,
     val server: String = "",
-    val budgets: List<Choice> = emptyList(),
 
     val expenses: List<ExpenseRow> = emptyList(),
     val payees: List<Choice> = emptyList(),
@@ -63,7 +61,6 @@ interface ExpenseUiActions {
     fun cancelConnection()
     fun beginEdit(id: String, completed: (EditSession) -> Unit)
     fun connect(server: String)
-    fun recoverLegacyBudget(id: String)
     fun exportRecovery(destination: String, completed: () -> Unit)
     fun openCurrentAfterExport()
     fun refresh()

@@ -117,7 +117,7 @@ async fn view(
             let mut statement = read.prepare(&format!(
                 "SELECT id FROM transactions t WHERE budget_id=?1 AND (?2 IS NULL OR account_id=?2)
              AND tombstone=0 AND reconciled=0 AND amount<0 AND transfer_id IS NULL AND is_parent=0 AND parent_id IS NULL
-             ORDER BY date DESC,{} DESC,id ASC LIMIT 10",crate::android_upgrade::order::SQL
+             ORDER BY date DESC,{} DESC,id ASC LIMIT 10",crate::transaction_order::SQL
             ))?;
             let ids = statement
                 .query_map(params![budget, query.account_id], |row| {

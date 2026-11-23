@@ -11,9 +11,7 @@ mod import;
 mod links;
 mod matching;
 mod occurrences;
-pub(crate) use import::{
-    convert as convert_actual, enrich, import_clock, install as install_actual,
-};
+pub(crate) use import::{convert as convert_actual, import_clock, install as install_actual};
 mod view;
 use crate::{concurrency as sync, error::Error, store::Store};
 use axum::{
@@ -234,42 +232,4 @@ pub(crate) fn validate(db: &Connection, b: &str) -> Result<(), Error> {
     }
     if db.query_row("SELECT EXISTS(SELECT 1 FROM schedule_links l LEFT JOIN schedules s ON s.budget_id=l.budget_id AND s.id=l.schedule_id LEFT JOIN transactions t ON t.budget_id=l.budget_id AND t.id=l.id WHERE l.budget_id=?1 AND (s.id IS NULL OR t.id IS NULL))",[b],|r|r.get::<_,bool>(0))?{return Err(Error::invalid("Schedule link has a missing schedule or transaction"));}
     Ok(())
-}
-pub(crate) fn archive_tables() -> Vec<(&'static str, Vec<&'static str>)> {
-    vec![
-        (
-            "schedules",
-            vec![
-                "budget_id",
-                "id",
-                "rule_id",
-                "name",
-                "posts_transaction",
-                "completed",
-                "next_date",
-                "custom_upcoming_length",
-                "tombstone",
-            ],
-        ),
-        (
-            "schedule_occurrences",
-            vec![
-                "budget_id",
-                "id",
-                "schedule_id",
-                "occurrence_date",
-                "status",
-                "transaction_id",
-                "tombstone",
-            ],
-        ),
-        (
-            "schedule_links",
-            vec!["budget_id", "id", "schedule_id", "tombstone"],
-        ),
-        (
-            "schedule_settings",
-            vec!["budget_id", "id", "value", "tombstone"],
-        ),
-    ]
 }

@@ -128,9 +128,9 @@ async fn mutate(
     let cancel = concurrency::cancel_header(&headers)?;
     let scope = format!("{} {}", method, uri.path().trim_start_matches("/api/v1"));
     let created = action == "create";
-    // Preserve schema-1 payee POST receipt payload bytes for old queued callers.
+    // Keep the previous patch’s canonical receipt bytes for queued retries.
     #[derive(serde::Serialize)]
-    struct LegacyPayee<'a> {
+    struct PayeeReceipt<'a> {
         id: &'a str,
         name: &'a str,
         is_income: Option<bool>,
@@ -140,7 +140,7 @@ async fn mutate(
         if !body["is_income"].is_null() {
             return Err(Error::invalid("Payees cannot specify is_income"));
         }
-        serde_json::to_string(&LegacyPayee {
+        serde_json::to_string(&PayeeReceipt {
             id: text(&body, "id")?,
             name: text(&body, "name")?,
             is_income: None,

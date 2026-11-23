@@ -63,8 +63,8 @@ a qualifying version bump reaches `main` and its application gate permits it.
 
 ## Checks and signing
 
-Android qualification runs the existing pinned Actual 26.10.0 integration harness,
-all non-skipped core tests, Android lint, and release APK build. It verifies the
+Android qualification runs the current native API integration tests
+with no skipped core tests, Android lint, and release APK build. It verifies the
 checksum, APK signature, package ID and both version fields. The original certificate
 SHA-256 is pinned as `bb420a6b8dfdbcfd849a29f7c831d6b72b824fd411648dd8d92e9c6f85d8064c`.
 Existing `ACTUALEXPENSES_*` signing secrets are reused; no replacement key is generated.

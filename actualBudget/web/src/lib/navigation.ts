@@ -40,8 +40,6 @@ export function rememberView(budget: string, view: string | null): void {
 
 const screens = [
   "references",
-  "organize",
-  "account",
   "planning",
   "transaction-files",
   "rules",

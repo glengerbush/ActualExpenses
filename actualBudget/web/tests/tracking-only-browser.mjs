@@ -61,57 +61,15 @@ try {
     notes: "Keep transaction notes",
   });
   const original = await call(root + "/transactions");
-  const oldEpoch = (await call(root + "/budget?month=2026-11")).epoch;
-  await server.stop();
-  execFileSync("python3", [
-    "tests/historical-schema.py",
-    directory + "/actualbudget.sqlite3",
-    "30",
-  ]);
-  execFileSync("python3", [
-    "-c",
-    `import sqlite3,sys,json
-c=sqlite3.connect(sys.argv[1]+'/actualbudget.sqlite3');b,k=sys.argv[2:]
-c.execute('DROP TRIGGER budgeting_method')
-c.execute("UPDATE budget_settings SET method='envelope' WHERE budget_id=?",(b,))
-c.execute("UPDATE budgets SET budget_type='envelope' WHERE id=?",(b,))
-for kind,amount in [('envelope',12000),('tracking',999)]:
- c.execute('INSERT INTO budget_cells(budget_id,id,method,month,category_id,amount,carryover) VALUES(?,?,?,?,?,?,1)',(b,kind+':2026-11:'+k,kind,'2026-11',k,amount))
-c.execute("INSERT INTO budget_months(budget_id,id,buffered,notes) VALUES(?,'2026-11',500,'Old budget note')",(b,))
-c.execute("INSERT INTO notes(budget_id,id,note) VALUES(?,'budget-2026-11','Old budget note')",(b,))
-c.execute("CREATE TRIGGER budgeting_method AFTER UPDATE OF method ON budget_settings BEGIN UPDATE budgets SET budget_type=NEW.method WHERE id=NEW.budget_id; END;")
-payload=json.dumps({'id':b,'name':'Tracking only','budget_type':'envelope'},separators=(',',':'))
-c.execute("INSERT INTO operations(scope,operation_id,payload,response) VALUES('POST /budgets','legacy-envelope-create',?,?)",(payload,payload))
-c.execute('PRAGMA user_version=30');c.commit()`,
-    directory,
-    budget,
-    category,
-  ]);
-  server = await startServer({ dataDirectory: directory });
-  const replay = await fetch(api() + "/budgets", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Idempotency-Key": "legacy-envelope-create",
-    },
-    body: JSON.stringify({
-      id: budget,
-      name: "Tracking only",
-      budget_type: "envelope",
-    }),
-  });
-  expect(replay.status).toBe(201);
-  expect((await replay.json()).data.budget_type).toBe("envelope"); // Exact historical receipt, not current state.
   let view = await call(root + "/budget?month=2026-11&count=2");
   expect(view.method).toBe("tracking");
-  expect(view.epoch).not.toBe(oldEpoch);
   expect(view.months["2026-11"]).not.toHaveProperty("notes");
   expect(view.months["2026-11"].summary).not.toHaveProperty("to_budget");
-  expect(view.months["2026-11"].summary.total_budgeted).toBe(12000);
+  expect(view.months["2026-11"].summary.total_budgeted).toBe(0);
   expect(view.months["2026-11"].summary.total_spent).toBe(-2500);
   expect(
     view.months["2026-12"].categories.find((c) => c.id === category).balance,
-  ).toBe(9500);
+  ).toBe(-2500);
   // Compare transaction data rather than cursor/epoch metadata, which intentionally rotate.
   expect(await call(root + "/transactions")).toEqual(original);
   expect(
@@ -161,7 +119,7 @@ c.execute('PRAGMA user_version=30');c.commit()`,
       })
     ).status,
   ).toBe(400);
-  // Current and old portable archives still stage successfully.
+  // Current portable archives stage successfully.
   const backup = await call(root + "/backups", { label: "Tracking only" });
   await call(
     "/restores",
@@ -170,10 +128,6 @@ c.execute('PRAGMA user_version=30');c.commit()`,
         await req(root + "/backups/" + backup.id + "/download")
       ).arrayBuffer(),
     ),
-  );
-  await call(
-    "/restores",
-    await readFile("../tests/fixtures/budgeting-schema15.zip"),
   );
   // A real Actual envelope export is accepted and its active allocations survive conversion.
   importServer = await startServer();
@@ -276,7 +230,7 @@ c.close();os.unlink(f.name)`,
   ).toHaveCount(0);
   expect(errors).toEqual([]);
   console.log(
-    "PASS tracking-only migration, allocation carry, preserved transactions, retired APIs, Actual/native imports, row editing and desktop/mobile UI",
+    "PASS tracking-only plans, allocation carry, preserved transactions, retired APIs, Actual/native imports, row editing and desktop/mobile UI",
   );
 } finally {
   if (browser) await browser.close();

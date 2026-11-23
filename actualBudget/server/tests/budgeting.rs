@@ -340,130 +340,6 @@ fn stale_field_clock_refuses_entire_composite_action_with_fresh_snapshot() {
 }
 
 #[test]
-fn genuine_schema15_upgrade_retains_history_and_replay_while_archive_rotates_owner_epoch() {
-    let f: Value =
-        serde_json::from_str(include_str!("../../tests/fixtures/budgeting-schema15.json")).unwrap();
-    let data = tempfile::tempdir().unwrap();
-    std::fs::write(
-        data.path().join("actualbudget.sqlite3"),
-        include_bytes!("../../tests/fixtures/budgeting-schema15.sqlite3"),
-    )
-    .unwrap();
-    let s = Server::with_data(data);
-    let budget = f["metadata"]["id"].as_str().unwrap();
-    let root = format!("/api/v1/budgets/{budget}");
-    let owner = f["owner_headers"]["X-Actual-History-Owner"]
-        .as_str()
-        .unwrap();
-    let request = |server: &Server,
-                   method: reqwest::Method,
-                   path: &str,
-                   key: Option<&str>,
-                   body: Option<&Value>| {
-        let mut r = server
-            .client
-            .request(method, format!("{}{path}", server.url))
-            .header("X-Actual-History-Owner", owner)
-            .header(
-                "X-Actual-Budget-Epoch",
-                f["metadata"]["epoch"].as_str().unwrap(),
-            );
-        if let Some(key) = key {
-            r = r.header("Idempotency-Key", key);
-        }
-        if let Some(body) = body {
-            r = r.json(body);
-        }
-        r.send().unwrap()
-    };
-    let history = request(
-        &s,
-        reqwest::Method::GET,
-        &format!("{root}/history"),
-        None,
-        None,
-    )
-    .json::<Value>()
-    .unwrap();
-    assert_eq!(history, f["history"]);
-    let rowpath = format!("{root}/transactions/{}", f["row"]["id"].as_str().unwrap());
-    let mut expected_row = f["row"].clone();
-    expected_row["notes"] = json!(""); // Notes are retired; financial fields and clocks stay intact.
-    assert_eq!(
-        s.get(&rowpath).json::<Value>().unwrap()["data"],
-        expected_row
-    );
-    assert_eq!(
-        s.get(&root).json::<Value>().unwrap()["data"]["epoch"],
-        f["metadata"]["epoch"]
-    );
-    // Exact original receipt keys are recorded by the authentic old-server generator.
-    for (method, path, key, body, result) in [
-        (
-            reqwest::Method::POST,
-            format!("{root}/transactions"),
-            "create15",
-            &f["creation"],
-            &f["created"],
-        ),
-        (
-            reqwest::Method::PATCH,
-            rowpath.clone(),
-            "edit15",
-            &f["edit"],
-            &f["edited"],
-        ),
-    ] {
-        let expected = if method == reqwest::Method::POST {
-            201
-        } else {
-            200
-        };
-        let r = request(&s, method, &path, Some(key), Some(body));
-        assert_eq!(r.status(), expected, "{}", r.text().unwrap());
-        assert_eq!(r.json::<Value>().unwrap(), *result);
-    }
-    let target = Server::start();
-    let upload = target
-        .client
-        .post(format!("{}/api/v1/restores", target.url))
-        .header("Idempotency-Key", "old-native")
-        .header("Content-Type", "application/zip")
-        .body(include_bytes!("../../tests/fixtures/budgeting-schema15.zip").to_vec())
-        .send()
-        .unwrap()
-        .json::<Value>()
-        .unwrap();
-    assert_eq!(upload["data"]["report"]["schema_version"], 37, "{upload}");
-    let activate = target.post(
-        &format!(
-            "{root}/restores/{}/activate",
-            upload["data"]["id"].as_str().unwrap()
-        ),
-        "activate",
-        json!({"confirm_name":f["metadata"]["name"]}),
-    );
-    assert_eq!(activate.status(), 200, "{}", activate.text().unwrap());
-    assert_ne!(
-        target.get(&root).json::<Value>().unwrap()["data"]["epoch"],
-        f["metadata"]["epoch"]
-    );
-    assert_eq!(
-        target.get(&rowpath).json::<Value>().unwrap()["data"],
-        expected_row
-    );
-    let h = target
-        .client
-        .get(format!("{}{root}/history", target.url))
-        .header("X-Actual-History-Owner", owner)
-        .send()
-        .unwrap()
-        .json::<Value>()
-        .unwrap();
-    assert!(h["data"]["undo"].is_null());
-}
-
-#[test]
 fn retired_budget_actions_refuse_without_mutation_and_allocation_undo_remains() {
     let (s, root) = setup();
     let prefs = s
@@ -617,7 +493,7 @@ fn allocated_actual_exports_convert_to_tracking_and_native_archives_preserve_pla
             .unwrap()
             .json::<Value>()
             .unwrap();
-        assert_eq!(stage["data"]["report"]["schema_version"], 37, "{stage}");
+        assert_eq!(stage["data"]["report"]["schema_version"], 38, "{stage}");
         let metadata = s.get(&root).json::<Value>().unwrap();
         let r = t.post(
             &format!(

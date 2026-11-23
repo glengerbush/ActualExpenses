@@ -1,2 +1,0 @@
--- Rust migration normalizes native note rules and refreshes unactivated source plans.
--- Source bytes, field clocks, and immutable receipts remain unchanged.

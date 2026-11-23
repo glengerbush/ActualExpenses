@@ -507,7 +507,8 @@
                     style:background={row.category_color || "var(--muted)"}
                   ></span>{row.category_name || "Uncategorized"} ·
                   <time datetime={row.date}>{formatDate(row.date)}</time></span
-                ></span
+                >{#if row.notes}<span class="expense-note">{row.notes}</span
+                  >{/if}</span
               ><strong class="amount">{formatAmount(row.amount)}</strong
               ></button
             >
@@ -549,6 +550,15 @@
 </main>
 
 <style>
+  .expense-note {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
   .expense-app {
     max-width: 38rem;
     margin: 0 auto;

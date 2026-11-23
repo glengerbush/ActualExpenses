@@ -16,18 +16,12 @@
     errorMessage,
     RequestError,
     request,
-    loadSelection,
-    saveSelection,
     type Budget,
     type Account,
-    type AccountGroup,
   } from "./lib/api";
-  import { readDraft } from "./lib/drafts";
-  import AccountForm from "./lib/AccountForm.svelte";
-  import AccountManagement from "./lib/AccountManagement.svelte";
   import ReferenceManagement from "./lib/ReferenceManagement.svelte";
   import { readReferenceDraft } from "./lib/reference-actions";
-  import { readAccountDraft, sortedAccounts } from "./lib/account-actions";
+  import { sortedAccounts } from "./lib/account-actions";
   import BudgetPlan from "./lib/BudgetPlan.svelte";
   import { readImport } from "./lib/transaction-import-storage";
   import ImportHub from "./lib/ImportHub.svelte";
@@ -55,6 +49,7 @@
     readBrowserRoute,
     writeBrowserRoute,
     type BrowserRoute,
+    type Screen,
     readView,
     rememberView,
     type NavigationCommand,
@@ -70,30 +65,12 @@
   let cachedAt = $state<string | null>(null);
   let navigation = 0;
   let accounts = $state.raw<Account[]>([]);
-  let accountGroups = $state.raw<AccountGroup[]>([]);
   let budget = $state.raw<Budget | null>(null);
-  let account = $state.raw<Account | null>(null);
   let loading = $state(true);
   let error = $state("");
   let recoveryError = $state("");
   let scheduleError = $state("");
-  let form = $state<
-    | "references"
-    | "organize"
-    | "account"
-    | "planning"
-    | "transaction-files"
-    | "rules"
-    | "schedules"
-    | "reports"
-    | "settings"
-    | "import"
-    | "backups"
-    | "restore"
-    | "recovery"
-    | "pending"
-    | null
-  >(null);
+  let form = $state<Screen>(null);
   const settingsScreen = $derived(
     [
       "settings",
@@ -160,7 +137,7 @@
       id: "transactions",
       label: t("Transactions"),
       disabled: locked,
-      run: () => selectAccount(null),
+      run: () => showTransactions(),
     });
     for (const [id, label, requiresConnection] of views)
       result.push({
@@ -212,20 +189,7 @@
         !route.budgetId || route.budgetId === budget?.id
           ? (route.transactions ?? null)
           : null;
-      // Old account URLs may reopen durable recovery, never start retired workflows.
-      let recovery = true;
-      try {
-        recovery =
-          route.screen === "organize"
-            ? !!budget && !!readAccountDraft(budget.id)
-            : route.screen === "account"
-              ? !!budget &&
-                !!readDraft({ kind: "account", budget_id: budget.id })
-              : true;
-      } catch {
-        // Unreadable saved work still needs the editor's recovery message.
-      }
-      form = recovery ? route.screen : null;
+      form = route.screen;
       if (budget) rememberView(budget.id, form);
       await focusContent();
     } finally {
@@ -256,7 +220,6 @@
       fallback = cached?.singletonId
         ? cached.budgets.find((item) => item.id === cached.singletonId)
         : undefined;
-      const saved = loadSelection();
       // Only a catalog recorded after singleton discovery is safe to open offline.
       if (!offlineStatus.reachable) {
         if (cached?.singletonId) {
@@ -264,7 +227,7 @@
             (item) => item.id === cached.singletonId,
           );
           if (value) {
-            await openBudget(value, undefined, preservedForm);
+            await openBudget(value, preservedForm);
             return;
           }
         }
@@ -273,7 +236,7 @@
         );
       }
       if (fallback) {
-        await openBudget(fallback, saved.accountId, preservedForm);
+        await openBudget(fallback, preservedForm);
         return;
       }
       const { data: info } = await request<{ data: { api_version: number } }>(
@@ -292,11 +255,7 @@
       await saveCatalog([current], current.id);
       cachedAt = new Date().toISOString();
       setReachable(true);
-      await openBudget(
-        current,
-        saved.budgetId === current.id ? saved.accountId : undefined,
-        preservedForm,
-      );
+      await openBudget(current, preservedForm);
     } catch (e) {
       if (generation === navigation) {
         error = errorMessage(e);
@@ -312,11 +271,7 @@
       if (generation === navigation) loading = false;
     }
   }
-  async function openBudget(
-    value: Budget,
-    accountId?: string,
-    screen?: BrowserRoute["screen"],
-  ) {
+  async function openBudget(value: Budget, screen?: BrowserRoute["screen"]) {
     const discoverRecovery =
       screen === undefined && (!initialRoute || historyReady);
     transactionFilter = null;
@@ -324,12 +279,11 @@
     recoveryError = "";
     scheduleError = "";
     budget = value;
-    account = null;
     accounts = [];
     loading = true;
     error = "";
     form = screen === undefined ? readView(value.id) : screen;
-    retry = () => openBudget(value, accountId);
+    retry = () => openBudget(value);
     try {
       const cached = await readBudget(value.id).catch((e) => {
         recoveryError = errorMessage(e);
@@ -338,8 +292,6 @@
       if (generation !== navigation) return;
       if (cached) {
         accounts = sortedAccounts(cached.accounts);
-        accountGroups = cached.account_groups ?? [];
-        account = null;
         preferences.useCachedBudget(
           value.id,
           cached.preferences,
@@ -353,7 +305,7 @@
         }
         loading = false;
       }
-      saveSelection(value.id);
+
       if (discoverRecovery) {
         if (localStorage.getItem(schedulesKey(value.id)) !== null)
           form = "schedules";
@@ -367,16 +319,6 @@
         try {
           if (readReferenceDraft(value.id)) {
             form = "references";
-            loading = false;
-            return;
-          }
-          if (readAccountDraft(value.id)) {
-            form = "organize";
-            loading = false;
-            return;
-          }
-          if (readDraft({ kind: "account", budget_id: value.id })) {
-            form = "account";
             loading = false;
             return;
           }
@@ -424,8 +366,6 @@
       const fresh = await refreshBudget(value.id);
       if (generation !== navigation) return;
       accounts = sortedAccounts(fresh.accounts);
-      accountGroups = fresh.account_groups ?? [];
-      account = null;
       preferences.useCachedBudget(
         value.id,
         fresh.preferences,
@@ -434,7 +374,6 @@
       );
       cachedAt = fresh.savedAt;
       budget = { ...value, epoch: fresh.epoch };
-      saveSelection(value.id);
     } catch (e) {
       if (generation === navigation) {
         error = errorMessage(e);
@@ -453,41 +392,21 @@
   async function rebuildDownloadedViews() {
     navigation++;
     budget = null;
-    account = null;
     accounts = [];
-    accountGroups = [];
     form = null;
     preferences.clearBudget();
     await initialize();
   }
-  async function selectAccount(value: Account | null) {
+  async function showTransactions() {
     navigation++;
     transactionFilter = null;
     form = null;
     if (budget) rememberView(budget.id, null);
-    account = null;
-    saveSelection(budget!.id);
+
     recordNavigation();
     await focusContent();
   }
-  async function showForm(
-    value:
-      | "references"
-      | "organize"
-      | "account"
-      | "planning"
-      | "transaction-files"
-      | "rules"
-      | "schedules"
-      | "reports"
-      | "settings"
-      | "import"
-      | "backups"
-      | "restore"
-      | "recovery"
-      | "pending"
-      | null,
-  ) {
+  async function showForm(value: Screen) {
     navigation++;
     recoveryError = "";
     if (value !== "reports" || form !== "reports") reportTab = null;
@@ -501,12 +420,7 @@
     const { data: value } = await request<{ data: Budget }>("/budget");
     await saveCatalog([value], value.id);
     rememberView(value.id, null);
-    await openBudget(value, undefined, null);
-  }
-  async function accountCreated(value: Account) {
-    accounts = [...accounts.filter((a) => a.id !== value.id), value];
-    form = null;
-    await selectAccount(value);
+    await openBudget(value, null);
   }
   async function refreshAccounts() {
     const budgetId = budget?.id;
@@ -516,8 +430,6 @@
     const updated = await refreshBudget(budgetId);
     if (budget?.id !== budgetId || generation !== navigation) return;
     accounts = sortedAccounts(updated.accounts);
-    accountGroups = updated.account_groups ?? [];
-    account = updated.accounts.find((item) => item.id === account?.id) ?? null;
     cachedAt = updated.savedAt;
   }
   onMount(() => {
@@ -564,7 +476,7 @@
         <button
           class:current={!form}
           aria-current={!form ? "page" : undefined}
-          onclick={() => selectAccount(null)}
+          onclick={() => showTransactions()}
           disabled={loading}
         >
           <NavIcon name="transactions" /><span>{t("Transactions")}</span>
@@ -703,7 +615,7 @@
           {budget}
           onchanged={async (value) => {
             rememberView(value.id, "backups");
-            await openBudget(value, undefined, "backups");
+            await openBudget(value, "backups");
           }}
           onrestore={() => showForm("restore")}
         />{/key}
@@ -756,17 +668,6 @@
           {disconnected}
           onclose={() => showForm(null)}
         />{/key}
-    {:else if form === "organize" && budget}{#key budget.id}<AccountManagement
-          budgetId={budget.id}
-          selectedId={account?.id ?? ""}
-          onchanged={refreshAccounts}
-          onclose={() => showForm(null)}
-        />{/key}
-    {:else if form === "account" && budget}<AccountForm
-        budgetId={budget.id}
-        oncreated={accountCreated}
-        oncancel={() => showForm(null)}
-      />
     {:else if form === "planning" && budget}{#key budget.id}<BudgetPlan
           budgetId={budget.id}
           {disconnected}
@@ -803,14 +704,14 @@
             onclick={() => {
               if (!budget) return;
               setReachable(navigator.onLine);
-              void openBudget(budget, account?.id);
+              void openBudget(budget);
             }}>{t("Retry preferences")}</button
           >{/if}
       </section>
-      {#key budget.id + ":recovery:" + (account?.id ?? "all")}
+      {#key budget.id + ":recovery"}
         <Register
           budgetId={budget.id}
-          accountId={account?.id ?? null}
+          accountId={null}
           onchanged={refreshAccounts}
         />
       {/key}

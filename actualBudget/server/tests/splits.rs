@@ -343,7 +343,7 @@ fn pinned_actual_splits_import_and_native_archive_roundtrip() {
         assert_eq!(edited.status(), 200, "{}", edited.text().unwrap());
         let edited: Value = edited.json().unwrap();
         assert_eq!(edited["data"]["children"][0]["category_id"], category);
-        assert_eq!(edited["data"]["children"][0]["notes"], "");
+        assert_eq!(edited["data"]["children"][0]["notes"], key);
     }
 }
 
@@ -670,7 +670,10 @@ fn off_budget_split_moves_and_edits_preserve_existing_latent_categories() {
     assert_eq!(edited.status(), 200, "{}", edited.text().unwrap());
     let edited: Value = edited.json().unwrap();
     assert_eq!(edited["data"]["children"][0]["category_id"], category);
-    assert_eq!(edited["data"]["children"][0]["notes"], "");
+    assert_eq!(
+        edited["data"]["children"][0]["notes"],
+        "edit latent allocation"
+    );
     let current: Value = server.get(&format!("{path}/{id}/splits")).json().unwrap();
     children[0]["category_id"] = json!(other);
     assert_eq!(
@@ -924,7 +927,7 @@ fn imported_large_allocations_can_be_replaced_beyond_the_ordinary_body_limit() {
         {
             assert_eq!(new["id"], old["id"]);
             assert_eq!(new["amount"], -1);
-            assert_eq!(new["notes"], "");
+            assert_eq!(new["notes"], "Edited imported allocation");
             assert_eq!(new["category_id"], old["category_id"]);
         }
     }
@@ -976,7 +979,7 @@ fn sparse_imported_allocations_redistribute_remove_duplicate_and_detach_atomical
     assert_eq!(changed[0]["amount"], -2);
     assert_eq!(changed[0]["payee_id"], payee);
     assert_eq!(changed[0]["category_id"], category);
-    assert_eq!(changed[0]["notes"], "");
+    assert_eq!(changed[0]["notes"], "Only this allocation changed");
     assert_eq!(changed[999]["id"], children[999]["id"]);
     assert_eq!(changed[999]["notes"], children[999]["notes"]);
     assert_eq!(after["data"]["amount"], -1001);

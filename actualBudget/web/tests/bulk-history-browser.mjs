@@ -280,7 +280,7 @@ try {
     .data;
   expect(editedChild.category_id).toBe(category);
   expect(editedChild.amount).toBe(-617);
-  expect(editedChild.notes).toBe("");
+  expect(editedChild.notes).toBe("Split A1");
   // Full page renders for review: selection, error, narrow, dark and 200% text.
   await mkdir("test-results/bulk-history", { recursive: true });
   await page.getByLabel("Select all loaded entries").check();

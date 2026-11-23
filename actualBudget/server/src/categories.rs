@@ -356,12 +356,12 @@ async fn write(
                 .all(|k| ["id", "name", "is_income"].contains(&k.as_str()))
         }) {
         #[derive(serde::Serialize)]
-        struct Legacy<'a> {
+        struct CategoryReceipt<'a> {
             id: &'a Value,
             name: &'a Value,
             is_income: &'a Value,
         }
-        serde_json::to_string(&Legacy {
+        serde_json::to_string(&CategoryReceipt {
             id: &input["id"],
             name: &input["name"],
             is_income: &input["is_income"],
@@ -704,54 +704,6 @@ pub fn stamp_new(db: &Connection, budget: &str, id: &str) -> Result<(), Error> {
     }
     Ok(())
 }
-/// Upgrade only metadata absent before category management. Financial records and
-/// existing names/types/field winners are never reconstructed from old source files.
-pub fn enrich_legacy_imports(db: &Connection, only_budget: Option<&str>) -> Result<(), Error> {
-    let mut q=db.prepare("SELECT i.budget_id,s.original FROM imported_sources i JOIN staged_imports s ON s.id=i.import_id AND COALESCE(json_extract(s.report,'$.source_format'),'actual') NOT IN('ynab4','nynab') WHERE ?1 IS NULL OR i.budget_id=?1")?;
-    let sources = q
-        .query_map([only_budget], |r| {
-            Ok((r.get::<_, String>(0)?, r.get::<_, Vec<u8>>(1)?))
-        })?
-        .collect::<Result<Vec<_>, _>>()?;
-    for (budget, bytes) in sources {
-        let (_, data) = crate::imports::conversion::inspect(&bytes)?;
-        for group in data["category_groups"].as_array().unwrap() {
-            db.execute("INSERT OR IGNORE INTO category_groups(budget_id,id,name,is_income,hidden,notes,sort_order,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",params![budget,group["id"].as_str(),group["name"].as_str(),group["is_income"].as_bool(),group["hidden"].as_bool(),group["notes"].as_str(),group["sort_order"].as_f64(),group["tombstone"].as_bool()])?;
-        }
-        for category in data["categories"].as_array().unwrap() {
-            for field in ["group_id", "hidden", "sort_order"] {
-                db.execute(&format!("UPDATE categories SET {field}=?3 WHERE budget_id=?1 AND id=?2 AND NOT EXISTS(SELECT 1 FROM field_versions WHERE budget_id=?1 AND entity='categories' AND entity_id=?2 AND field=?4)"),params![budget,category["id"].as_str(),sqlvalue(&category[field]),field])?;
-            }
-        }
-        // Raw imported clocks remain original evidence. Add ordering only for new fields.
-        for row in data["clocks"].as_array().unwrap() {
-            let dataset = row["dataset"].as_str().unwrap();
-            let field = row["column"].as_str().unwrap();
-            let mapped = match (dataset, field) {
-                ("categories", "cat_group") => Some(("categories", "group_id")),
-                ("categories", "hidden" | "sort_order") => Some(("categories", field)),
-                (
-                    "category_groups",
-                    "name" | "is_income" | "hidden" | "sort_order" | "tombstone",
-                ) => Some(("category_groups", field)),
-                _ => None,
-            };
-            if let Some((entity, field)) = mapped {
-                sync::seed_field_version(
-                    db,
-                    &budget,
-                    entity,
-                    row["row"].as_str().unwrap(),
-                    field,
-                    row["timestamp"].as_str().unwrap(),
-                )?;
-            }
-        }
-        validate_archive(db, &budget)?;
-    }
-    Ok(())
-}
-
 /// Inline conversion references retain the captured command clock.
 pub(crate) fn create_inline_at(
     db: &Connection,

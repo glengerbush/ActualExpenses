@@ -107,8 +107,8 @@ try {
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.locator(`[data-transaction-id="${split}"]`).click();
   await expect(page.locator(".split-editor")).toBeVisible();
-  await expect(page.getByLabel("Split 1 notes", { exact: true })).toHaveCount(
-    0,
+  await expect(page.getByLabel("Split 1 notes", { exact: true })).toHaveValue(
+    "First",
   );
   await outside();
   await expect(page.locator(".split-editor")).toHaveCount(0);
@@ -170,7 +170,7 @@ try {
   await outside();
   await expect(page.locator(".category-inspector")).toHaveCount(0);
   expect((await call(root + `/transactions/${row}`)).amount).toBe(-1000);
-  expect((await call(root + `/transactions/${row}`)).notes).toBe("");
+  expect((await call(root + `/transactions/${row}`)).notes).toBe("Regular");
   expect(errors).toEqual([]);
   console.log(
     "PASS pristine outside dismissal for budget, transaction, split and transfer rows; inside clicks, dirty/recovered drafts and mobile",

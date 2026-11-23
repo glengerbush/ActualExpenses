@@ -105,17 +105,15 @@ export function validPending(
   if (value.historyOwner !== undefined && !uuid(value.historyOwner))
     return false;
   if (value.attemptId !== undefined && !uuid(value.attemptId)) return false;
-  if (value.edit_clock !== undefined && !validClock(value.edit_clock))
-    return false;
+  if (!validClock(value.edit_clock)) return false;
   if (
     value.clockRejected !== undefined &&
     typeof value.clockRejected !== "boolean"
   )
     return false;
   if (
-    value.budgetEpoch !== undefined &&
-    (typeof value.budgetEpoch !== "string" ||
-      !/^[0-9a-f]{32}$/.test(value.budgetEpoch))
+    typeof value.budgetEpoch !== "string" ||
+    !/^[0-9a-f]{32}$/.test(value.budgetEpoch)
   )
     return false;
   const base = `/budgets/${budget}/transactions`;
@@ -154,7 +152,10 @@ function validDraft(value: unknown, budget: string): value is TransactionDraft {
     !uuid(value.id) ||
     !isObject(value.fields) ||
     !isObject(value.format) ||
-    typeof value.amountDirty !== "boolean"
+    typeof value.amountDirty !== "boolean" ||
+    typeof value.beganOnline !== "boolean" ||
+    typeof value.budgetEpoch !== "string" ||
+    !/^[0-9a-f]{32}$/.test(value.budgetEpoch)
   )
     return false;
   const f = value.fields;

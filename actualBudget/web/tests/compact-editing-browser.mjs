@@ -45,9 +45,11 @@ try {
     category_id: c,
     date: "2026-11-01",
     amount: -1250,
-    notes: "Retired note",
+    notes: "Receipt detail",
   });
-  expect((await call(root + `/transactions/${tx}`)).data.notes).toBe("");
+  expect((await call(root + `/transactions/${tx}`)).data.notes).toBe(
+    "Receipt detail",
+  );
   for (const [path, body, method] of [
     [root + `/categories/${c}`, { notes: "No" }, "PATCH"],
     [root + `/category-groups/${g}`, { notes: "No" }, "PATCH"],
@@ -72,7 +74,9 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
   await page.locator(`[data-transaction-id="${tx}"]`).click();
-  await expect(page.getByLabel("Notes", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByLabel("Notes (optional)", { exact: true }),
+  ).toHaveValue("Receipt detail");
   await expect(
     page.getByRole("radio", { name: "Expense", exact: true }),
   ).toBeChecked();
@@ -310,7 +314,7 @@ try {
   ).toBe(true);
   expect(errors).toEqual([]);
   console.log(
-    "PASS compact editors, notes retirement, month controls, debounce, blur and in-flight typing",
+    "PASS compact editors, transaction notes, retired category notes, month controls, debounce, blur and in-flight typing",
   );
 } finally {
   await browser?.close();

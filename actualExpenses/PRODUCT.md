@@ -24,7 +24,7 @@ An Android phone, at shops and on the move, reaching an existing HTTP Actual ser
 
 ## Capabilities and Constraints
 
-Setup asks only for the server address, without login or budget naming/selection. The server creates its single budget on first access. Legacy encrypted data remains untouched behind an explicit recovery screen until its migration is available. Positive amount is required; payee, category and date are optional; notes are not supported. Cached payees and categories work offline. Preserve pending changes and show their state. Restrict offline editing to unsynced offline-created expenses, retaining an edit begun online if connectivity fails. Exclude transfers, income, splits and reconciled entries. Retain a backdated addition below the recent list. No idle background refresh.
+Setup asks only for the server address, without login or budget naming/selection. The server creates its single budget on first access. Updates retain the previous patch’s native encrypted cache and queue. Positive amount is required; payee, category and date are optional; notes are optional and saved with the expense. Cached payees and categories work offline. Preserve pending changes and surface actionable delivery failures. Restrict offline editing to unsynced offline-created expenses, retaining an edit begun online if connectivity fails. Exclude transfers, income and splits. Retain a backdated addition below the recent list. No idle background refresh.
 
 ## Brand Commitments
 
@@ -39,7 +39,7 @@ Approved Obsidian spec, CONTEXT glossary and direct-integration ADR. No incumben
 
 - Save locally before promising success.
 - Keep the expense task obvious and short.
-- Preserve Actual's semantics and explain pending state.
+- Preserve Actual's financial semantics; keep delivery silent unless recovery is needed.
 - Use familiar Android controls and system accessibility behavior.
 
 - If the server budget identity or generation changes, retain queued requests unchanged. Export full saved work and require explicit confirmation before archiving the old queue and opening the current budget.

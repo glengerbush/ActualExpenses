@@ -44,39 +44,13 @@ try {
     cleared: false,
   });
   expect((await call(root + "/transactions/" + id)).cleared).toBe(true);
-  await server.stop();
-  // Rebuild genuine schema27 before restoring legacy status values.
-  execFileSync("python3", [
-    "tests/historical-schema.py",
-    data + "/actualbudget.sqlite3",
-    "27",
-  ]);
-  execFileSync("python3", [
-    "-c",
-    `import sqlite3,sys
-c=sqlite3.connect(sys.argv[1])
-c.execute('UPDATE transactions SET cleared=0,reconciled=1')
-c.execute('UPDATE ledger_totals SET cleared=0,uncleared=total')
-c.commit()`,
-    data + "/actualbudget.sqlite3",
-  ]);
-  server = await startServer({ dataDirectory: data });
-  const migrated = await call(root + "/transactions/" + id);
-  expect(migrated.amount).toBe(-2500);
-  expect(migrated.cleared).toBe(true);
-  expect(migrated.reconciled).toBe(false);
-  expect(
-    (await readdir(data + "/backups")).some((name) =>
-      name.startsWith("before-v27-"),
-    ),
-  ).toBe(true);
   const edited = await call(
     root + "/transactions/" + id,
     { amount: -2600, cleared: false },
     "PATCH",
   );
   expect(edited.amount).toBe(-2600);
-  expect(edited.notes).toBe("");
+  expect(edited.notes).toBe("Imported purchase");
   expect(edited.cleared).toBe(true);
   const statusQuery = {
     hide_cleared: true,
@@ -158,7 +132,9 @@ c.commit()`,
     .click();
   await expect(page.getByLabel("Cleared", { exact: true })).toHaveCount(0);
   await page.getByLabel("Amount", { exact: true }).fill("3.21");
-  await expect(page.getByLabel("Notes", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByLabel("Notes (optional)", { exact: true }),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
@@ -206,7 +182,7 @@ c.commit()`,
   });
   expect(errors).toEqual([]);
   console.log(
-    "PASS existing-data migration, legacy writes, editable imports, retired status filters/routes, immediate entry, offline reload and duplicate-free quiet sync",
+    "PASS completed entries, status normalization, editable imports, retired status filters/routes, immediate entry, offline reload and duplicate-free quiet sync",
   );
 } finally {
   await browser?.close();

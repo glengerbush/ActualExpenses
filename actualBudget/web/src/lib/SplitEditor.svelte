@@ -143,7 +143,7 @@
             ? (c.retained_payee_id ?? c.payee_id)
             : c.payee_id) ?? "",
         category_id: c.category_id ?? "",
-        notes: "",
+        notes: parent.children?.length ? c.notes : "",
         transfer_account_id: c.transfer_account_id ?? "",
         counterpart_id: c.transfer_id ?? "",
       }));
@@ -166,7 +166,7 @@
           amount: formatAmountInput(parent.amount, format),
           date: parent.date,
           payee_id: parent.retained_payee_id ?? parent.payee_id ?? "",
-          notes: "",
+          notes: parent.notes,
           cleared: true,
         },
         pending: null,
@@ -494,6 +494,12 @@
             ></label
           >
         </div>
+        <label
+          >{t("Notes (optional)")}<textarea
+            rows="2"
+            maxlength="10000"
+            bind:value={draft.fields.notes}></textarea></label
+        >
       </fieldset>
       {#if draft.children.length > pageSize}
         <nav class="split-pages" aria-label={t("Split pages")}>
@@ -610,6 +616,13 @@
                 void persist();
               }
             }}>{t("Remove split")}</button
+          >
+          <label
+            >{t("Notes (optional)")}<textarea
+              aria-label={`Split ${index + 1} notes`}
+              rows="2"
+              maxlength="10000"
+              bind:value={child.notes}></textarea></label
           >
           {#if originalIds.has(child.id)}<button
               type="button"

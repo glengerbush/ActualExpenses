@@ -1,7 +1,6 @@
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir, mkdtemp, rm, writeFile, readFile } from "node:fs/promises";
-import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { startServer } from "./server.mjs";
 const directory = await mkdtemp(tmpdir() + "/category-colors-");
@@ -100,8 +99,8 @@ try {
     (await req(root + "/tags", { id: randomUUID(), tag: "test" })).status,
   ).toBe(404);
   expect(
-    (await call(root + "/transactions")).every((t) => t.notes === ""),
-  ).toBe(true);
+    (await call(root + "/transactions")).map((t) => t.notes).sort(),
+  ).toEqual(["Lunch", "Market #oldtag", "November rent"]);
   const backup = await call(root + "/backups", { label: "Color backup" });
   const zip = Buffer.from(
     await (
@@ -109,22 +108,7 @@ try {
     ).arrayBuffer(),
   );
   await writeFile(directory + "/colors.zip", zip);
-  // Older archives gain nullable color fields without dropping any categories.
-  execFileSync("python3", [
-    "-c",
-    `import json,zipfile,hashlib,sys
-p=sys.argv[1]
-with zipfile.ZipFile(p+'/colors.zip') as z: files={n:z.read(n) for n in z.namelist()}
-m=json.loads(files['manifest.json']);b=json.loads(files['budget.json'])
-for name in ['categories','category_groups']:
- t=b['tables'][name];i=t['columns'].index('color');t['columns'].pop(i)
- for row in t['rows']:row.pop(i)
-files['budget.json']=json.dumps(b).encode();m['schema_version']=28;m['entries']['budget.json']={'sha256':hashlib.sha256(files['budget.json']).hexdigest(),'bytes':len(files['budget.json'])};files['manifest.json']=json.dumps(m).encode()
-with zipfile.ZipFile(p+'/old.zip','w',zipfile.ZIP_DEFLATED) as z:
- for name,data in files.items():z.writestr(name,data)`,
-    directory,
-  ]);
-  for (const file of ["colors.zip", "old.zip"]) {
+  for (const file of ["colors.zip"]) {
     const r = await fetch(endpoint() + "/restores", {
       method: "POST",
       headers: {
@@ -269,25 +253,8 @@ with zipfile.ZipFile(p+'/old.zip','w',zipfile.ZIP_DEFLATED) as z:
     page.getByLabel("Color for Everyday", { exact: true }),
   ).toHaveValue("#558844");
   expect(errors).toEqual([]);
-  // Simulate a pre-color database, restart through the migration, and verify retention.
-  await browser.close();
-  browser = null;
-  await server.stop();
-  execFileSync("python3", [
-    "tests/historical-schema.py",
-    directory + "/actualbudget.sqlite3",
-    "28",
-  ]);
-  server = await startServer({ dataDirectory: directory });
-  expect((await call(root + "/categories/" + food)).resolved_color).toMatch(
-    /^#[0-9A-F]{6}$/i,
-  );
-  expect(
-    (await call(root + "/transactions")).find((t) => t.category_id === food)
-      .amount,
-  ).toBe(-2500);
   console.log(
-    "PASS category shades, group changes, overrides/reset, grouped budget, tag retirement, archives, migration and mobile",
+    "PASS category shades, group changes, overrides/reset, grouped budget, tag retirement, archives and mobile",
   );
 } finally {
   await browser?.close();

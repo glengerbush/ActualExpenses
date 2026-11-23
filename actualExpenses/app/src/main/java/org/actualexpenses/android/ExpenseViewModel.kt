@@ -21,7 +21,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     private var recoveredPending = false
     private var exportedRecovery: String? = null
     val state = combine(graph.state, selection, busy, localError) { state, selection, busy, error ->
-        state.toUi(busy, error).let { if (selection != null && !state.legacyRecovery && state.scopeRecovery == null) it.copy(screen = selection) else it }
+        state.toUi(busy, error).let { if (selection != null && state.scopeRecovery == null) it.copy(screen = selection) else it }
     }.combine(graph.loading) { state, loading -> state.copy(busy = state.busy || loading) }
         .combine(graph.fatalError) { state, fatal -> state.copy(error = fatal ?: state.error, busy = state.busy || fatal != null) }
         .combine(saveState) { state, operation -> state.copy(savingOperationId = operation.saving, completedOperationId = operation.completed) }
@@ -42,13 +42,6 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         selection.value = null
         graph.schedulePending()
         if (graph.state.value.budgetId != null) withContext(Dispatchers.Main) { refresh() }
-    }
-    override fun recoverLegacyBudget(id: String) = task {
-        graph.access { it.recoverLegacyBudget(id) }
-        selection.value = null
-        graph.schedulePending()
-        // Legacy identity recovery resumes the existing expense flow.
-        withContext(Dispatchers.Main) { refresh() }
     }
     override fun exportRecovery(destination: String, completed: () -> Unit) = task {
         val snapshot = graph.access { it.exportScopeRecovery() }
@@ -119,17 +112,15 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
 
     private fun AppState.toUi(busy: Boolean, localError: String?): ExpenseUiState = ExpenseUiState(
         screen = when {
-            legacyRecovery -> Screen.RECOVERY
             scopeRecovery != null -> Screen.SAVED_WORK
             budgetId == null -> Screen.SERVER
             else -> Screen.EXPENSES
         }, server = server,
-        budgets = budgets.map { Choice(it.fileId, it.name) },
-        expenses = expenses.map { ExpenseRow(it.id, it.amountMinor, LocalDate.parse(it.date), it.payee, it.categoryId, it.category, it.notes, it.pending, it.pendingDeletion, it.editable) },
+        expenses = expenses.map { ExpenseRow(it.id, it.amountMinor, LocalDate.parse(it.date), it.payee, it.categoryId, it.category, it.notes, it.pendingDeletion, it.editable) },
         payees = payees.map { Choice(it.id, it.name) }, categories = categories.map { Choice(it.id, it.name) },
         associations = payeeCategoryAssociations, currency = currency, decimalPlaces = decimalPlaces,
-        online = online, busy = busy, pendingCount = pendingCount, error = if (legacyRecovery) null else localError ?: error, notice = notice,
-        recoveryMessage = if (legacyRecovery) localError ?: error else scopeRecovery,
+        online = online, busy = busy, pendingCount = pendingCount, error = localError ?: error, notice = notice,
+        recoveryMessage = scopeRecovery,
         canCancelConnection = budgetId != null, expenseContext=expenseContext, splitRecovery=splitRecovery,
         scheduledWorkPending=scheduledWorkPending,scheduledWorkError=scheduledWorkError,
     )

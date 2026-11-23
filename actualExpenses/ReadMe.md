@@ -8,9 +8,9 @@ Download the signed APK from the [latest GitHub release](https://github.com/glen
 
 Setup: actualBudget server address → expenses. The server’s single budget opens automatically and is created on first access. No budget name or chooser. No login or password. HTTP LAN and tailnet addresses are supported. The app checks the versioned API and required capabilities before connecting. It uses the Rust actualBudget server in this repository.
 
-An installation containing previous Actual sync data opens a recovery screen and leaves that encrypted data untouched. Legacy pending-work migration is ticket 20; do not uninstall or clear app storage to bypass recovery. This development slice is not yet a production replacement release.
+Updates support the immediately previous patch. The original Actual sync protocol and its saved-state migration are no longer supported.
 
-The app remembers the account, caches recent expenses, and saves pending additions/modifications/deletions durably. Offline editing is limited to unsynced offline-created expenses; edits begun online survive connection loss. Background delivery is best-effort and runs only for pending work.
+The app caches recent expenses, and saves pending additions/modifications/deletions durably. Offline editing is limited to unsynced offline-created expenses; edits begun online survive connection loss. Background delivery is best-effort and runs only for pending work.
 
 ## Build
 
@@ -36,11 +36,11 @@ From `actualExpenses/`, build the sibling server and run Android checks:
 ```sh
 cargo build --manifest-path ../actualBudget/server/Cargo.toml
 ACTUALBUDGET_BINARY="$PWD/../actualBudget/server/target/debug/actualbudget-server" \
-  ACTUAL_FIXTURE="$PWD/tools/compatibility/.fixture/fixture.json" ./gradlew :core:test
+  ./gradlew :core:test
 ./gradlew :app:lintDebug :app:connectedDebugAndroidTest
 ```
 
-Start the disposable Actual 26.10.0 oracle described in [compatibility documentation](../docs/compatibility.md) before core tests. Its legacy tests skip when `ACTUAL_FIXTURE` is absent; skips are not a compatibility pass. Native API tests start their own isolated Rust servers, and never use a real budget. The Android device HTTP test additionally needs instrumentation argument `fixtureServer` pointing to an isolated fixture with a budget named `Native device fixture` and account `Spending`. Without it that device case is not qualified.
+Native API tests start isolated Rust servers and never use a real budget. The Android device HTTP test additionally needs instrumentation argument `fixtureServer` pointing to an isolated fixture with a budget named `Native device fixture` and account `Spending`. Without it that device case is not qualified.
 
 ## Boundaries
 
@@ -50,6 +50,4 @@ The server resolves per-field logical ordering. A newer edit can reject an unpub
 
 Only bounded expense views and reference/change data cross the new API. Idle foreground refresh does not download full transaction history or rewrite unchanged cache data. Background delivery is best effort, only while changes are pending. Android encrypts local data with its existing Keystore identity and excludes it from backup.
 
-Transfer/split activation must add their eligibility rules in tickets 14/15; unsupported imported records currently block activation. Native payee/category rule suggestions and legacy pending-work conversion belong to tickets 19/20. Manual category selection and override remain available.
-
-If the server has merged or restored the budget while this device has queued work, the app keeps the original requests intact. Save the full JSON recovery file, then explicitly confirm opening the current budget. The old queue stops retrying and remains archived locally; review the export against server history before re-entering missing expenses. Failed or cancelled exports never clear work.
+Transfers, income and splits stay outside the expense companion. Payee/category suggestions and manual overrides use the native API.

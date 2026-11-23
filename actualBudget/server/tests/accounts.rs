@@ -560,47 +560,6 @@ fn stale_account_deletion_does_not_erase_newer_financial_edits() {
 }
 
 #[test]
-fn genuine_schema_six_archive_restores_accounts_with_new_metadata_defaults() {
-    let s = Server::start();
-    let expected: Value = serde_json::from_str(include_str!(
-        "../../tests/fixtures/native-schema6-accounts.json"
-    ))
-    .unwrap();
-    let stage = ok(s
-        .client
-        .post(format!("{}/api/v1/restores", s.url))
-        .header("Idempotency-Key", "stage")
-        .header("Content-Type", "application/zip")
-        .body(include_bytes!("../../tests/fixtures/native-schema6-accounts.zip").as_slice())
-        .send()
-        .unwrap());
-    let root = format!(
-        "/api/v1/budgets/{}",
-        expected["budget_id"].as_str().unwrap()
-    );
-    ok(s.write(
-        "POST",
-        &format!(
-            "{root}/restores/{}/activate",
-            stage["data"]["id"].as_str().unwrap()
-        ),
-        "restore",
-        None,
-        json!({"confirm_name":"Schema six account fixture"}),
-    ));
-    let rows = s.get(&format!("{root}/accounts"));
-    let row = &rows["data"][0];
-    for (key, value) in expected["accounts"][0].as_object().unwrap() {
-        assert_eq!(&row[key], value);
-    }
-    assert!(row["group_id"].is_null());
-    assert_eq!(row["deleted"], false);
-    assert_eq!(row["sort_order"], 0);
-    let restored = s.restart();
-    assert_eq!(rows, restored.get(&format!("{root}/accounts")));
-}
-
-#[test]
 fn account_delete_failure_rolls_back_history_balances_and_identity_receipt() {
     let s = Server::start();
     let root = format!("/api/v1/budgets/{B}");

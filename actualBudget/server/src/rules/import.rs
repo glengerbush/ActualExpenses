@@ -164,54 +164,7 @@ pub fn import_clock(db: &Connection, b: &str, row: &Value) -> Result<(), Error> 
     }
     Ok(())
 }
-pub fn enrich(db: &Connection, budget: Option<&str>) -> Result<(), Error> {
-    let mut q=db.prepare("SELECT id,original,archive_sha256 FROM staged_imports WHERE COALESCE(json_extract(report,'$.source_format'),'actual') NOT IN('ynab4','nynab') AND status<>'activated' AND (?1 IS NULL OR budget_id=?1)")?;
-    let stages = q
-        .query_map([budget], |r| {
-            Ok((
-                r.get::<_, String>(0)?,
-                r.get::<_, Vec<u8>>(1)?,
-                r.get::<_, String>(2)?,
-            ))
-        })?
-        .collect::<Result<Vec<_>, _>>()?;
-    for (id, bytes, hash) in stages {
-        let Ok((mut report, data)) = crate::imports::conversion::inspect(&bytes) else {
-            continue;
-        };
-        report["archive_sha256"] = json!(hash);
-        let status = if report["requirements"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|r| r["blocking"] == true)
-        {
-            "blocked"
-        } else {
-            "ready"
-        };
-        db.execute(
-            "UPDATE staged_imports SET status=?2,report=?3,conversion=?4 WHERE id=?1",
-            params![id, status, report.to_string(), data.to_string()],
-        )?;
-    }
-    let mut q=db.prepare("SELECT s.budget_id,s.original FROM staged_imports s JOIN imported_sources i ON i.import_id=s.id AND COALESCE(json_extract(s.report,'$.source_format'),'actual') NOT IN('ynab4','nynab') WHERE s.status='activated' AND (?1 IS NULL OR s.budget_id=?1) UNION SELECT budget_id,original FROM budget_provenance WHERE kind='actual-import' AND original IS NOT NULL AND (?1 IS NULL OR budget_id=?1)")?;
-    let sources = q
-        .query_map([budget], |r| {
-            Ok((r.get::<_, String>(0)?, r.get::<_, Vec<u8>>(1)?))
-        })?
-        .collect::<Result<Vec<_>, _>>()?;
-    for (b, bytes) in sources {
-        let Ok((_, data)) = crate::imports::conversion::inspect(&bytes) else {
-            continue;
-        };
-        install(db, &b, &data["rules"])?;
-        for row in data["clocks"].as_array().unwrap() {
-            import_clock(db, &b, row)?;
-        }
-    }
-    Ok(())
-}
+
 // Preserve predicates when retiring them: removing one would broaden financial execution.
 fn retire_note_behavior(rule: &mut Rule) -> (bool, bool, bool) {
     let previous_actions = rule.actions.len();

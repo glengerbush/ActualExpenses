@@ -5,13 +5,13 @@ Two applications sharing a budget: focused expense tracking and full budgeting.
 ## Language
 
 **actualExpenses**:
-The Android companion for recording and managing expenses in a selected budget. Its scope is expense tracking.
+The Android companion for recording and managing expenses in the household budget. Its scope is expense tracking.
 
 **actualBudget**:
-The full web application for managing budgets, including features beyond expense tracking. A desktop application is deferred.
+The full web application for managing the household budget, including features beyond expense tracking. A desktop application is deferred.
 
 **Budget**:
-An independent financial dataset containing accounts, transactions, categories and a budgeting plan. actualBudget can manage multiple budgets; actualExpenses selects one during setup.
+The single household financial dataset containing transactions, categories and a tracking plan. Both applications open the same budget automatically. Historical account references remain internal.
 _Avoid_: Account
 
 **Account**:
@@ -19,10 +19,10 @@ An internal compatibility reference retained for imported history and queued ope
 _Avoid_: Login account, user identity
 
 **Transaction**:
-A financial entry in the budget-wide history. Existing internal account references remain intact. ActualExpenses lets the user add and edit these entries.
+A financial entry in the budget-wide history. Existing internal account references remain intact. ActualExpenses lets the user add and edit these entries. Each transaction may have optional notes.
 
 **Expense**:
-An ordinary money-out transaction in the selected budget. ActualExpenses shows ordinary expenses, excluding transfers and split transactions. Entries are complete when recorded; sync delivery is separate.
+An ordinary money-out transaction in the household budget. ActualExpenses shows ordinary expenses, excluding transfers and split transactions. Entries are complete when recorded; sync delivery is separate.
 
 **Payee**:
 The person or business receiving an expense payment. It may be selected from existing payees or named when recording an expense.
@@ -43,5 +43,5 @@ A previously retrieved view of budget information available on a device while di
 **Offline expense capture**:
 Recording an expense while disconnected, with correction or deletion allowed before that offline-created expense is delivered. This does not imply full offline budgeting.
 
-**Released-state decoder**:
-A read-only Android migration adapter for the original companion’s durable cache and outbox. It projects saved rows and original queued changes without connecting to the old server or rewriting saved work. The old network client remains test-only as a compatibility oracle.
+**Compatibility window**:
+Only the current release and immediately previous patch are supported. The next patch accepts actualBudget 0.6.0/schema37 and Android 0.4.0 native state. Earlier protocol, database, archive, and retired editor recovery paths are removed. Actual desktop exports remain a supported import format, distinct from upgrading this app.

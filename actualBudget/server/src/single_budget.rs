@@ -28,41 +28,6 @@ pub fn is_empty(db: &Connection, budget: &str) -> Result<bool, Error> {
     Ok(db.query_row("SELECT NOT(EXISTS(SELECT 1 FROM transactions WHERE budget_id=?1) OR EXISTS(SELECT 1 FROM category_groups WHERE budget_id=?1) OR EXISTS(SELECT 1 FROM categories WHERE budget_id=?1 AND NOT(name='Starting Balances' AND is_income=1)) OR EXISTS(SELECT 1 FROM budget_cells WHERE budget_id=?1) OR EXISTS(SELECT 1 FROM payees WHERE budget_id=?1) OR EXISTS(SELECT 1 FROM rules WHERE budget_id=?1) OR EXISTS(SELECT 1 FROM schedules WHERE budget_id=?1) OR EXISTS(SELECT 1 FROM reporting_documents WHERE budget_id=?1))", [budget], |r| r.get(0))?)
 }
 
-pub fn migrate(db: &Connection) -> Result<(), Error> {
-    let ids = db
-        .prepare("SELECT id FROM budgets WHERE deleted=0 ORDER BY rowid")?
-        .query_map([], |r| r.get::<_, String>(0))?
-        .collect::<Result<Vec<_>, _>>()?;
-    if let Some(target) = ids.first()
-        && ids.len() > 1
-    {
-        // The outer schema migration also creates a standalone SQLite backup before its transaction.
-        for id in &ids {
-            let name: String =
-                db.query_row("SELECT name FROM budgets WHERE id=?1", [id], |r| r.get(0))?;
-            crate::lifecycle::make_point(db, id, "upgrade", &format!("Before merging {name}"))?;
-        }
-        db.execute_batch("PRAGMA defer_foreign_keys=ON")?;
-        let primary =
-            crate::lifecycle::archive::validate(&crate::lifecycle::archive::capture(db, target)?)?;
-        provenance::preserve(db, target, &primary, &std::collections::BTreeMap::new())?;
-        for source in ids.iter().skip(1) {
-            merge::copy(db, source, target)?;
-        }
-        crate::lifecycle::archive::validate_financial_state(db, target)?;
-        db.execute(
-            "UPDATE budget_sync SET epoch=lower(hex(randomblob(16))) WHERE budget_id=?1",
-            [target],
-        )?;
-        db.execute(
-            "UPDATE budget_lifecycle SET generation=generation+1 WHERE budget_id=?1",
-            [target],
-        )?;
-    }
-    db.execute_batch("CREATE UNIQUE INDEX budgets_single_active ON budgets((1)) WHERE deleted=0")?;
-    Ok(())
-}
-
 /// Restore archives from any former ledger into the only active identity.
 /// Source receipts cannot be replayed as if they had run against a different budget.
 pub fn retarget(

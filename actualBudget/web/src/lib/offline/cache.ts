@@ -1,10 +1,4 @@
-import {
-  request,
-  RequestError,
-  type Account,
-  type AccountGroup,
-  type Budget,
-} from "../api";
+import { request, RequestError, type Account, type Budget } from "../api";
 import { changes, type Reference, type RegisterPage } from "../register-api";
 import type { SharedPreferences } from "../preferences/types";
 import { validShared } from "../preferences/validation";
@@ -29,7 +23,6 @@ export interface BudgetCache {
   budgetId: string;
   accounts: Account[];
   ledgerAccountId?: string;
-  account_groups?: AccountGroup[];
   payees: Reference[];
   categories: Reference[];
   associations?: Record<string, string>;
@@ -185,21 +178,13 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
         "budget_restored",
       );
     const cached = await readBudget(id).catch(() => null);
-    if (
-      cached?.account_groups &&
-      cached.associations &&
-      cached.snapshot === checkpoint.snapshot
-    ) {
+    if (cached?.associations && cached.snapshot === checkpoint.snapshot) {
       setReachable(true);
       return cached.ledgerAccountId === ledger.id
         ? cached
         : await saveBudget({ ...cached, ledgerAccountId: ledger.id });
     }
-    if (
-      cached?.account_groups &&
-      cached.associations &&
-      cached.epoch === checkpoint.epoch
-    ) {
+    if (cached?.associations && cached.epoch === checkpoint.epoch) {
       try {
         const next = { ...structuredClone(cached), ledgerAccountId: ledger.id };
         let complete = false;
@@ -211,12 +196,9 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
                 throw new Error("Invalid changed preferences");
               next.preferences = change.data;
             } else if (
-              ["accounts", "account_groups", "payees", "categories"].includes(
-                change.entity,
-              )
+              ["accounts", "payees", "categories"].includes(change.entity)
             ) {
-              const key = change.entity as
-                "accounts" | "account_groups" | "payees" | "categories";
+              const key = change.entity as "accounts" | "payees" | "categories";
               const value = change.data as Account & { deleted?: boolean };
               if (
                 !value ||
@@ -231,7 +213,11 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
               } else if (at >= 0) rows[at] = value;
               else rows.push(value);
             } else if (
-              !["transactions", "reporting_documents"].includes(change.entity)
+              ![
+                "transactions",
+                "reporting_documents",
+                "account_groups",
+              ].includes(change.entity)
             )
               throw new Error(
                 "Unsupported change entity; reload references before advancing checkpoint.",
@@ -257,7 +243,7 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
       }
     }
     try {
-      const [accounts, payees, categories, prefs, account_groups, info] =
+      const [accounts, payees, categories, prefs, associations] =
         await Promise.all([
           request<{ data: Account[] }>(
             `/budgets/${id}/accounts?${new URLSearchParams({ snapshot: checkpoint.snapshot })}`,
@@ -267,20 +253,10 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
           request<{ data: SharedPreferences }>(
             `/budgets/${id}/preferences?${new URLSearchParams({ snapshot: checkpoint.snapshot })}`,
           ),
-          request<{ data: AccountGroup[] }>(
-            `/budgets/${id}/account-groups?${new URLSearchParams({ snapshot: checkpoint.snapshot })}`,
+          request<{ data: Record<string, string> }>(
+            `/budgets/${id}/rules/associations?snapshot=${checkpoint.snapshot}`,
           ).then((response) => response.data),
-          request<{ data: { capabilities?: string[] } }>("/info"),
         ]);
-      const associations = info.data.capabilities?.includes(
-        "category_associations",
-      )
-        ? (
-            await request<{ data: Record<string, string> }>(
-              `/budgets/${id}/rules/associations?snapshot=${checkpoint.snapshot}`,
-            )
-          ).data
-        : {};
       if (!validShared(prefs.data))
         throw new Error("The server returned invalid display preferences.");
       setReachable(true);
@@ -290,7 +266,6 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
         budgetId: id,
         accounts,
         ledgerAccountId: ledger.id,
-        account_groups,
         payees,
         categories,
         associations,

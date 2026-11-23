@@ -173,7 +173,9 @@ try {
     page.getByRole("combobox", { name: "Frequency", exact: true }),
   ).toHaveCount(0);
   await page.getByLabel("Amount", { exact: true }).fill("25");
-  await expect(page.getByLabel("Notes", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByLabel("Notes (optional)", { exact: true }),
+  ).toBeVisible();
   await page.getByRole("switch", { name: "Recurring", exact: true }).check();
   await expect(
     page.getByRole("combobox", { name: "Frequency", exact: true }),

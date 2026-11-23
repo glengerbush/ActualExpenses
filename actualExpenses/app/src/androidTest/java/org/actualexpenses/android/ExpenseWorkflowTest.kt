@@ -77,7 +77,7 @@ class ExpenseWorkflowTest {
     }
 
     @Test fun offlineSyncedExpenseCannotOpenButAddingWorks() {
-        val row = ExpenseRow("coffee", -325, LocalDate.now(), "Corner Coffee", null, "", "", false, false, false)
+        val row = ExpenseRow("coffee", -325, LocalDate.now(), "Corner Coffee", null, "", "", false, false)
         compose.setContent { ActualExpensesTheme { ExpensesScreen(state.copy(online = false, expenses = listOf(row)), actions) } }
         compose.onNodeWithText("Corner Coffee").assertIsNotEnabled()
         compose.runOnIdle { assertNull(actions.editing) }
@@ -115,7 +115,7 @@ class ExpenseWorkflowTest {
     }
 
     @Test fun deletionNeedsConfirmationShowingTheExpense() {
-        val row = ExpenseRow("coffee", -325, LocalDate.of(2026, 10, 16), "Corner Coffee", null, "", "", false, false, true)
+        val row = ExpenseRow("coffee", -325, LocalDate.of(2026, 10, 16), "Corner Coffee", null, "", "", false, true)
         compose.setContent { ActualExpensesTheme { ExpensesScreen(state.copy(expenses = listOf(row)), actions) } }
         compose.onNodeWithText("Corner Coffee").performClick()
         compose.onNodeWithContentDescription("Delete expense").performClick()
@@ -152,14 +152,6 @@ class ExpenseWorkflowTest {
         compose.runOnIdle { assertEquals("http://budget:5006",actions.server) }
     }
 
-    @Test fun preservedLegacyWorkShowsRecoveryWithoutSetupOrExpenseActions() {
-        compose.setContent { ActualExpensesTheme { ExpensesScreen(ExpenseUiState(screen=Screen.RECOVERY,recoveryMessage="Previous budget and pending changes are preserved. Keep app data intact."),actions) } }
-        compose.onNodeWithText("Recover saved expenses").assertExists()
-        compose.onNodeWithText("Keep app data intact.",substring=true).assertExists()
-        compose.onNodeWithText("Connect",substring=false).assertDoesNotExist()
-        compose.onNodeWithContentDescription("Add expense").assertDoesNotExist()
-    }
-
     @Test fun restoredFormKeepsOriginalCurrencyAndBudgetContext() {
         val context=ExpenseContext("http://original","budget","spending","original-epoch","USD",2,"comma-dot")
         val live=mutableStateOf(state.copy(expenseContext=context))
@@ -179,7 +171,7 @@ class ExpenseWorkflowTest {
         val original=ExpenseDraft("3.25","2026-10-16","Corner Coffee",notes="Original notes")
         val session=EditSession("coffee",true,original,context)
         actions.session=session
-        val row=ExpenseRow("coffee",325,LocalDate.of(2026,10,16),"Corner Coffee",null,"","Original notes",false,false,true)
+        val row=ExpenseRow("coffee",325,LocalDate.of(2026,10,16),"Corner Coffee",null,"","Original notes",false,true)
         val live=mutableStateOf(state.copy(expenses=listOf(row),expenseContext=context))
         val restoration=StateRestorationTester(compose)
         restoration.setContent {ActualExpensesTheme {ExpensesScreen(live.value,actions)}}
@@ -187,9 +179,9 @@ class ExpenseWorkflowTest {
         compose.runOnIdle {live.value=state.copy(currency="JPY",decimalPlaces=0,expenses=listOf(row.copy(amountMinor=999,notes="Remote notes")),expenseContext=context.copy(epoch="restored-epoch",currency="JPY",decimalPlaces=0))}
         restoration.emulateSavedInstanceStateRestore()
         compose.onNodeWithText("Amount (USD)").assertExists()
-        compose.onNodeWithText("Original notes").assertDoesNotExist()
+        compose.onNodeWithText("Original notes").assertExists()
         compose.onNodeWithText("Save expense").performScrollTo().performClick()
-        compose.runOnIdle {assertEquals(session,actions.saved?.edit);assertEquals("3.25",actions.saved?.amount)}
+        compose.runOnIdle {assertEquals(session,actions.saved?.edit);assertEquals("3.25",actions.saved?.amount);assertEquals("Original notes",actions.saved?.notes)}
         compose.onNodeWithContentDescription("Delete expense").performClick()
         compose.onNode(hasText("Corner Coffee",substring=true) and hasText("3.25",substring=true)).assertExists()
         compose.onNodeWithText("Delete",substring=false).performClick()
@@ -224,7 +216,6 @@ class ExpenseWorkflowTest {
         override fun beginEdit(id: String, completed: (EditSession) -> Unit) { editing = id; completed(session ?: EditSession(id,true)) }
         var server: String? = null
         override fun connect(server: String) {this.server=server}
-        override fun recoverLegacyBudget(id: String) = Unit
         override fun exportRecovery(destination: String, completed: () -> Unit) = Unit
         override fun openCurrentAfterExport() = Unit
         var retriedSchedules=false

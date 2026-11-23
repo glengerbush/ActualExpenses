@@ -8,8 +8,7 @@ mod settings;
 mod storage;
 mod title;
 pub(crate) use storage::{
-    archive_tables, convert, decorate_many, enrich, import_clock, imported_preference, install,
-    record, validate,
+    convert, decorate_many, import_clock, imported_preference, install, record, validate,
 };
 mod parse;
 use crate::{concurrency as sync, error::Error, store::Store};

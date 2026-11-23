@@ -42,6 +42,11 @@ impl NewTransaction {
         validate_id(&self.id)?;
         validate_id(&self.account_id)?;
         validate_date(&self.date)?;
+        if self.notes.chars().count() > 10000 {
+            return Err(Error::invalid(
+                "Notes must contain at most 10000 characters",
+            ));
+        }
         if !(-MAX_MONEY..=MAX_MONEY).contains(&self.amount) {
             return Err(Error::invalid("amount exceeds the safe integer range"));
         }
@@ -76,7 +81,7 @@ pub struct Balances {
     pub uncleared: i64,
 }
 impl Balances {
-    fn add(&mut self, amount: i64, _legacy_cleared: bool) -> Result<(), Error> {
+    fn add(&mut self, amount: i64) -> Result<(), Error> {
         self.total = checked(self.total as i128 + amount as i128)?;
         self.cleared = self.total;
         self.uncleared = 0;
@@ -179,12 +184,9 @@ pub fn calculated_balances(
     account: &str,
 ) -> Result<Balances, Error> {
     let mut balances = Balances::default();
-    let mut query=db.prepare(&format!("SELECT amount,cleared FROM transactions t WHERE budget_id=?1 AND account_id=?2 AND tombstone=0 AND parent_id IS NULL ORDER BY date ASC,starting_balance DESC,{} ASC,id DESC",crate::android_upgrade::order::SQL))?;
-    for row in query.query_map(params![budget, account], |r| {
-        Ok((r.get::<_, i64>(0)?, r.get::<_, bool>(1)?))
-    })? {
-        let (amount, cleared) = row?;
-        balances.add(amount, cleared)?;
+    let mut query=db.prepare(&format!("SELECT amount FROM transactions t WHERE budget_id=?1 AND account_id=?2 AND tombstone=0 AND parent_id IS NULL ORDER BY date ASC,starting_balance DESC,{} ASC,id DESC",crate::transaction_order::SQL))?;
+    for row in query.query_map(params![budget, account], |r| r.get::<_, i64>(0))? {
+        balances.add(row?)?;
     }
     Ok(balances)
 }
@@ -204,7 +206,7 @@ fn apply_addition(db: &Connection, budget: &str, input: &NewTransaction) -> Resu
     let latest:Option<String>=db.query_row("SELECT date FROM transactions WHERE budget_id=?1 AND account_id=?2 AND tombstone=0 AND id<>?3 ORDER BY date DESC,sort_order DESC,id DESC LIMIT 1",params![budget,input.account_id,input.id],|r|r.get(0)).optional()?;
     if latest.as_ref().is_none_or(|date| date <= &input.date) {
         let mut balances = cached_balances(db, budget, &input.account_id)?;
-        balances.add(input.amount, input.cleared)?;
+        balances.add(input.amount)?;
         store_balances(db, budget, &input.account_id, &balances)?;
     } else {
         refresh_account(db, budget, &input.account_id)?;
@@ -245,13 +247,13 @@ fn insert(
             "Transaction ID already exists, including deleted entries",
         ));
     }
-    db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,notes,payee_id,category_id,sort_order) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,(SELECT COALESCE(MAX(sort_order),0)+1 FROM transactions WHERE budget_id=?1))",params![budget,input.id,input.account_id,input.amount,input.date,input.cleared,"",input.payee_id,input.category_id])?;
+    db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,notes,payee_id,category_id,sort_order) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,(SELECT COALESCE(MAX(sort_order),0)+1 FROM transactions WHERE budget_id=?1))",params![budget,input.id,input.account_id,input.amount,input.date,input.cleared,input.notes,input.payee_id,input.category_id])?;
     apply_addition(db, budget, &input)?;
     get(db, budget, &input.id)
 }
-const SELECT: &str = "SELECT t.id,t.account_id,t.amount,t.date,t.cleared,t.reconciled,t.starting_balance,CASE WHEN p.tombstone=0 THEN t.payee_id END,CASE WHEN p.tombstone=0 THEN COALESCE((SELECT name FROM accounts WHERE budget_id=t.budget_id AND id=p.transfer_account_id),p.name) END,t.category_id,c.name,c.is_income,'',a.name,t.sort_order,t.imported_payee,t.payee_id,t.transfer_id,t.is_parent,t.parent_id,(SELECT counterpart.account_id FROM transactions counterpart WHERE counterpart.budget_id=t.budget_id AND counterpart.id=t.transfer_id) FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id";
+const SELECT: &str = "SELECT t.id,t.account_id,t.amount,t.date,t.cleared,t.reconciled,t.starting_balance,CASE WHEN p.tombstone=0 THEN t.payee_id END,CASE WHEN p.tombstone=0 THEN COALESCE((SELECT name FROM accounts WHERE budget_id=t.budget_id AND id=p.transfer_account_id),p.name) END,t.category_id,c.name,c.is_income,t.notes,a.name,t.sort_order,t.imported_payee,t.payee_id,t.transfer_id,t.is_parent,t.parent_id,(SELECT counterpart.account_id FROM transactions counterpart WHERE counterpart.budget_id=t.budget_id AND counterpart.id=t.transfer_id) FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id";
 fn row(r: &rusqlite::Row) -> rusqlite::Result<Value> {
-    let mut value = json!({"id":r.get::<_,String>(0)?,"account_id":r.get::<_,String>(1)?,"amount":r.get::<_,i64>(2)?,"date":r.get::<_,String>(3)?,"cleared":r.get::<_,bool>(4)?,"reconciled":r.get::<_,bool>(5)?,"starting_balance":r.get::<_,bool>(6)?,"payee_id":r.get::<_,Option<String>>(7)?,"payee_name":r.get::<_,Option<String>>(8)?,"category_id":r.get::<_,Option<String>>(9)?,"category_name":r.get::<_,Option<String>>(10)?,"category_is_income":r.get::<_,Option<bool>>(11)?,"notes":"","account_name":r.get::<_,String>(13)?,"sort_order":r.get::<_,i64>(14)?,"imported_payee":r.get::<_,Option<String>>(15)?,"retained_payee_id":r.get::<_,Option<String>>(16)?,"transfer_id":r.get::<_,Option<String>>(17)?,"is_parent":r.get::<_,bool>(18)?,"parent_id":r.get::<_,Option<String>>(19)?});
+    let mut value = json!({"id":r.get::<_,String>(0)?,"account_id":r.get::<_,String>(1)?,"amount":r.get::<_,i64>(2)?,"date":r.get::<_,String>(3)?,"cleared":r.get::<_,bool>(4)?,"reconciled":r.get::<_,bool>(5)?,"starting_balance":r.get::<_,bool>(6)?,"payee_id":r.get::<_,Option<String>>(7)?,"payee_name":r.get::<_,Option<String>>(8)?,"category_id":r.get::<_,Option<String>>(9)?,"category_name":r.get::<_,Option<String>>(10)?,"category_is_income":r.get::<_,Option<bool>>(11)?,"notes":r.get::<_,String>(12)?,"account_name":r.get::<_,String>(13)?,"sort_order":r.get::<_,i64>(14)?,"imported_payee":r.get::<_,Option<String>>(15)?,"retained_payee_id":r.get::<_,Option<String>>(16)?,"transfer_id":r.get::<_,Option<String>>(17)?,"is_parent":r.get::<_,bool>(18)?,"parent_id":r.get::<_,Option<String>>(19)?});
     if value["transfer_id"].is_null() {
         value.as_object_mut().unwrap().remove("transfer_id");
     } else {
@@ -291,7 +293,7 @@ pub fn validate_patch(previous: &Value, patch: &Value) -> Result<NewTransaction,
     if fields.is_empty() {
         return Err(Error::invalid("Provide at least one field to edit"));
     }
-    let mut input = json!({"id":id,"account_id":previous["account_id"],"amount":previous["amount"],"date":previous["date"],"cleared":previous["cleared"],"notes":"","payee_id":previous.get("retained_payee_id").unwrap_or(&previous["payee_id"]),"category_id":previous["category_id"]});
+    let mut input = json!({"id":id,"account_id":previous["account_id"],"amount":previous["amount"],"date":previous["date"],"cleared":previous["cleared"],"notes":previous["notes"],"payee_id":previous.get("retained_payee_id").unwrap_or(&previous["payee_id"]),"category_id":previous["category_id"]});
     for (field, value) in fields {
         if ![
             "account_id",
@@ -307,9 +309,6 @@ pub fn validate_patch(previous: &Value, patch: &Value) -> Result<NewTransaction,
         .contains(&field.as_str())
         {
             return Err(Error::invalid(format!("Cannot edit field {field}")));
-        }
-        if field == "notes" {
-            continue;
         }
         input[field] = value.clone();
         if field == "new_payee" {
@@ -384,7 +383,7 @@ fn update_row(
             None
         },
     )?;
-    db.execute("UPDATE transactions SET account_id=?3,amount=?4,date=?5,cleared=?6,notes=?7,payee_id=?8,category_id=?9 WHERE budget_id=?1 AND id=?2",params![budget,id,input.account_id,input.amount,input.date,input.cleared,"",input.payee_id,input.category_id])?;
+    db.execute("UPDATE transactions SET account_id=?3,amount=?4,date=?5,cleared=?6,notes=?7,payee_id=?8,category_id=?9 WHERE budget_id=?1 AND id=?2",params![budget,id,input.account_id,input.amount,input.date,input.cleared,input.notes,input.payee_id,input.category_id])?;
     let financial_changed = previous["account_id"] != input.account_id
         || previous["amount"] != input.amount
         || previous["date"] != input.date
@@ -424,7 +423,7 @@ pub fn delete(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
 }
 pub fn duplicate(db: &Connection, budget: &str, source: &str, id: &str) -> Result<Value, Error> {
     let previous = get(db, budget, source)?;
-    let input:NewTransaction=serde_json::from_value(json!({"id":id,"account_id":previous["account_id"],"amount":previous["amount"],"date":previous["date"],"cleared":false,"notes":"","payee_id":previous["payee_id"],"category_id":previous["category_id"]})).map_err(Error::internal)?;
+    let input:NewTransaction=serde_json::from_value(json!({"id":id,"account_id":previous["account_id"],"amount":previous["amount"],"date":previous["date"],"cleared":false,"notes":previous["notes"],"payee_id":previous["payee_id"],"category_id":previous["category_id"]})).map_err(Error::internal)?;
     input.validate()?;
     // A merged off-budget row can retain independently ordered category data.
     insert(db, budget, input, true)?;

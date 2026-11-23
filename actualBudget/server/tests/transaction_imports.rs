@@ -190,7 +190,7 @@ fn csv_preview_matches_a_manual_expense_and_repeated_commit_does_not_duplicate_i
     assert_eq!(after["data"].as_array().unwrap().len(), 1);
     assert_eq!(after["data"][0]["id"], id);
     assert_eq!(after["data"][0]["amount"], -1234);
-    assert_eq!(after["data"][0]["notes"], "");
+    assert_eq!(after["data"][0]["notes"], "Manual note");
     assert_eq!(after["data"][0]["cleared"], true);
     assert_eq!(after["balances"]["total"], -1234);
     assert_eq!(send("commit", &command).json::<Value>().unwrap(), receipt);
@@ -372,7 +372,7 @@ fn remembered_options_keep_individual_original_clocks_files_and_receipts_across_
         .unwrap();
     assert_eq!(stage.status(), 201);
     let stage = stage.json::<Value>().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 37);
+    assert_eq!(stage["data"]["report"]["schema_version"], 38);
     let activate = target.post(
         &format!(
             "{root}/restores/{}/activate",

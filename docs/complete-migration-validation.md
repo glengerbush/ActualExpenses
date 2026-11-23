@@ -1,3 +1,5 @@
+> Historical verification record. These older-version upgrade paths and harnesses have been removed. Current support is defined in [compatibility.md](compatibility.md).
+
 # Complete migration and Android upgrade qualification
 
 Ticket50 qualification, 2026-11-10. Review baseline `b4640cc`. Disposable data

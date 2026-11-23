@@ -1409,7 +1409,11 @@
                     ].includes(column)}
                     class:amount={column === "amount"}
                     class:positive={column === "amount" && row.amount > 0}
-                    data-label={t(columnLabels[column])}>{cell(row, column)}</td
+                    data-label={t(columnLabels[column])}
+                    >{cell(row, column)}
+                    {#if column === "payee" && row.notes}<small
+                        class="transaction-note">{row.notes}</small
+                      >{/if}</td
                   >{/each}
                 <td class="row-actions"
                   ><button
@@ -1479,6 +1483,18 @@
 </section>
 
 <style>
+  .transaction-note {
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    color: var(--muted);
+    font-size: 0.8rem;
+    max-width: 32rem;
+  }
   .split-child {
     background: var(--hover);
   }

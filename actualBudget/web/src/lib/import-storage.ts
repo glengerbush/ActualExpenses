@@ -34,7 +34,7 @@ export async function readImportSession(): Promise<ImportSession | null> {
         const value = request.result;
         if (
           value &&
-          (![1, 2].includes(value.version) ||
+          (value.version !== 2 ||
             typeof value.key !== "string" ||
             (value.sourceKind !== undefined &&
               !["actual", "ynab4", "nynab"].includes(value.sourceKind)) ||
@@ -42,10 +42,7 @@ export async function readImportSession(): Promise<ImportSession | null> {
             (value.destination !== undefined &&
               (!/^[0-9a-f-]{36}$/i.test(value.destination?.budgetId ?? "") ||
                 !/^[0-9a-f]{32}$/.test(value.destination?.epoch ?? ""))) ||
-            (value.file !== null &&
-              !(value.version === 1
-                ? value.file instanceof Blob
-                : value.file instanceof ArrayBuffer)))
+            (value.file !== null && !(value.file instanceof ArrayBuffer)))
         )
           reject(
             new Error(
@@ -59,9 +56,7 @@ export async function readImportSession(): Promise<ImportSession | null> {
                   ...value,
                   version: 1,
                   file:
-                    value.version === 2 && value.file !== null
-                      ? new Blob([value.file])
-                      : value.file,
+                    value.file !== null ? new Blob([value.file]) : value.file,
                 }
               : null,
           );
@@ -76,7 +71,7 @@ export async function readImportSession(): Promise<ImportSession | null> {
 export async function saveImportSession(session: ImportSession): Promise<void> {
   // Safari/WebKit can reject Blob/File values in IndexedDB even for tiny files.
   // Read before opening a transaction: awaiting file I/O inside it can close it.
-  // Keep the original bytes and request identities, with legacy Blob reads intact.
+  // Keep the original bytes and request identities.
   const stored = {
     ...session,
     version: 2,

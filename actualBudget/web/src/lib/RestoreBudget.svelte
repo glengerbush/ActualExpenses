@@ -47,12 +47,7 @@
     const stage = session?.stage;
     if (!stage) return;
     target = (await request<{ data: ManagedBudget }>("/budget")).data;
-    // Never retarget an unconfirmed legacy restore to another identity.
-    const legacy =
-      stage.budget_id !== target.id
-        ? await readLifecycle(stage.budget_id)
-        : null;
-    pending = legacy ?? (await readLifecycle(target.id));
+    pending = await readLifecycle(target.id);
     otherPending =
       !!pending &&
       (pending.budgetId !== target.id ||

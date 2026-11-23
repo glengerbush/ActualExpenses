@@ -103,7 +103,7 @@ internal class BudgetApi(private val base: String, private val transport: HttpTr
         return json
     }
 
-    fun requireSupported(): Set<String> {
+    fun requireSupported() {
         val info =
             request("/info").getAsJsonObject("data")
                 ?: throw IllegalArgumentException(
@@ -121,18 +121,20 @@ internal class BudgetApi(private val base: String, private val transport: HttpTr
             capabilities.containsAll(
                 setOf(
                     "companion_expenses",
+                    "unified_ledger",
                     "field_ordering",
                     "change_cursors",
                     "budget_epoch_preconditions",
+                    "transaction_receipt_lookup",
+                    "expense_kind_precondition",
+                    "schedule_catch_up",
+                    "category_associations",
                 )
             )
         ) {
             "This server cannot support the companion safely. Saved work is retained."
         }
-        require("transfers" !in capabilities || "expense_kind_precondition" in capabilities) {
-            "This server needs companion transfer protection. Update actualBudget; saved work is retained."
-        }
-        return capabilities
+
     }
 
     companion object {

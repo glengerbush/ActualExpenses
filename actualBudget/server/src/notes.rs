@@ -333,48 +333,7 @@ pub fn import_clock(db: &Connection, b: &str, row: &Value) -> Result<(), Error> 
     }
     Ok(())
 }
-pub fn enrich(db: &Connection, only: Option<&str>) -> Result<(), Error> {
-    domain_identities(db, only)?;
-    let mut q=db.prepare("SELECT i.budget_id,s.original FROM imported_sources i JOIN staged_imports s ON s.id=i.import_id WHERE (?1 IS NULL OR i.budget_id=?1) AND coalesce(json_extract(s.report,'$.source_format'),'actual') NOT IN('ynab4','nynab')")?;
-    let sources = q
-        .query_map([only], |r| {
-            Ok((r.get::<_, String>(0)?, r.get::<_, Vec<u8>>(1)?))
-        })?
-        .collect::<Result<Vec<_>, _>>()?;
-    for (b, bytes) in sources {
-        let (_, data) = crate::imports::conversion::inspect(&bytes)?;
-        install(db, &b, &data["notes"])?;
-        for row in data["clocks"].as_array().into_iter().flatten() {
-            import_clock(db, &b, row)?;
-        }
-    }
-    // Conversion advances the staged review, never its immutable upload receipt.
-    let mut stages=db.prepare("SELECT id,original FROM staged_imports WHERE status<>'activated' AND coalesce(json_extract(report,'$.source_format'),'actual') NOT IN('ynab4','nynab') AND coalesce(json_extract(conversion,'$.notes_version'),0)<>1")?;
-    let stages = stages
-        .query_map([], |r| {
-            Ok((r.get::<_, String>(0)?, r.get::<_, Vec<u8>>(1)?))
-        })?
-        .collect::<Result<Vec<_>, _>>()?;
-    for (id, bytes) in stages {
-        let (mut report, data) = crate::imports::conversion::inspect(&bytes)?;
-        report["archive_sha256"] = json!(crate::lifecycle::archive::hash(&bytes));
-        let blocked = report["requirements"]
-            .as_array()
-            .into_iter()
-            .flatten()
-            .any(|r| r["blocking"] == true);
-        db.execute(
-            "UPDATE staged_imports SET conversion=?2,report=?3,status=?4 WHERE id=?1",
-            params![
-                id,
-                data.to_string(),
-                report.to_string(),
-                if blocked { "blocked" } else { "ready" }
-            ],
-        )?;
-    }
-    Ok(())
-}
+
 pub fn validate_archive(db: &Connection, b: &str) -> Result<(), Error> {
     let mut q = db.prepare("SELECT id,note,tombstone FROM notes WHERE budget_id=?1")?;
     for row in q.query_map([b], |r| {

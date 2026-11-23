@@ -1,6 +1,5 @@
 package org.actualexpenses.core
 
-import org.actualexpenses.core.protocol.RemoteBudget
 import java.time.LocalDate
 
 /** Store must replace its contents atomically; Android encrypts this payload with Keystore. */
@@ -26,11 +25,10 @@ data class ExpenseDraft(
 /** Issued when editing begins; preserves permission if the connection drops during editing. */
 data class EditSession(val transactionId: String, val beganOnline: Boolean, val original: ExpenseDraft? = null, val context: ExpenseContext? = null)
 data class AppState(
-    val server: String = "", val authenticated: Boolean = false,
-    val serverSelected: Boolean = false, val legacyRecovery: Boolean = false,
+    val server: String = "",
+    val serverSelected: Boolean = false,
     val expenseContext: ExpenseContext? = null,
-    val budgets: List<RemoteBudget> = emptyList(), val budgetId: String? = null,
-    val accounts: List<Choice> = emptyList(), val selectedAccountId: String? = null,
+    val budgetId: String? = null,
     val expenses: List<Expense> = emptyList(), val payees: List<Choice> = emptyList(),
     val categories: List<Choice> = emptyList(), val currency: String = "", val decimalPlaces: Int = 2,
     val payeeCategoryAssociations: Map<String, String> = emptyMap(),

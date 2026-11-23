@@ -64,7 +64,6 @@ pub fn router(store: Store) -> Router {
         .merge(crate::recovery::router())
         .merge(concurrency::router())
         .merge(crate::companion::router())
-        .merge(crate::android_upgrade::router())
         .route("/api", any(|| async { Error::missing() }))
         .route("/api/{*rest}", any(|| async { Error::missing() }))
         .layer(DefaultBodyLimit::max(65536))
@@ -107,7 +106,6 @@ async fn cancellation_scope(
                 "/api/v1/budgets/{budget}/schedules/commands"
                     | "/api/v1/budgets/{budget}/reporting/commands"
                     | "/api/v1/budgets/{budget}/notes/commands"
-                    | "/api/v1/budgets/{budget}/android-upgrade/operations"
                     | "/api/v1/budgets/{budget}/rules"
                     | "/api/v1/budgets/{budget}/rules/apply"
                     | "/api/v1/budgets/{budget}/rules/transactions"
@@ -152,7 +150,6 @@ async fn cancellation_scope(
                     | "/api/v1/budgets/{budget}/schedules/commands"
                     | "/api/v1/budgets/{budget}/reporting/commands"
                     | "/api/v1/budgets/{budget}/notes/commands"
-                    | "/api/v1/budgets/{budget}/android-upgrade/operations"
                     | "/api/v1/budgets/{budget}/rules"
                     | "/api/v1/budgets/{budget}/rules/apply"
                     | "/api/v1/budgets/{budget}/rules/transactions"
@@ -226,7 +223,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["single_budget", "unified_ledger", "category_colors", "transaction_recurrence", "ynab_imports", "transaction_csv_export", "transaction_file_imports", "transaction_file_parsing", "transaction_import_settings", "transaction_matching", "transaction_merge", "recovery", "recovery_cancellation", "schedules", "schedule_catch_up", "schedule_matching", "schedule_discovery", "schedule_conversion", "android_upgrade", "rules", "rule_entry", "rule_preview", "rule_cancellation", "rule_receipt_lookup", "category_learning", "category_associations", "budget_planning", "tracking_budget", "bulk_transactions", "undo_redo", "history_cancellation", "history_receipt_lookup", "payee_locations", "location_cancellation", "expense_kind_precondition", "transfers", "transfer_cancellation", "transfer_receipt_lookup", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "actual_imports", "payee_management", "reference_cancellation", "splits", "register_queries", "register_settings", "reporting", "historical_reports", "bounded_report_inspection", "custom_reports", "bounded_queries", "notes", "atomic_transaction_batch", "crossover", ],
+        "capabilities": ["single_budget", "unified_ledger", "category_colors", "transaction_recurrence", "ynab_imports", "transaction_csv_export", "transaction_file_imports", "transaction_file_parsing", "transaction_import_settings", "transaction_matching", "transaction_merge", "recovery", "recovery_cancellation", "schedules", "schedule_catch_up", "schedule_matching", "schedule_discovery", "schedule_conversion", "rules", "rule_entry", "rule_preview", "rule_cancellation", "rule_receipt_lookup", "category_learning", "category_associations", "budget_planning", "tracking_budget", "bulk_transactions", "undo_redo", "history_cancellation", "history_receipt_lookup", "payee_locations", "location_cancellation", "expense_kind_precondition", "transfers", "transfer_cancellation", "transfer_receipt_lookup", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "actual_imports", "payee_management", "reference_cancellation", "splits", "register_queries", "register_settings", "reporting", "historical_reports", "bounded_report_inspection", "custom_reports", "bounded_queries", "notes", "atomic_transaction_batch", "crossover", ],
         "openapi": "/api/v1/openapi.json"
     }))
 }

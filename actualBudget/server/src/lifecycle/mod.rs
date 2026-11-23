@@ -276,24 +276,7 @@ pub fn link_operation(
     }
     Ok(())
 }
-pub fn backfill_operation_links(db: &Connection) -> Result<(), Error> {
-    let mut query =
-        db.prepare("SELECT scope,operation_id,payload,response FROM operations ORDER BY rowid")?;
-    let rows = query
-        .query_map([], |r| {
-            Ok((
-                r.get::<_, String>(0)?,
-                r.get::<_, String>(1)?,
-                r.get::<_, String>(2)?,
-                r.get::<_, String>(3)?,
-            ))
-        })?
-        .collect::<Result<Vec<_>, _>>()?;
-    for (scope, key, payload, response) in rows {
-        link_operation(db, &scope, &key, &payload, &response)?;
-    }
-    Ok(())
-}
+
 fn receipts(db: &Connection, budget: &str) -> Result<Vec<archive::Receipt>, Error> {
     let mut query=db.prepare("SELECT o.scope,o.operation_id,o.payload,o.response FROM operations o JOIN operation_budget_links l ON l.scope=o.scope AND l.operation_id=o.operation_id WHERE l.budget_id=?1 ORDER BY o.scope,o.operation_id")?;
     Ok(query
@@ -627,7 +610,7 @@ async fn upload(
         let validated=archive::validate(&bytes)?;
         let budget=validated.state.budget["id"].as_str().unwrap().to_owned();
         let name=validated.state.budget["name"].as_str().unwrap().to_owned();
-        let report=json!({"format_version":1,"schema_version":crate::migrations::CURRENT_VERSION,"domains":validated.state.tables.iter().map(|(name,table)|(name.clone(),json!(table.rows.len()))).collect::<serde_json::Map<_,_>>(),"receipt_count":validated.state.receipts.len(),"original_preserved":true,"retired_external_connections":validated.retired_external_connections});
+        let report=json!({"format_version":1,"schema_version":crate::migrations::CURRENT_VERSION,"domains":validated.state.tables.iter().map(|(name,table)|(name.clone(),json!(table.rows.len()))).collect::<serde_json::Map<_,_>>(),"receipt_count":validated.state.receipts.len(),"original_preserved":true});
         let id=uuid::Uuid::new_v4().to_string();
         db.execute("INSERT INTO native_restore_stages(id,archive_sha256,original,budget_id,name,created_at,report) VALUES(?1,?2,?3,?4,?5,strftime('%Y-%m-%dT%H:%M:%fZ','now'),?6)",params![id,sha,bytes.as_ref(),budget,name,report.to_string()])?;
         stage_report(db,&id)

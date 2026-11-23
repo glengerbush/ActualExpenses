@@ -104,7 +104,6 @@ jobs:
       VERSION: ${{ needs.plan.outputs.android_version }}
       BEFORE: ${{ needs.plan.outputs.before }}
       CHANNEL: ${{ needs.plan.outputs.channel }}
-      ACTUAL_FIXTURE: ${{ github.workspace }}/actualExpenses/tools/compatibility/.fixture/fixture.json
       ACTUALBUDGET_BINARY: ${{ github.workspace }}/actualBudget/server/target/debug/actualbudget-server
       RUSTUP_TOOLCHAIN: 1.99.1
     steps:
@@ -142,29 +141,9 @@ jobs:
         run: |
           rustup toolchain install 1.99.1 --profile minimal
           cargo build --locked --manifest-path actualBudget/server/Cargo.toml
-      - name: Build genuine prior server for app-first upgrade acceptance
-        run: |
-          # Provenance: actualBudget/tests/fixtures/android-schema17.json.
-          mkdir "$RUNNER_TEMP/actualbudget-prior"
-          git archive 3747e04fd0d2dce67014550ed30411ad4ac37b75 actualBudget/server | tar -x -C "$RUNNER_TEMP/actualbudget-prior"
-          CARGO_TARGET_DIR="$RUNNER_TEMP/actualbudget-prior-target" cargo build --locked --manifest-path "$RUNNER_TEMP/actualbudget-prior/actualBudget/server/Cargo.toml"
-          printf '%s\n' "ACTUALBUDGET_PRE_UPGRADE_BINARY=$RUNNER_TEMP/actualbudget-prior-target/debug/actualbudget-server" >> "$GITHUB_ENV"
-      - name: Test both server transports and run Android lint
+      - name: Test current Android interface and run lint
         working-directory: actualExpenses
         run: |
-          npm ci --prefix tools/compatibility
-          node tools/compatibility/fixture.mjs > "$RUNNER_TEMP/actual-fixture.log" 2>&1 &
-          fixture_pid=$!
-          trap 'kill "$fixture_pid" 2>/dev/null || true' EXIT
-          for attempt in {1..120}; do
-            if [ -f "$ACTUAL_FIXTURE" ]; then break; fi
-            if ! kill -0 "$fixture_pid" 2>/dev/null; then
-              echo '::error::Disposable Actual server failed to start.'
-              exit 1
-            fi
-            sleep 1
-          done
-          test -f "$ACTUAL_FIXTURE"
           ./gradlew --no-daemon :core:test :app:lintRelease
           python3 - <<'PY'
           import pathlib, xml.etree.ElementTree as ET

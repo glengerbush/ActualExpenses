@@ -164,7 +164,7 @@
             preferences.shared.date_format,
           ),
           dateFormat: preferences.shared.date_format,
-          notes: "",
+          notes: initial?.notes ?? "",
           category: initial?.category_id ?? "",
           cleared: true,
           syncDate: preferences.shared.sync_transfer_date ?? false,
@@ -331,7 +331,7 @@
             account_id: draft.source,
             date,
             amount,
-            notes: "",
+            notes: draft.notes,
             cleared: true,
             category_id: draft.category || null,
             payee_id: null,
@@ -396,7 +396,7 @@
             for (const [field, value] of Object.entries({
               amount,
               date,
-              notes: "",
+              notes: draft.notes,
               cleared: true,
               category_id: draft.category || null,
               account_id: draft.source,
@@ -414,7 +414,7 @@
               to_account_id: draft.destination,
               amount,
               date,
-              notes: "",
+              notes: draft.notes,
               cleared: true,
               category_id: draft.category || null,
             };
@@ -640,6 +640,15 @@
               </div>{/if}
           {/if}
         </div>
+        {#if draft.mode !== "link"}<label for="transfer-notes"
+            >{t("Notes (optional)")}</label
+          ><textarea
+            id="transfer-notes"
+            rows="2"
+            maxlength="10000"
+            value={draft.notes}
+            oninput={(event) => edit("notes", event.currentTarget.value)}
+          ></textarea>{/if}
       </fieldset>
       {#if draft.pending}<p>
           The original request is saved. Retry unchanged or cancel it before

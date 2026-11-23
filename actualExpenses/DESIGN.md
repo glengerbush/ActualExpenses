@@ -56,7 +56,7 @@ Preserve Android familiarity. Keep actual data primary. Do not present synthetic
 
 ## API transition refinement (ticket 06)
 
-Preserve the existing native Material 3 Operate surface. Setup asks only for a server address and automatically opens its single expense ledger. Server is available from the register; pending work prevents crossing its original scope. Legacy state gets a plain recovery explanation with no destructive reset or competing setup action.
+Preserve the existing native Material 3 Operate surface. Setup asks only for a server address and automatically opens its single expense ledger. Server is available from the register; pending work prevents crossing its original scope. Current native saved-work recovery remains available when a budget is replaced.
 
 Expense editors preserve their original financial context across screen restoration. Restored budget or incompatible server errors retain entered values. No extra navigation, auth fields or sync dashboard were introduced. Final native render evidence and qualification limits live in [Android API validation](../docs/android-api-validation.md).
 

@@ -731,7 +731,7 @@ impl Compiler<'_> {
         if terms.is_empty() {
             terms = vec![
                 "t.date DESC".into(),
-                format!("{} DESC", crate::android_upgrade::order::SQL),
+                format!("{} DESC", crate::transaction_order::SQL),
             ]
         }
         terms.push("t.id ASC".into());

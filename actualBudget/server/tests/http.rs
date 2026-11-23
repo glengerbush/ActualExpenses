@@ -527,7 +527,7 @@ fn ordinary_income_expense_and_refund_have_exact_register_balances_after_restart
         register["balances"],
         json!({"total":29000,"cleared":29000,"uncleared":0})
     );
-    assert_eq!(register["data"][0]["notes"], "");
+    assert_eq!(register["data"][0]["notes"], "Refund");
     assert_eq!(register["data"][0]["running_balance"], 29000);
     assert_eq!(register["data"][1]["running_balance"], 28766);
     assert_eq!(
@@ -823,7 +823,6 @@ fn register_mutations_and_date_cutoffs_match_independent_actual_fixture() {
         normalized.sort_by(|a, b| a["id"].as_str().cmp(&b["id"].as_str()));
         let mut expected = snapshot["transactions"].clone();
         for row in expected.as_array_mut().unwrap() {
-            row["notes"] = json!("");
             row["cleared"] = json!(true);
             row["reconciled"] = json!(false);
         }
@@ -869,52 +868,4 @@ fn rejected_financial_change_rolls_back_inline_references_and_operation_outcome(
         .json()
         .unwrap();
     assert_eq!(page["data"][0]["running_balance"], 9007199254740991_i64);
-}
-
-#[test]
-fn schema_one_upgrade_preserves_data_replay_and_restorable_backup() {
-    let directory = tempfile::tempdir().unwrap();
-    std::fs::write(
-        directory.path().join("actualbudget.sqlite3"),
-        include_bytes!("../../tests/fixtures/server-v1.sqlite3"),
-    )
-    .unwrap();
-    let server = Server::with_data(directory);
-    let budget = "20000000-0000-4000-8000-000000000001";
-    let account = "20000000-0000-4000-8000-000000000002";
-    let path = format!("/api/v1/budgets/{budget}/accounts");
-    let original: Value = server.get(&path).json().unwrap();
-    assert_eq!(original["data"][0]["balance"], -12345);
-    assert_eq!(original["data"][0]["notes"], "Schema one data");
-    let replay=server.post(&path,"account",json!({"id":account,"name":"Preserved account","opening_balance":-12345,"opening_date":"2024-02-29","notes":"Schema one data"}));
-    assert_eq!(replay.status(), 201);
-    // Historical receipts stay byte-equivalent; fresh reads include schema 7 metadata.
-    assert_eq!(
-        replay.json::<Value>().unwrap()["data"],
-        json!({"id":account,"name":"Preserved account","notes":"Schema one data","off_budget":false,"closed":false,"balance":-12345})
-    );
-    assert_eq!(original["data"][0]["group_id"], Value::Null);
-    assert_eq!(original["data"][0]["deleted"], false);
-    let backups = std::fs::read_dir(server.data.path().join("backups"))
-        .unwrap()
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
-    assert_eq!(backups.len(), 1);
-    let restored = tempfile::tempdir().unwrap();
-    std::fs::copy(
-        backups[0].path(),
-        restored.path().join("actualbudget.sqlite3"),
-    )
-    .unwrap();
-    assert_eq!(server.post(&format!("/api/v1/budgets/{budget}/transactions"),"after-upgrade",json!({"id":"20000000-0000-4000-8000-000000000003","account_id":account,"amount":345,"date":"2026-01-01"})).status(),201);
-    let server = server.restart();
-    assert_eq!(
-        server.get(&path).json::<Value>().unwrap()["data"][0]["balance"],
-        -12000
-    );
-    let backup = Server::with_data(restored);
-    assert_eq!(
-        backup.get(&path).json::<Value>().unwrap()["data"],
-        original["data"]
-    );
 }

@@ -9,9 +9,7 @@ let browser;
 async function editCategory(tab, name, kind = "categories") {
   await tab.evaluate(
     async ({ name, kind }) => {
-      const budget = JSON.parse(
-        localStorage.getItem("actualBudget.selection"),
-      ).budgetId;
+      const budget = (await (await fetch("/api/v1/budget")).json()).data.id;
       const root = `/api/v1/budgets/${budget}`;
       const rows = (
         await (await fetch(`${root}/${kind}?include_deleted=true`)).json()

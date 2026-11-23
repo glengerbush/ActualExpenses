@@ -1,7 +1,7 @@
 import { captureAmountFormat, type AmountFormat } from "../money";
 import { validDate } from "../dates";
 import { uuid, request } from "../api";
-import { validClock, resetCorrectedClock } from "../edit-clock";
+import { resetCorrectedClock } from "../edit-clock";
 import {
   sameMutation,
   type PendingMutation,
@@ -64,7 +64,6 @@ function validate(value: unknown): asserts value is OutboxEntry {
     !canonicalUuid(e.row?.id) ||
     e.pending?.key !== e.key ||
     !validPending(e.pending, e.budgetId) ||
-    (e.pending.edit_clock !== undefined && !validClock(e.pending.edit_clock)) ||
     !Number.isSafeInteger(e.row?.amount) ||
     !validDate(e.row?.date) ||
     typeof e.row?.notes !== "string" ||
@@ -92,9 +91,8 @@ async function all(tx: IDBTransaction): Promise<OutboxEntry[]> {
   const pending = rows as OutboxEntry[];
   pending.sort(
     (a, b) =>
-      (a.pending.edit_clock ?? a.createdAt).localeCompare(
-        b.pending.edit_clock ?? b.createdAt,
-      ) || a.key.localeCompare(b.key),
+      a.pending.edit_clock!.localeCompare(b.pending.edit_clock!) ||
+      a.key.localeCompare(b.key),
   );
   const byKey = new Map(pending.map((entry) => [entry.key, entry]));
   const ordered: OutboxEntry[] = [];

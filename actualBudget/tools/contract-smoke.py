@@ -13,6 +13,7 @@ import datetime
 import base64
 import hashlib
 import json
+from datetime import date as calendar_date, timedelta
 import os
 from pathlib import Path
 import selectors
@@ -562,7 +563,9 @@ def main():
                   {"id": discovery_payee, "name": "Contract weekly bill"},
                   {"Idempotency-Key": "discovery-payee"}, 201)
             history_ids = []
-            for date in ("2026-10-12", "2026-10-19", "2026-10-26", "2026-11-02"):
+            # Keep discovery history in the same window as the live schedule posts above.
+            as_of = calendar_date.fromisoformat(schedule_today)
+            for date in ((as_of - timedelta(weeks=n)).isoformat() for n in (4, 3, 2, 1)):
                 history_id = str(uuid.uuid4())
                 history_ids.append(history_id)
                 check(rr + "/transactions", budgets + "/{budget}/transactions", "POST",
@@ -571,12 +574,12 @@ def main():
             discovery_checkpoint = check(rr + "/checkpoint", budgets + "/{budget}/checkpoint")
             discovery_template = schedule_template + "/discovery"
             discovery_query = {"snapshot": discovery_checkpoint["data"]["snapshot"],
-                               "as_of": "2026-11-09", "account_id": ra, "offset": 0, "limit": 100}
+                               "as_of": schedule_today, "account_id": ra, "offset": 0, "limit": 100}
             discovery_path = schedule_path + "/discovery"
             discovered = check(discovery_path + "?" + urllib.parse.urlencode(discovery_query), discovery_template)["data"]
             suggestion = next(row for row in discovered["suggestions"] if row["payee_id"] == discovery_payee)
             assert suggestion["amount"] == -765 and suggestion["date"]["frequency"] == "weekly"
-            assert discovered["as_of"] == "2026-11-09"
+            assert discovered["as_of"] == schedule_today
             assert check(rr + "/checkpoint", budgets + "/{budget}/checkpoint") == discovery_checkpoint
             for invalid in ({**discovery_query, "limit": 0}, {**discovery_query, "as_of": "invalid"},
                             {key: value for key, value in discovery_query.items() if key != "snapshot"}):
@@ -645,36 +648,6 @@ def main():
             # Genuine released Android work validates the public handoff contract,
             # including dense order keys returned by the ordinary companion view.
             fresh_installation()
-            legacy_dir = project / "tests/fixtures/android-upgrade"
-            legacy = json.loads((legacy_dir / "pending.state.json").read_text())
-            staged = check(imports + "/actual", imports + "/actual", "POST",
-                           (legacy_dir / "pending.zip").read_bytes(),
-                           {"Idempotency-Key": "android-source", "Content-Type": "application/zip"}, 201)["data"]
-            check(imports + "/" + staged["id"] + "/activate", imports + "/{id}/activate", "POST", {},
-                  {"Idempotency-Key": "android-activate"}, 201)
-            discovery = "/api/v1/android-upgrade/sources"
-            source = {"file_id": legacy["budget"]["fileId"], "group_id": legacy["budget"]["groupId"]}
-            candidates = check(discovery + "?" + urllib.parse.urlencode(source), discovery)["data"]
-            candidate = next(item for item in candidates if item["id"] == staged["budget_id"])
-            check(discovery + "?file_id=invalid&group_id=" + source["group_id"], discovery, expected=400)
-            upgrade_root = budgets + "/" + candidate["id"]
-            upgrade_path = upgrade_root + "/android-upgrade/operations"
-            upgrade_template = budgets + "/{budget}/android-upgrade/operations"
-            body_schema = contract["paths"][upgrade_template]["post"]["requestBody"]["content"]["application/json"]["schema"]
-            body_validator = Draft202012Validator({**body_schema, "components": contract["components"]}, format_checker=FormatChecker())
-            for operation in legacy["pending"]:
-                handoff = {"source": source, "epoch": candidate["epoch"], "operation": operation}
-                body_validator.validate(handoff)
-                headers = {"Idempotency-Key": operation["id"]}
-                check(upgrade_path, upgrade_template, "POST", handoff,
-                      {**headers, "X-Actual-Receipt-Only": "true"}, 404)
-                outcome = check(upgrade_path, upgrade_template, "POST", handoff, headers)
-                replay = check(upgrade_path, upgrade_template, "POST", handoff,
-                               {**headers, "X-Actual-Receipt-Only": "true"})
-                assert replay == outcome, "Original operation receipt changed"
-            check(upgrade_root + "/companion?account_id=" + legacy["accountId"], budgets + "/{budget}/companion")
-            check(upgrade_path, upgrade_template, "POST", handoff,
-                  {**headers, "X-Actual-Edit-Clock": "2026-11-08T23:50:10.000Z-0000-bbbbbbbbbbbbbbbb"}, 400)
             # Retired envelope/template routes stay unavailable; tracking allocation
             # contracts and their financial parity remain exercised independently.
             for suffix in ["/budget/templates", "/budget/templates/parse", "/budget/templates/projection",

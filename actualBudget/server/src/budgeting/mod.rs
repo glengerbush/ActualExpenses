@@ -13,8 +13,7 @@ use axum::{
     routing::get,
 };
 pub use import::{
-    clock as import_clock, convert as convert_actual, enrich as enrich_legacy_imports,
-    install as install_actual, validate,
+    clock as import_clock, convert as convert_actual, install as install_actual, validate,
 };
 use rusqlite::{Connection, params, params_from_iter};
 use serde::Deserialize;

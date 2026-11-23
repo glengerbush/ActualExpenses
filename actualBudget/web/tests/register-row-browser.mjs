@@ -159,7 +159,9 @@ try {
   );
   await expect(expense.getByLabel("Date", { exact: true })).toBeFocused();
   await expense.getByLabel("Amount", { exact: true }).fill("15.00");
-  await expect(expense.getByLabel("Notes", { exact: true })).toHaveCount(0);
+  await expect(
+    expense.getByLabel("Notes (optional)", { exact: true }),
+  ).toBeVisible();
   await expense
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();

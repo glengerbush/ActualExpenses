@@ -37,6 +37,9 @@ Every manually recorded transaction. There is no cleared, uncleared, pending-pay
 A transaction addition, modification, or deletion saved on a device that has not yet been confirmed by the budget server. “Edits” includes deletions when discussing sync behavior. Delivery is silent; pending is an internal queue state, not a transaction status.
 _Avoid_: Synced transaction
 
+**Retained import**:
+An original uploaded source file kept with its review report and prepared conversion. Activation and merge validate the original bytes. An obsolete unactivated review requires an explicit new upload intent; committed receipts and activated reviews remain unchanged.
+
 **Cached view**:
 A previously retrieved view of budget information available on a device while disconnected. It can be older than the current budget and is not a separate authoritative budget.
 

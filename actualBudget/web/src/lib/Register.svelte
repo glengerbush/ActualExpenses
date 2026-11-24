@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { readPendingChanges } from "./offline/pending-changes";
   import { historyOwner } from "./history-owner";
   import {
     readBudget,
@@ -7,7 +8,6 @@
     saveView,
   } from "./offline/cache";
   import {
-    entries,
     receipts,
     deleteOfflineExpense,
     retryEntry,
@@ -101,33 +101,21 @@
   let mounted = true;
   async function readPending() {
     try {
-      const [items, acknowledged] = await Promise.all([
-        entries(budgetId),
-        receipts(budgetId),
-      ]);
+      const changes = await readPendingChanges(budgetId);
       if (!mounted) return;
+      const { entries: items, receipts: acknowledged } = changes;
       const oldDraft = readTransactionDraft(budgetId);
-      if (oldDraft?.pending && recoveredPending) {
-        const owned =
-          items.find((item) => item.key === oldDraft.draftId)?.pending ??
-          acknowledged.find((item) => item.key === oldDraft.draftId)?.pending;
-        if (owned && sameMutation(owned, oldDraft.pending)) {
-          clearTransactionDraft(oldDraft, true);
-          recoveredPending = false;
-          showForm = false;
-          editing = null;
-        }
+      if (
+        oldDraft?.pending &&
+        recoveredPending &&
+        changes.releaseDraft(oldDraft)
+      ) {
+        recoveredPending = false;
+        showForm = false;
+        editing = null;
       }
       const oldAction = readRegisterAction(budgetId);
-      if (oldAction) {
-        const owned =
-          items.find((item) => item.key === oldAction.key)?.pending ??
-          acknowledged.find((item) => item.key === oldAction.key)?.pending;
-        if (owned && sameMutation(owned, oldAction)) {
-          clearRegisterAction(budgetId, oldAction);
-          pending = null;
-        }
-      }
+      if (oldAction && changes.releaseAction(oldAction)) pending = null;
       queue = items.filter(
         (item) => !accountId || item.row.account_id === accountId,
       );

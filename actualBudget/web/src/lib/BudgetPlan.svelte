@@ -28,6 +28,8 @@
   } from "./money";
   import {
     planningKey,
+    planningActions,
+    type PlanningAction,
     readPlanningDraft,
     type PlanningDraft,
     type PlanView,
@@ -457,15 +459,6 @@
     }
     if (!draft.pending) await send();
   }
-  const amounts = ["set"];
-  const categoryActions = ["set", "carryover"];
-  const labels: Record<string, string> = {
-    set: "Edit allocation",
-    carryover: "Carryover setting",
-    copy_previous: "Copy previous month",
-    undo: "Undo",
-    redo: "Redo",
-  };
   let current = $derived(view?.months[month]);
   function save(next: PlanningDraft | null) {
     if (localStorage.getItem(planningKey(budgetId)) !== checkpoint)
@@ -571,7 +564,7 @@
     month = date.toISOString().slice(0, 7);
     void refresh();
   }
-  function open(action: string, m: PlanMonth, category?: PlanCategory) {
+  function open(action: PlanningAction, m: PlanMonth, category?: PlanCategory) {
     if (!view || busy || storageBroken) return;
     if (draft) {
       error =
@@ -622,7 +615,10 @@
           throw new Error(
             "This budget was restored. Keep any needed values, discard this draft and reopen the current plan.",
           );
-        if (draft.method !== "tracking" || !labels[draft.action])
+        if (
+          draft.method !== "tracking" ||
+          !Object.hasOwn(planningActions, draft.action)
+        )
           throw new Error(
             "This saved action is no longer supported. Discard it and open the current plan.",
           );
@@ -632,11 +628,12 @@
           month: draft.month,
         };
         if (
-          categoryActions.includes(draft.action) ||
+          draft.action === "set" ||
+          draft.action === "carryover" ||
           (draft.action === "copy_previous" && draft.category)
         )
           body.category = draft.category;
-        if (amounts.includes(draft.action))
+        if (draft.action === "set")
           body.amount = parseAmount(draft.amount, draft.format);
         if (draft.action === "carryover") body.enabled = draft.enabled;
         let path = `/budgets/${budgetId}/budget`;
@@ -824,7 +821,9 @@
 {#snippet planEditor()}{#if draft && view}
     <section class="plan-form" aria-label="Saved budget change">
       <p>
-        {labels[draft.action] ?? "Retired saved action"} · {title(draft.month)}
+        {planningActions[draft.action] ?? "Retired saved action"} · {title(
+          draft.month,
+        )}
       </p>
       {#if draft.pending}
         <p role="status">

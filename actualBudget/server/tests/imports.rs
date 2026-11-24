@@ -1023,3 +1023,159 @@ fn imported_null_sort_position_stays_below_negative_and_signed_zero_positions() 
     assert!(rows[1]["sort_order"].as_i64().unwrap() > rows[2]["sort_order"].as_i64().unwrap());
     assert!(rows[2]["sort_order"].as_i64().unwrap() > rows[3]["sort_order"].as_i64().unwrap());
 }
+
+// Simulate an obsolete retained review in a disposable installation. The public
+// upload/activate/merge contract must preserve bytes and receipts, not patch domains.
+fn obsolete_review(mut server: Server, id: &str) -> Server {
+    server.process.kill().unwrap();
+    server.process.wait().unwrap();
+    let db = rusqlite::Connection::open(server.data.path().join("actualbudget.sqlite3")).unwrap();
+    db.execute(
+        "UPDATE staged_imports SET conversion=json_remove(conversion,'$.rules_version'),report=json_set(report,'$.obsolete_review',true) WHERE id=?1",
+        [id],
+    ).unwrap();
+    drop(db);
+    let data = std::mem::replace(&mut server.data, tempfile::tempdir().unwrap());
+    Server::with_data(data)
+}
+
+#[test]
+fn obsolete_review_requires_new_upload_intent_and_keeps_original_receipt_and_bytes() {
+    let server = Server::start();
+    let original: Value = upload(&server, "review-original", ARCHIVE.to_vec())
+        .json()
+        .unwrap();
+    let id = original["data"]["id"].as_str().unwrap();
+    let budget = original["data"]["budget_id"].as_str().unwrap();
+    let server = obsolete_review(server, id);
+    let stage_path = format!("/api/v1/imports/{id}");
+    let stale: Value = server.get(&stage_path).json().unwrap();
+    assert_eq!(
+        upload(&server, "review-original", ARCHIVE.to_vec())
+            .json::<Value>()
+            .unwrap(),
+        original
+    );
+    assert_eq!(server.get(&stage_path).json::<Value>().unwrap(), stale);
+    let rejected = server.post(
+        &format!("{stage_path}/activate"),
+        "stale-activation",
+        json!({}),
+    );
+    assert_eq!(rejected.status(), 409);
+    assert_eq!(
+        rejected.json::<Value>().unwrap()["error"]["code"],
+        "import_requires_review"
+    );
+    assert_eq!(
+        server.get("/api/v1/budgets").json::<Value>().unwrap()["data"],
+        json!([])
+    );
+    assert_eq!(
+        server
+            .get(&format!("{stage_path}/original.zip"))
+            .bytes()
+            .unwrap()
+            .as_ref(),
+        ARCHIVE
+    );
+    assert_eq!(
+        server
+            .post(
+                "/api/v1/budgets",
+                "empty-budget",
+                json!({"id":budget,"name":"Empty"})
+            )
+            .status(),
+        201
+    );
+    let checkpoint = format!("/api/v1/budgets/{budget}/checkpoint");
+    let before: Value = server.get(&checkpoint).json().unwrap();
+    let rejected = server.post(
+        &format!("{stage_path}/merge"),
+        "stale-merge",
+        json!({"budget_id":budget,"epoch":before["data"]["epoch"]}),
+    );
+    assert_eq!(rejected.status(), 409);
+    assert_eq!(
+        rejected.json::<Value>().unwrap()["error"]["code"],
+        "import_requires_review"
+    );
+    assert_eq!(server.get(&checkpoint).json::<Value>().unwrap(), before);
+    let reviewed: Value = upload(&server, "review-again", ARCHIVE.to_vec())
+        .json()
+        .unwrap();
+    assert_eq!(reviewed, original);
+    assert_eq!(server.get(&stage_path).json::<Value>().unwrap(), original);
+    let activated = server.post(
+        &format!("{stage_path}/activate"),
+        "activate-reviewed",
+        json!({}),
+    );
+    assert_eq!(activated.status(), 201, "{}", activated.text().unwrap());
+    assert_eq!(
+        upload(&server, "review-original", ARCHIVE.to_vec())
+            .json::<Value>()
+            .unwrap(),
+        original
+    );
+}
+
+#[test]
+fn activated_review_stays_immutable_while_merge_revalidates_original() {
+    let server = Server::start();
+    let original: Value = upload(&server, "activated-review", ARCHIVE.to_vec())
+        .json()
+        .unwrap();
+    let id = original["data"]["id"].as_str().unwrap();
+    let budget = original["data"]["budget_id"].as_str().unwrap();
+    let stage_path = format!("/api/v1/imports/{id}");
+    let activation: Value = server
+        .post(
+            &format!("{stage_path}/activate"),
+            "activate-once",
+            json!({}),
+        )
+        .json()
+        .unwrap();
+    let server = obsolete_review(server, id);
+    let retained: Value = server.get(&stage_path).json().unwrap();
+    assert_eq!(
+        upload(&server, "activated-new-upload", ARCHIVE.to_vec())
+            .json::<Value>()
+            .unwrap(),
+        retained
+    );
+    assert_eq!(
+        server
+            .post(
+                &format!("{stage_path}/activate"),
+                "activate-once",
+                json!({})
+            )
+            .json::<Value>()
+            .unwrap(),
+        activation
+    );
+    let checkpoint: Value = server
+        .get(&format!("/api/v1/budgets/{budget}/checkpoint"))
+        .json()
+        .unwrap();
+    let body = json!({"budget_id":budget,"epoch":checkpoint["data"]["epoch"]});
+    let merged = server.post(
+        &format!("{stage_path}/merge"),
+        "merge-original",
+        body.clone(),
+    );
+    assert_eq!(merged.status(), 200, "{}", merged.text().unwrap());
+    let merged: Value = merged.json().unwrap();
+    assert_eq!(merged["data"]["import_result"]["added"], 0);
+    assert_eq!(
+        server
+            .post(&format!("{stage_path}/merge"), "merge-original", body)
+            .json::<Value>()
+            .unwrap(),
+        merged
+    );
+    assert_eq!(server.get(&stage_path).json::<Value>().unwrap(), retained);
+}

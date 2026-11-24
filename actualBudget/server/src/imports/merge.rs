@@ -32,11 +32,7 @@ pub(super) async fn merge(
     Ok(data(store.run(move |db| store::write(db, &format!("POST /imports/{id}/merge"), &key, &payload, |db| {
         crate::lifecycle::require_epoch(db, &destination.budget_id, Some(&destination.epoch))?;
         let stage = read_import(db, &id)?;
-        if stage["status"] == "blocked" {
-            return Err(Error::conflict("Resolve this archive's conversion requirements before importing."));
-        }
-        let original: Vec<u8> = db.query_row("SELECT original FROM staged_imports WHERE id=?1", [&id], |r| r.get(0))?;
-        let (_, plan) = inspect_original(&original, &stage["report"])?;
+        let plan = prepared::load(db, &stage)?;
         let source = stage["report"]["source"]["id"].as_str()
             .filter(|id| !id.is_empty()).unwrap_or(stage["report"]["archive_sha256"].as_str().unwrap());
         let same_source: bool = db.query_row("SELECT EXISTS(SELECT 1 FROM imported_sources WHERE budget_id=?1 AND source_local_id=?2)", params![destination.budget_id, source], |r| r.get(0))?;

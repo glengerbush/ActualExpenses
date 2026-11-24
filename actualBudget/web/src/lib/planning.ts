@@ -31,16 +31,24 @@ export interface PlanView {
   epoch: string;
   edit_clock: string;
 }
+export const planningActions = {
+  set: "Edit allocation",
+  carryover: "Carryover setting",
+  copy_previous: "Copy previous month",
+  undo: "Undo",
+  redo: "Redo",
+} as const;
+export type PlanningAction = keyof typeof planningActions;
 export interface PlanningDraft {
   version: 1;
   epoch: string;
   month: string;
-  action: string;
+  action: PlanningAction;
   category: string;
   amount: string;
   quick?: boolean;
   quickClock?: string;
-  method: "tracking" | "envelope";
+  method: "tracking";
   enabled: boolean;
   format: AmountFormat;
   pending: PendingMutation | null;
@@ -64,24 +72,8 @@ export function readPlanningDraft(budget: string): PlanningDraft | null {
     value.version !== 1 ||
     !/^[0-9a-f]{32}$/.test(value.epoch) ||
     !/^\d{4}-(0[1-9]|1[0-2])$/.test(value.month) ||
-    ![
-      "set",
-      "carryover",
-      "copy_previous",
-      "copy_year",
-      "zero",
-      "hold",
-      "reset_hold",
-      "move",
-      "cover",
-      "cover_overbudgeted",
-      "notes",
-      "category_notes",
-      "method",
-      "undo",
-      "redo",
-    ].includes(value.action) ||
-    !["tracking", "envelope"].includes(value.method) ||
+    !Object.hasOwn(planningActions, value.action) ||
+    value.method !== "tracking" ||
     !["amount", "category"].every(
       (k) => typeof value[k as keyof PlanningDraft] === "string",
     ) ||

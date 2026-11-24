@@ -96,3 +96,30 @@ transaction notes, color controls, unified history, budget rows, completed expen
 tracking plans, register recovery, offline delivery and iPhone PWA. Public HTTP
 OpenAPI contract checks passed. Their schedule-discovery history now follows the
 server's current date instead of an expired fixed window. No emulator run performed.
+
+## Import preparation and pending-change ownership
+
+- `imports/prepared.rs` owns source dispatch, retained-review validation and whole
+  re-review for Actual, YNAB4 and nYNAB. Upload, activation and merge share that
+  module. Removed endpoint-owned domain backfills and the second ordering decode.
+  Both supported patches use the complete conversion shape. Unsupported retained
+  reviews require a new upload intent; exact original receipts still replay first.
+  Activated reviews stay immutable, and merge revalidates their original bytes.
+- `offline/pending-changes.ts` owns editor-to-outbox handoff, unsent replacement
+  merging, draft acknowledgement and shared-intent recovery. Editor and register
+  views render the outcomes. IndexedDB still owns atomic replacement/claim races;
+  mutation identity, dependencies, local drafts and receipts keep their formats.
+- Budget-plan draft validation, labels and action types share one supported-action
+  policy. Removed retired draft actions and the envelope draft type. Kept allocation
+  autosave separate from ordered arrangement writes: they have different follow-up
+  and conflict behavior, so a shared save framework would add callback choreography.
+
+No visible UI changes, version bump, commit or push are included in this pass.
+
+Validation: 19 focused server tests, 18 browser/HTTP scenarios, public OpenAPI
+contract smoke, strict Clippy, web typecheck/build and formatting passed. The
+register-recovery scenario initially timed out during initial pagination loading;
+its complete rerun passed with no page errors. Existing financial, source ordering,
+offline replacement/claim, cross-tab receipt and iPhone capture assertions remain.
+Svelte analysis reported no issues; suggestions concerned untouched local Map/Set
+and DOM-reference usage (the analyzer's optional network lookup timed out).

@@ -384,9 +384,16 @@ try {
   await expect(page.getByLabel("Duplicate merge review")).toContainText(
     "-12.50",
   );
-  await expect(page.getByLabel("Duplicate merge review")).not.toContainText(
-    "Duplicate purchased",
-  );
+  for (const title of ["Before merge", "After merge"]) {
+    await expect(
+      page
+        .getByLabel("Duplicate merge review")
+        .locator("details")
+        .filter({
+          has: page.getByText(title, { exact: true }),
+        }),
+    ).toContainText("Duplicate purchased");
+  }
   await page.screenshot({
     path: new URL(
       "../test-results/transaction-import/merge-desktop.png",
@@ -398,10 +405,14 @@ try {
   await expect(
     page.getByText("Merge duplicate entries saved.", { exact: false }),
   ).toBeVisible();
-  expect((await call(`/budgets/${budget}/transactions`)).balances.total).toBe(
-    -1975,
-  );
-  expect((await call(`/budgets/${budget}/transactions`)).data).toHaveLength(2);
+  const merged = await call(`/budgets/${budget}/transactions`);
+  expect(merged.balances.total).toBe(-1975);
+  expect(merged.data).toHaveLength(2);
+  expect(
+    merged.data.find(
+      (row) => row.amount === first.amount && row.date === first.date,
+    )?.notes,
+  ).toBe("Duplicate purchased");
   expect(errors).toEqual([]);
   console.log(
     "PASS file mapping/reload, source purchases, committed lost ACK/exact retry and CSV download",

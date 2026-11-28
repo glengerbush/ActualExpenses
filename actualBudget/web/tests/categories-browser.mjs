@@ -296,6 +296,13 @@ try {
   await page
     .getByRole("button", { name: "Delete and reassign", exact: true })
     .click();
+  // A click dispatches the request; wait for its completed UI state before reading storage.
+  await expect(
+    page.getByRole("textbox", {
+      name: "Category name Null order renamed",
+      exact: true,
+    }),
+  ).toHaveCount(0);
   expect((await call(base + "/categories/" + nullCategory.id)).deleted).toBe(
     true,
   );

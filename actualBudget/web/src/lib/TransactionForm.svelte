@@ -1159,6 +1159,7 @@
   {#if draft}
     <label for="transaction-payee">{t("Payee")}</label>
     <PayeePicker
+      compact={expenseOnly}
       id="transaction-payee"
       payees={availablePayees}
       value={draft.fields.payee}

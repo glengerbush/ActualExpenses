@@ -1,30 +1,21 @@
-# iPhone payee picker recovery
+# iPhone payee picker
 
-The reported symptom was that typing a new payee closed the dropdown; clearing
-text brought back the disabled creation option. The user also observed it after
-keyboard dismissal. We could not reproduce that exact typing-triggered dismissal
-on a physical iPhone in this environment.
+On the installed iPhone companion at widths up to 700px, focusing Payee expands
+its existing input into a viewport-sized picker. The input stays at the top,
+with scrollable options below and Create payee at the end. The original input
+stays mounted so opening the picker does not interrupt keyboard focus.
 
-Two concrete weaknesses were verified: a visual-viewport keyboard resize could
-leave Create outside the visible area, and a native input blur unconditionally
-closed the menu. The blank-name creation option correctly remains disabled.
+The picker follows visual-viewport resize and pan events, respects device safe
+areas, and remains open when the software keyboard is dismissed. Selection or
+the back arrow closes it; Escape cancels the search. Desktop and full web payee
+selection retain the existing anchored popover.
 
-The picker now dismisses on an outside pointer or focus moving to another control,
-selection, Tab or Escape. A blur without a new focused control retains the typed
-name and options. Each edit restores the native popover if needed. Positioning
-uses the visual viewport and measured menu height; resize, pan and filtered-content
-changes keep options next to the input. Observer/listener cleanup is scoped to the
-open menu, with no polling or API changes.
+Regression checks exercise real HTTP through iPhone standalone routing, including
+payee creation and expense persistence. Keyboard resize/pan is modeled through
+the visual viewport; assertions require the input at the top, options below it,
+and long lists scrolling independently. Tests also cover keyboard dismissal,
+clear/retype, closing, desktop keyboard selection, duplicate names and failed
+request recovery. Chromium and WebKit pass the picker and complete iPhone flows.
 
-The visual/layout viewport distinction follows the
-[VisualViewport API](https://developer.mozilla.org/en-US/docs/Web/API/VisualViewport).
-
-Regression coverage runs through the existing payee-picker browser command, using
-real HTTP, iPhone standalone routing and touch selection. It models visual viewport
-resize/pan and keyboard dismissal, verifies clear/retype behavior and persisted
-payee/expense results, and retains desktop keyboard, duplicate, offline and lost
-response checks. The new viewport assertion fails against the original picker.
-Both Chromium and WebKit runs pass with the change, as do both complete iPhone PWA
-suites, Svelte checks, analyzer and production build. Mobile rendering was inspected.
-Headless visual viewport simulation is not a physical iOS software-keyboard test;
-confirmation on the user's iPhone remains necessary for the reported dismissal.
+Headless engines do not display the physical iOS keyboard. The user's iPhone
+remains the final check for native keyboard behavior.

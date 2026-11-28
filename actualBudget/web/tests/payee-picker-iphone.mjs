@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { expect } from "@playwright/test";
 
 export async function checkIphonePayeePicker(browser, url, call, root) {
@@ -15,6 +16,11 @@ export async function checkIphonePayeePicker(browser, url, call, root) {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   try {
+    for (let index = 0; index < 30; index++)
+      await call(root + "/payees", {
+        id: randomUUID(),
+        name: `Shop ${String(index).padStart(2, "0")}`,
+      });
     await page.goto(url);
     await page
       .getByRole("button", { name: "+ Add expense", exact: true })
@@ -29,8 +35,7 @@ export async function checkIphonePayeePicker(browser, url, call, root) {
     await input.tap();
     await input.pressSequentially(name);
     await expect(create).toBeEnabled();
-    const field = await input.boundingBox();
-    const keyboardTop = field.y + field.height + 8;
+    const keyboardTop = 360;
     // Headless engines have no software keyboard. Model its actual browser seam:
     // visual viewport resize/pan while the layout viewport stays unchanged.
     await page.evaluate((height) => {
@@ -43,7 +48,13 @@ export async function checkIphonePayeePicker(browser, url, call, root) {
     await expect
       .poll(async () => {
         const r = await create.boundingBox();
-        return !!r && r.y >= 8 && r.y + r.height <= keyboardTop - 8;
+        const field = await input.boundingBox();
+        return (
+          !!r &&
+          field.y === 8 &&
+          r.y >= field.y + field.height &&
+          r.y + r.height <= keyboardTop - 8
+        );
       })
       .toBe(true);
     // Pan the visual viewport (e.g. Safari scrolls the focused input above its keyboard).
@@ -61,9 +72,29 @@ export async function checkIphonePayeePicker(browser, url, call, root) {
     await expect
       .poll(async () => {
         const r = await create.boundingBox();
-        return !!r && r.y >= 128 && r.y + r.height <= keyboardTop - 8;
+        const field = await input.boundingBox();
+        return (
+          !!r &&
+          field.y === 128 &&
+          r.y >= field.y + field.height &&
+          r.y + r.height <= keyboardTop - 8
+        );
       })
       .toBe(true);
+    await page.screenshot({ path: "../../.scratch/payee-iphone-keyboard.png" });
+    await input.fill("");
+    const list = page.getByRole("listbox");
+    expect(await list.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(
+      true,
+    );
+    await list.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    expect((await input.boundingBox()).y).toBe(128);
+    await expect(
+      page.getByRole("option", { name: "Shop 29", exact: true }),
+    ).toBeInViewport();
+    await input.fill(name);
     // Native keyboard dismissal can blur the input without moving focus to another control.
     await input.evaluate((element) => element.blur());
     await expect(create).toBeVisible();
@@ -104,9 +135,7 @@ export async function checkIphonePayeePicker(browser, url, call, root) {
     await page.getByLabel("Amount", { exact: true }).focus();
     await expect(page.getByRole("listbox")).toHaveCount(0);
     await input.tap();
-    await page
-      .getByRole("heading", { name: "Add transaction", exact: true })
-      .tap();
+    await page.getByRole("button", { name: "Close payee picker" }).tap();
     await expect(page.getByRole("listbox")).toHaveCount(0);
     expect(errors).toEqual([]);
   } finally {

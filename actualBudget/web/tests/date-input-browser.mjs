@@ -1,4 +1,4 @@
-import { chromium, expect } from "@playwright/test";
+import { chromium, webkit, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { startServer } from "./server.mjs";
@@ -24,14 +24,17 @@ async function write(path, body, method = "POST") {
 }
 let browser;
 try {
-  browser = await chromium.launch({
-    executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
-    args: [
-      "--no-sandbox",
-      "--no-proxy-server",
-      "--host-resolver-rules=MAP actualbudget.test 127.0.0.1",
-    ],
-  });
+  browser =
+    process.env.PWA_BROWSER === "webkit"
+      ? await webkit.launch()
+      : await chromium.launch({
+          executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
+          args: [
+            "--no-sandbox",
+            "--no-proxy-server",
+            "--host-resolver-rules=MAP actualbudget.test 127.0.0.1",
+          ],
+        });
   const errors = [];
   for (const format of [...new Set(fixture.cases.map((c) => c.format))]) {
     await server.stop();
@@ -69,22 +72,13 @@ try {
       { date_format: format },
       "PATCH",
     );
-    await page.goto(server.url);
+    await page.goto(api);
     expect(
       await page.evaluate(() => new Date().toISOString().slice(0, 10)),
     ).toBe(fixture.reference);
     expect(
       Math.abs((await page.evaluate(() => Date.now())) - Date.now()),
     ).toBeLessThan(60_000);
-    await page.evaluate(
-      ({ budget, account }) =>
-        localStorage.setItem(
-          "actualBudget.selection",
-          JSON.stringify({ budgetId: budget, accountId: account }),
-        ),
-      { budget, account },
-    );
-    await page.reload();
     await expect(page.getByLabel("Show through date")).toHaveAttribute(
       "placeholder",
       format.toUpperCase(),
@@ -96,6 +90,35 @@ try {
         .getByRole("button", { name: "Add transaction", exact: true })
         .click();
       const date = page.getByLabel("Date", { exact: true });
+      if (index === 0) {
+        const editor = page.locator("form").filter({ has: date });
+        const before = await editor.boundingBox();
+        const picker = editor.getByRole("button", {
+          name: "Choose date",
+          exact: true,
+        });
+        await picker.click();
+        const calendar = editor.locator(".calendar");
+        await expect(calendar).toBeVisible();
+        const after = await editor.boundingBox();
+        expect(after.height).toBe(before.height);
+        expect(
+          await calendar.evaluate((el) => el.matches(":popover-open")),
+        ).toBe(true);
+        await page.screenshot({ path: "../../.scratch/date-overlay.png" });
+        await picker.click();
+        await expect(calendar).toHaveCount(0);
+        await picker.click();
+        await page.keyboard.press("ArrowRight");
+        await page.keyboard.press("Enter");
+        await expect(calendar).toHaveCount(0);
+        await picker.click();
+        await page.keyboard.press("Escape");
+        await expect(calendar).toHaveCount(0);
+        await picker.click();
+        await page.getByLabel("Amount", { exact: true }).click();
+        await expect(calendar).toHaveCount(0);
+      }
       await date.fill("");
       await date.pressSequentially(item.input);
       // Complete input stays untouched until blur; abbreviations must not interrupt typing.

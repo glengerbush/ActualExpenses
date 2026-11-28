@@ -8,6 +8,7 @@
     newName = "",
     disabled = false,
     canCreate = true,
+    compact = false,
     onselect,
     oncreate,
     onsearch,
@@ -18,6 +19,7 @@
     newName?: string;
     disabled?: boolean;
     canCreate?: boolean;
+    compact?: boolean;
     onselect: (id: string) => void;
     oncreate: (name: string) => Promise<void>;
     onsearch: (searching: boolean) => void;
@@ -26,6 +28,9 @@
     open = $state(false),
     active = $state(-1);
   let input: HTMLInputElement;
+  let wrapper: HTMLDivElement;
+  let mobile = $state(false);
+  const mobileOpen = $derived(open && mobile && !disabled);
   let menu = $state<HTMLDivElement>();
   let position = $state({ left: 0, top: 0, width: 0, height: 280 });
   const normalize = (text: string) =>
@@ -64,8 +69,17 @@
   ]);
   function positionMenu() {
     if (!input) return;
-    const rect = input.getBoundingClientRect();
     const viewport = window.visualViewport;
+    if (mobile) {
+      position = {
+        left: viewport?.offsetLeft ?? 0,
+        top: viewport?.offsetTop ?? 0,
+        width: viewport?.width ?? innerWidth,
+        height: viewport?.height ?? innerHeight,
+      };
+      return;
+    }
+    const rect = input.getBoundingClientRect();
     const left = (viewport?.offsetLeft ?? 0) + 8;
     const top = (viewport?.offsetTop ?? 0) + 8;
     const right = left + (viewport?.width ?? innerWidth) - 16;
@@ -97,11 +111,11 @@
   async function refreshMenu() {
     await tick();
     if (!open || disabled || !menu) return;
-    if (!menu.matches(":popover-open")) menu.showPopover();
+    if (!mobile && !menu.matches(":popover-open")) menu.showPopover();
     positionMenu();
   }
   function mountMenu(element: HTMLDivElement) {
-    element.showPopover();
+    if (!mobile) element.showPopover();
     const observer = new ResizeObserver(positionMenu);
     observer.observe(element);
     const viewport = window.visualViewport;
@@ -112,10 +126,19 @@
       observer.disconnect();
       viewport?.removeEventListener("resize", positionMenu);
       viewport?.removeEventListener("scroll", positionMenu);
-      element.hidePopover();
+      if (element.matches(":popover-open")) element.hidePopover();
     };
   }
   function dismissOutside(event: Event) {
+    // Keyboard dismissal can focus the document instead of another control.
+    if (
+      mobileOpen &&
+      (wrapper?.contains(event.target as Node) ||
+        (event.type === "focusin" &&
+          (event.target === document.body ||
+            event.target === document.documentElement)))
+    )
+      return;
     if (
       event.target instanceof Node &&
       event.target !== input &&
@@ -125,6 +148,7 @@
   }
   function show() {
     if (disabled) return;
+    if (!open) mobile = compact && matchMedia("(max-width: 700px)").matches;
     positionMenu();
     open = true;
     active = -1;
@@ -154,8 +178,16 @@
     onsearch(false);
     validity();
     open = false;
-    input?.focus();
+    if (mobile) input?.blur();
+    else input?.focus();
     open = false;
+  }
+  function cancel() {
+    open = false;
+    search = null;
+    onsearch(false);
+    validity();
+    if (mobile) input?.blur();
   }
   function keydown(event: KeyboardEvent) {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -176,10 +208,7 @@
       void choose(Math.max(0, active));
     } else if (event.key === "Escape") {
       event.preventDefault();
-      open = false;
-      search = null;
-      onsearch(false);
-      validity();
+      cancel();
     } else if (event.key === "Tab") open = false;
   }
 </script>
@@ -197,7 +226,34 @@
       positionMenu();
   }}
 />
-<div class="payee-picker">
+<div
+  class="payee-picker"
+  class:mobile-open={mobileOpen}
+  bind:this={wrapper}
+  style:left={mobileOpen ? `${position.left}px` : undefined}
+  style:top={mobileOpen ? `${position.top}px` : undefined}
+  style:width={mobileOpen ? `${position.width}px` : undefined}
+  style:height={mobileOpen ? `${position.height}px` : undefined}
+>
+  {#if mobileOpen}
+    <button
+      type="button"
+      class="close-picker"
+      aria-label="Close payee picker"
+      onpointerdown={(event) => event.preventDefault()}
+      onclick={cancel}
+    >
+      <svg
+        aria-hidden="true"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"><path d="m15 18-6-6 6-6" /></svg
+      >
+    </button>
+  {/if}
   <input
     {id}
     bind:this={input}
@@ -233,15 +289,15 @@
   {#if open && !disabled}
     <div
       bind:this={menu}
-      popover="manual"
+      popover={mobile ? undefined : "manual"}
       class="payee-menu"
       id={`${id}-options`}
       role="listbox"
       aria-label="Payees"
-      style:left={`${position.left}px`}
-      style:top={`${position.top}px`}
-      style:width={`${position.width}px`}
-      style:max-height={`${position.height}px`}
+      style:left={mobile ? undefined : `${position.left}px`}
+      style:top={mobile ? undefined : `${position.top}px`}
+      style:width={mobile ? undefined : `${position.width}px`}
+      style:max-height={mobile ? undefined : `${position.height}px`}
       {@attach mountMenu}
     >
       {#each options as option, index (option.id)}
@@ -316,5 +372,42 @@
     font-size: 0.875rem;
     padding: 0.5rem;
     margin: 0;
+  }
+  .mobile-open {
+    position: fixed;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-sizing: border-box;
+    padding: max(8px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
+    background: var(--surface);
+  }
+  .mobile-open input {
+    flex: 0 0 44px;
+    margin-left: 52px;
+    width: calc(100% - 52px);
+    padding-right: 0.65rem;
+  }
+  .close-picker {
+    position: absolute;
+    top: max(8px, env(safe-area-inset-top));
+    left: max(8px, env(safe-area-inset-left));
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+  }
+  .mobile-open .chevron {
+    display: none;
+  }
+  .mobile-open .payee-menu {
+    position: static;
+    flex: 1;
+    min-height: 0;
+    overscroll-behavior: contain;
   }
 </style>

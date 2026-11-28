@@ -33,6 +33,55 @@
   let month = $state(today().slice(0, 7));
   let input: HTMLInputElement | undefined;
   let calendar: HTMLDivElement | undefined;
+  let position = $state({ left: 0, top: 0, width: 352, height: 600 });
+  function positionCalendar() {
+    if (!calendar || !input) return;
+    const viewport = window.visualViewport;
+    const left = (viewport?.offsetLeft ?? 0) + 8;
+    const top = (viewport?.offsetTop ?? 0) + 8;
+    const width = (viewport?.width ?? innerWidth) - 16;
+    const height = (viewport?.height ?? innerHeight) - 16;
+    const anchor = input.getBoundingClientRect();
+    const calendarHeight = Math.min(
+      calendar.getBoundingClientRect().height,
+      height,
+    );
+    const bottom = top + height;
+    position = {
+      left: Math.max(
+        left,
+        Math.min(anchor.left, left + width - Math.min(352, width)),
+      ),
+      top: Math.max(
+        top,
+        Math.min(
+          anchor.bottom + 4 + calendarHeight <= bottom
+            ? anchor.bottom + 4
+            : anchor.top - calendarHeight - 4,
+          bottom - calendarHeight,
+        ),
+      ),
+      width: Math.min(352, width),
+      height,
+    };
+  }
+  function mountCalendar(element: HTMLDivElement) {
+    calendar = element;
+    element.showPopover();
+    positionCalendar();
+    const observer = new ResizeObserver(positionCalendar);
+    observer.observe(element);
+    const viewport = window.visualViewport;
+    viewport?.addEventListener("resize", positionCalendar);
+    viewport?.addEventListener("scroll", positionCalendar);
+    return () => {
+      observer.disconnect();
+      viewport?.removeEventListener("resize", positionCalendar);
+      viewport?.removeEventListener("scroll", positionCalendar);
+      if (element.matches(":popover-open")) element.hidePopover();
+      calendar = undefined;
+    };
+  }
   const pattern = $derived(format ?? preferences.shared.date_format);
   const firstDay = $derived(preferences.shared.first_day_of_week);
   const weeks = $derived(calendarWeeks(month, firstDay));
@@ -79,7 +128,7 @@
     await tick();
     calendar
       ?.querySelector<HTMLButtonElement>(`[data-date="${cursor}"]`)
-      ?.focus();
+      ?.focus({ preventScroll: true });
   }
   async function toggle() {
     open = !open;
@@ -148,6 +197,17 @@
   }
 </script>
 
+<svelte:window onresize={positionCalendar} />
+<svelte:document
+  onscrollcapture={(event) => {
+    if (
+      calendar &&
+      event.target instanceof Node &&
+      !calendar.contains(event.target)
+    )
+      positionCalendar();
+  }}
+/>
 <div class="date-field">
   <label for={id}>{label}</label>
   <div class="date-control">
@@ -200,12 +260,15 @@
   {#if open}<div
       class="calendar"
       id={`${id}-calendar`}
-      {@attach (element) => {
-        calendar = element;
-        return () => {
-          calendar = undefined;
-        };
+      popover="auto"
+      style:left={`${position.left}px`}
+      style:top={`${position.top}px`}
+      style:width={`${position.width}px`}
+      style:max-height={`${position.height}px`}
+      ontoggle={(event) => {
+        if (event.newState === "closed") open = false;
       }}
+      {@attach mountCalendar}
     >
       <div class="calendar-heading">
         <button
@@ -269,3 +332,15 @@
       >
     </div>{/if}
 </div>
+
+<style>
+  .calendar {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    color: var(--text);
+  }
+</style>

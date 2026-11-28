@@ -1,8 +1,10 @@
-import { chromium, expect } from "@playwright/test";
+import { checkIphonePayeePicker } from "./payee-picker-iphone.mjs";
+import { chromium, webkit, expect } from "@playwright/test";
 import { startServer } from "./server.mjs";
 import { randomUUID } from "node:crypto";
 const server = await startServer();
-const api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
+const url = server.url.replace("actualbudget.test", "127.0.0.1");
+const api = url + "/api/v1";
 async function call(path, body) {
   const r = await fetch(api + path, {
     method: body === undefined ? "GET" : "POST",
@@ -29,18 +31,21 @@ try {
   });
   for (const name of ["Coffee House", "Coffee Corner", "Supermarket"])
     await call(root + "/payees", { id: randomUUID(), name });
-  browser = await chromium.launch({
-    executablePath: process.env.CHROMIUM_PATH,
-    args: [
-      "--no-sandbox",
-      "--no-proxy-server",
-      "--host-resolver-rules=MAP actualbudget.test 127.0.0.1",
-    ],
-  });
+  browser =
+    process.env.PWA_BROWSER === "webkit"
+      ? await webkit.launch()
+      : await chromium.launch({
+          executablePath: process.env.CHROMIUM_PATH,
+          args: [
+            "--no-sandbox",
+            "--no-proxy-server",
+            "--host-resolver-rules=MAP actualbudget.test 127.0.0.1",
+          ],
+        });
   const p = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const errors = [];
   p.on("pageerror", (e) => errors.push(e.message));
-  await p.goto(server.url);
+  await p.goto(url);
   await p
     .getByRole("button", { name: "Add Transaction", exact: false })
     .click();
@@ -207,8 +212,9 @@ try {
       .getByRole("option", { name: "Create payee “Offline Shop”" }),
   ).toBeDisabled();
   expect(errors).toEqual([]);
+  await checkIphonePayeePicker(browser, url, call, root);
   console.log(
-    "PASS live matching, immediate creation, transaction save, keyboard selection, reload/retry without duplicates, mobile and offline",
+    "PASS live matching, immediate creation, transaction save, keyboard selection, reload/retry without duplicates, iPhone keyboard resize/pan/dismissal, mobile and offline",
   );
 } finally {
   await browser?.close();

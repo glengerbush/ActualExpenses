@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import type { Reference } from "./register-api";
   let {
     id,
@@ -62,27 +63,72 @@
     },
   ]);
   function positionMenu() {
+    if (!input) return;
     const rect = input.getBoundingClientRect();
-    const below = innerHeight - rect.bottom - 8;
-    const height = Math.min(280, Math.max(below, rect.top - 8));
+    const viewport = window.visualViewport;
+    const left = (viewport?.offsetLeft ?? 0) + 8;
+    const top = (viewport?.offsetTop ?? 0) + 8;
+    const right = left + (viewport?.width ?? innerWidth) - 16;
+    const bottom = top + (viewport?.height ?? innerHeight) - 16;
+    const width = Math.max(
+      0,
+      Math.min(Math.max(rect.width, 240), right - left),
+    );
+    const below = Math.max(0, bottom - rect.bottom - 4);
+    const above = Math.max(0, rect.top - top - 4);
+    const height = Math.min(280, Math.max(below, above));
+    // Use the rendered height: a filtered single option must stay by the input,
+    // not at the top of the space reserved for a full list.
+    const measured = menu?.getBoundingClientRect().height ?? height;
+    const actualHeight = Math.min(height, measured);
     position = {
-      left: Math.max(
-        8,
-        Math.min(rect.left, innerWidth - Math.max(rect.width, 240) - 8),
+      left: Math.max(left, Math.min(rect.left, right - width)),
+      top: Math.max(
+        top,
+        Math.min(
+          below >= actualHeight ? rect.bottom + 4 : rect.top - actualHeight - 4,
+          bottom - actualHeight,
+        ),
       ),
-      top:
-        below >= Math.min(200, height)
-          ? rect.bottom + 4
-          : Math.max(8, rect.top - height - 4),
-      width: Math.min(Math.max(rect.width, 240), innerWidth - 16),
+      width,
       height,
     };
+  }
+  async function refreshMenu() {
+    await tick();
+    if (!open || disabled || !menu) return;
+    if (!menu.matches(":popover-open")) menu.showPopover();
+    positionMenu();
+  }
+  function mountMenu(element: HTMLDivElement) {
+    element.showPopover();
+    const observer = new ResizeObserver(positionMenu);
+    observer.observe(element);
+    const viewport = window.visualViewport;
+    viewport?.addEventListener("resize", positionMenu);
+    viewport?.addEventListener("scroll", positionMenu);
+    positionMenu();
+    return () => {
+      observer.disconnect();
+      viewport?.removeEventListener("resize", positionMenu);
+      viewport?.removeEventListener("scroll", positionMenu);
+      element.hidePopover();
+    };
+  }
+  function dismissOutside(event: Event) {
+    if (
+      event.target instanceof Node &&
+      event.target !== input &&
+      !menu?.contains(event.target)
+    )
+      open = false;
   }
   function show() {
     if (disabled) return;
     positionMenu();
     open = true;
     active = -1;
+    void refreshMenu();
   }
   function validity() {
     input?.setCustomValidity(
@@ -144,6 +190,8 @@
   }}
 />
 <svelte:document
+  onpointerdown={dismissOutside}
+  onfocusin={dismissOutside}
   onscrollcapture={(event) => {
     if (open && event.target instanceof Node && !menu?.contains(event.target))
       positionMenu();
@@ -170,7 +218,6 @@
     onclick={() => {
       if (!open) show();
     }}
-    onblur={() => (open = false)}
     onkeydown={keydown}
   />
   <svg
@@ -195,10 +242,7 @@
       style:top={`${position.top}px`}
       style:width={`${position.width}px`}
       style:max-height={`${position.height}px`}
-      {@attach (element) => {
-        element.showPopover();
-        return () => element.hidePopover();
-      }}
+      {@attach mountMenu}
     >
       {#each options as option, index (option.id)}
         <button
